@@ -34,4 +34,4 @@ export const DOCS_PATH = '/docs/';
 export const OG_IMAGE_PATH = '/images/og.png';
 
 /** Supported platforms. */
-export const PLATFORMS = ['Windows', 'macOS', 'Linux', 'iPadOS'];
+export const PLATFORMS = ['Windows', 'macOS', 'Linux', 'Android', 'iPadOS'];

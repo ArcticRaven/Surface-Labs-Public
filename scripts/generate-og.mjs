@@ -37,7 +37,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   <!-- Headline -->
   <text x="80" y="290" fill="#eae5d3" font-family="Arial, sans-serif" font-size="66" font-weight="700">Node-based procedural</text>
   <text x="80" y="368" fill="#eae5d3" font-family="Arial, sans-serif" font-size="66" font-weight="700">PBR textures</text>
-  <text x="80" y="436" fill="#cec8ae" font-family="Arial, sans-serif" font-size="29">Windows, macOS, Linux and iPad. Any input.</text>
+  <text x="80" y="436" fill="#cec8ae" font-family="Arial, sans-serif" font-size="29">Windows, macOS, Linux, Android and iPad. Any input.</text>
 
   <!-- Node graph motif -->
   <g transform="translate(820,150)" opacity="0.96">

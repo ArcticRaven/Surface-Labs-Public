@@ -12,7 +12,7 @@ changing an upstream input re-renders everything after it in real time, up to
 
 - Category: node-based procedural texture and PBR material authoring tool.
 - Audience: indie game developers and technical artists.
-- Platforms: Windows, macOS, Linux and iPadOS, from a single (Flutter) codebase.
+- Platforms: Windows, macOS, Linux, Android and iPadOS, from a single (Flutter) codebase.
 - Input: mouse, keyboard, touch, Apple Pencil and game controllers. Full
   game-controller navigation is built as an accessible alternative to mouse and
   touch.

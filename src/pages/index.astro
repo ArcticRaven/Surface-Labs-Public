@@ -29,7 +29,7 @@ const jsonLd = {
 	url: homeUrl,
 	description: SITE_DESCRIPTION,
 	applicationCategory: 'GraphicsApplication',
-	operatingSystem: ['Windows', 'macOS', 'Linux', 'iPadOS'],
+	operatingSystem: ['Windows', 'macOS', 'Linux', 'Android', 'iPadOS'],
 	image: ogImageUrl,
 	keywords:
 		'procedural texture authoring, node-based textures, PBR materials, Substance 3D Designer alternative, game development, indie game development, texture tool',
@@ -213,9 +213,10 @@ vec4 shade(vec2 uv) {
 					<h1 class="hero__title">Procedural textures on any platform, with any input.</h1>
 					<p class="hero__lede">
 						Surface Labs is a node-based, GPU-accelerated PBR texturing tool that
-						runs natively on Windows, macOS, Linux and iPad. Work with a mouse,
-						keyboard, Apple Pencil or touch, or run the whole editor from a game
-						controller, built as an accessible alternative to mouse and touch.
+						runs natively on Windows, macOS, Linux, Android and iPad. Work with a
+						mouse, keyboard, Apple Pencil or touch, or run the whole editor from a
+						game controller, built as an accessible alternative to mouse and
+						touch.
 					</p>
 					<div class="hero__actions">
 						<a class="btn btn--primary" href={ITCH_URL} rel="noopener">Get on itch.io</a>
@@ -244,8 +245,8 @@ vec4 shade(vec2 uv) {
 						</div>
 						<p class="hero-cta-card__note">
 							For <strong>Windows</strong>, <strong>macOS</strong>,
-							<strong>Linux</strong> and <strong>iPad</strong>. Free while in
-							early access.
+							<strong>Linux</strong>, <strong>Android</strong> and
+							<strong>iPad</strong>. Free while in early access.
 						</p>
 					</div>
 				</div>
