@@ -27,7 +27,7 @@ export default defineConfig({
 			// The site ships a custom, marketing-styled 404 at src/pages/404.astro,
 			// so Starlight's built-in 404 route is disabled to avoid a route collision.
 			disable404Route: true,
-			favicon: '/favicon.svg',
+			favicon: '/favicon.png',
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			// Global metadata applied to every documentation page. Starlight already
 			// emits <title>, canonical, description, og:title/description and
