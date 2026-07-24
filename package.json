@@ -1,0 +1,24 @@
+{
+  "name": "surface-labs-public",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public marketing website and documentation for Surface Labs.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.4",
+    "astro": "^7.0.2",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "wrangler": "^4.114.0"
+  }
+}

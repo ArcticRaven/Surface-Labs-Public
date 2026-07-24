@@ -1,0 +1,55 @@
+/*
+ * Surface Labs — Starlight documentation theme overrides.
+ *
+ * Maps Starlight's accent scale and surface/grayscale tokens onto the Surface
+ * Labs application palette (warm cream / tan / brown) so the docs match the
+ * marketing site and the app itself, in both dark and light modes.
+ */
+
+/* Dark theme (Starlight's default palette lives on :root). */
+:root {
+	--sl-color-accent-low: #2a2113;
+	--sl-color-accent: #c09d6a;
+	--sl-color-accent-high: #ecd9bb;
+
+	--sl-color-white: #f3efe2;
+	--sl-color-gray-1: #eae5d3;
+	--sl-color-gray-2: #cec8ae;
+	--sl-color-gray-3: #9a927e;
+	--sl-color-gray-4: #6b6553;
+	--sl-color-gray-5: #35322a;
+	--sl-color-gray-6: #242118;
+	--sl-color-black: #191816;
+
+	--sl-color-bg: #191816;
+	--sl-color-bg-nav: #201e18;
+	--sl-color-bg-sidebar: #1c1a15;
+	--sl-color-hairline-shade: #2a2820;
+}
+
+/* Light theme. */
+:root[data-theme='light'] {
+	--sl-color-accent-low: #e6dcc6;
+	--sl-color-accent: #9a7a44;
+	--sl-color-accent-high: #4a3316;
+
+	--sl-color-white: #191816;
+	--sl-color-gray-1: #26241d;
+	--sl-color-gray-2: #45423a;
+	--sl-color-gray-3: #6d6a58;
+	--sl-color-gray-4: #8a8574;
+	--sl-color-gray-5: #c7c1a8;
+	--sl-color-gray-6: #e6e1cf;
+	--sl-color-gray-7: #f0ecdf;
+
+	--sl-color-bg: #eae5d3;
+	--sl-color-bg-nav: #f0ecdf;
+	--sl-color-bg-sidebar: #f0ecdf;
+	--sl-color-hairline-shade: #d7d1b9;
+}
+
+/* Give the site title in the header a subtle brand weight. */
+.site-title {
+	font-weight: 650;
+	letter-spacing: -0.01em;
+}

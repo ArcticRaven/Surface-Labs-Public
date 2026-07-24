@@ -1,0 +1,95 @@
+---
+/**
+ * BaseLayout — the HTML document shell for standalone (non-Starlight) pages
+ * such as the marketing homepage and the 404 page.
+ *
+ * Emits title/description, canonical URL, Open Graph and Twitter metadata, and
+ * exposes a `head` slot for page-specific tags (e.g. JSON-LD structured data).
+ */
+import { SITE_TITLE, SITE_DESCRIPTION, OG_IMAGE_PATH } from '../consts';
+import '../styles/home.css';
+
+interface Props {
+	/** Full <title> value. */
+	title: string;
+	/** Meta description for this page. */
+	description?: string;
+	/** Path of the current page (e.g. "/" or "/404"), used for the canonical URL. */
+	path?: string;
+	/** When true, ask crawlers not to index the page (used for 404). */
+	noindex?: boolean;
+}
+
+const {
+	title,
+	description = SITE_DESCRIPTION,
+	path = '/',
+	noindex = false,
+} = Astro.props;
+
+// Astro.site is configured to https://surfacelabs.app, so these resolve to
+// absolute production URLs regardless of the local build origin.
+const canonical = new URL(path, Astro.site).href;
+const ogImage = new URL(OG_IMAGE_PATH, Astro.site).href;
+const ogImageAlt = 'Surface Labs, node-based procedural texture authoring';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		{/* Resolve the theme before first paint to avoid a flash. Shares the
+		    `starlight-theme` key with Starlight so the choice persists into docs. */}
+		<script is:inline>
+			(() => {
+				const KEY = 'starlight-theme';
+				let stored;
+				try {
+					stored = localStorage.getItem(KEY);
+				} catch (e) {}
+				const resolved =
+					stored === 'light' || stored === 'dark'
+						? stored
+						: window.matchMedia('(prefers-color-scheme: dark)').matches
+							? 'dark'
+							: 'light';
+				document.documentElement.dataset.theme = resolved;
+			})();
+		</script>
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		{noindex && <meta name="robots" content="noindex, follow" />}
+
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+		<meta name="theme-color" content="#191816" />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE_TITLE} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:alt" content={ogImageAlt} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+		<meta name="twitter:image:alt" content={ogImageAlt} />
+
+		<slot name="head" />
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<slot />
+	</body>
+</html>

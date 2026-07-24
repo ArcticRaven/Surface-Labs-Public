@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Surface Labs">
+  <rect width="32" height="32" rx="7" fill="#191816"/>
+  <rect x="1.5" y="1.5" width="29" height="29" rx="6" fill="none" stroke="#4a4636"/>
+  <path d="M10 10 C 17 10, 15 22, 22 22" fill="none" stroke="#c09d6a" stroke-width="2.4"/>
+  <circle cx="10" cy="10" r="3.6" fill="#c09d6a"/>
+  <circle cx="22" cy="22" r="3.6" fill="#eae5d3"/>
+</svg>

@@ -1,0 +1,17 @@
+---
+/** Site footer with secondary navigation and attribution. */
+import { SITE_TITLE, ITCH_URL, REPO_URL, DISCORD_URL } from '../consts';
+---
+
+<footer class="site-footer">
+	<div class="container site-footer__inner">
+		<nav class="site-footer__links" aria-label="Footer">
+			<a href={ITCH_URL} rel="noopener">itch.io</a>
+			<a href={DISCORD_URL} rel="noopener">Discord</a>
+			<a href={REPO_URL} rel="noopener">GitHub</a>
+		</nav>
+		<p class="site-footer__meta">
+			&copy; 2026 {SITE_TITLE}. A cross-platform procedural texturing application.
+		</p>
+	</div>
+</footer>

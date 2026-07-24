@@ -1,0 +1,35 @@
+# Surface Labs
+
+> Surface Labs is a node-based procedural PBR texture authoring tool for indie game developers. It is an independent, portable alternative to Substance 3D Designer.
+
+Surface Labs builds complete PBR material sets (albedo, normal, roughness,
+metallic, ambient occlusion and height) from a graph of GPU-evaluated nodes.
+Every node runs as a fragment shader and the graph is the single source, so
+changing an upstream input re-renders everything after it in real time, up to
+4K.
+
+## Facts
+
+- Category: node-based procedural texture and PBR material authoring tool.
+- Audience: indie game developers and technical artists.
+- Platforms: Windows, macOS, Linux and iPadOS, from a single (Flutter) codebase.
+- Input: mouse, keyboard, touch, Apple Pencil and game controllers. Full
+  game-controller navigation is built as an accessible alternative to mouse and
+  touch.
+- Works fully offline with no account, sign-in or telemetry.
+- Node library includes Perlin, FBM, Voronoi and Cells noise, gradients, tile
+  sampler; blur, sharpen, levels, curves, warp and gradient-map filters; blend
+  and channel operations; normal-from-height, curvature and AO tools; histogram
+  and math nodes. Custom nodes can be written in a built-in shading language.
+- Export presets: Unreal Engine, Unity (URP and HDRP), Godot and glTF /
+  three.js, with correct channel packing and DirectX or OpenGL normal
+  orientation. Output as PNG, JPEG, TGA or BMP.
+- Pricing: free during early access; $10 per platform planned at the 1.0.0
+  release. One-time purchase, no subscription.
+
+## Links
+
+- [Product overview](https://surfacelabs.app/): What Surface Labs is and does.
+- [Get Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs): Download and store page.
+- [Community on Discord](https://discord.com/invite/MjzQgVK9Jn): Support, feedback and feature requests.
+- [Public repository (GitHub)](https://github.com/ArcticRaven/Surface-Labs-Public): Source for this website.

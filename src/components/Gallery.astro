@@ -1,0 +1,173 @@
+---
+/**
+ * Screenshot gallery carousel.
+ *
+ * Auto-loads every image in src/assets/screenshots/ (sorted by filename, so a
+ * numeric prefix controls order) and renders an accessible, scroll-snap
+ * carousel. To add a screenshot, drop a file in that folder — optionally add a
+ * caption/alt entry below keyed by the filename (without extension).
+ *
+ * Interactivity is a small amount of vanilla JS (no framework): the track is a
+ * native horizontal scroll container, so touch swipe and trackpad already work;
+ * the buttons and dots just drive scrollTo.
+ */
+import { Image } from 'astro:assets';
+
+const modules = import.meta.glob('../assets/screenshots/*.{png,jpg,jpeg,webp}', {
+	eager: true,
+});
+
+/** Optional captions/alt text keyed by filename without extension. */
+const META: Record<string, { caption: string; alt: string }> = {
+	'01-app-overview': {
+		caption: 'Node graph and live 3D preview',
+		alt: 'Surface Labs with a full procedural node graph on the right and a live 3D preview of the material on a cube on the left.',
+	},
+	'02-graph-editor': {
+		caption: 'The graph editor',
+		alt: 'The Surface Labs graph editor: a procedural material built from many connected shader nodes on an infinite canvas.',
+	},
+	'03-material': {
+		caption: 'A material authored in Surface Labs',
+		alt: 'A tiled ceramic PBR material authored in Surface Labs, rendered on a rounded cube.',
+	},
+	'04-custom-shader': {
+		caption: 'Custom shader nodes',
+		alt: 'The Surface Labs custom shader node editor showing source in the built-in shading language and its generated controls.',
+	},
+	'05-hub-library': {
+		caption: 'Project hub & library',
+		alt: 'The Surface Labs project hub showing recent projects and materials organised on custom shelves.',
+	},
+};
+
+function humanize(base: string): string {
+	const s = base.replace(/^\d+[-_]?/, '').replace(/[-_]+/g, ' ').trim();
+	return s ? s.charAt(0).toUpperCase() + s.slice(1) : base;
+}
+
+type Slide = { src: ImageMetadata; caption: string; alt: string };
+
+const slides: Slide[] = Object.entries(modules)
+	.sort(([a], [b]) => a.localeCompare(b))
+	.map(([path, mod]) => {
+		const base = (path.split('/').pop() ?? path).replace(/\.[^.]+$/, '');
+		const meta = META[base];
+		const caption = meta?.caption ?? humanize(base);
+		return {
+			src: (mod as { default: ImageMetadata }).default,
+			caption,
+			alt: meta?.alt ?? `Surface Labs screenshot: ${caption}.`,
+		};
+	});
+
+const count = slides.length;
+---
+
+{
+	count > 0 && (
+		<div
+			class="carousel"
+			aria-roledescription="carousel"
+			aria-label="Surface Labs screenshots"
+		>
+			<button
+				type="button"
+				class="carousel__nav carousel__nav--prev"
+				aria-label="Previous screenshot"
+			>
+				<span aria-hidden="true">&#8249;</span>
+			</button>
+
+			<ul class="carousel__track" role="list" tabindex="0">
+				{slides.map((slide, i) => (
+					<li
+						class="carousel__slide"
+						role="group"
+						aria-roledescription="slide"
+						aria-label={`${i + 1} of ${count}: ${slide.caption}`}
+					>
+						<figure class="carousel__figure">
+							<Image
+								src={slide.src}
+								alt={slide.alt}
+								widths={[600, 900, 1280, 1600]}
+								sizes="(max-width: 980px) 100vw, 940px"
+								loading="lazy"
+							/>
+							<figcaption>{slide.caption}</figcaption>
+						</figure>
+					</li>
+				))}
+			</ul>
+
+			<button
+				type="button"
+				class="carousel__nav carousel__nav--next"
+				aria-label="Next screenshot"
+			>
+				<span aria-hidden="true">&#8250;</span>
+			</button>
+
+			<div class="carousel__dots" role="tablist" aria-label="Choose screenshot">
+				{slides.map((slide, i) => (
+					<button
+						type="button"
+						class="carousel__dot"
+						role="tab"
+						aria-label={`Show screenshot ${i + 1}: ${slide.caption}`}
+						aria-selected={i === 0 ? 'true' : 'false'}
+						data-index={i}
+					/>
+				))}
+			</div>
+		</div>
+	)
+}
+
+<script>
+	// Vanilla, framework-free carousel behaviour.
+	for (const carousel of document.querySelectorAll<HTMLElement>('.carousel')) {
+		const track = carousel.querySelector<HTMLElement>('.carousel__track');
+		const prev = carousel.querySelector<HTMLButtonElement>('.carousel__nav--prev');
+		const next = carousel.querySelector<HTMLButtonElement>('.carousel__nav--next');
+		const dots = Array.from(
+			carousel.querySelectorAll<HTMLButtonElement>('.carousel__dot')
+		);
+		if (!track) continue;
+
+		const slides = Array.from(
+			track.querySelectorAll<HTMLElement>('.carousel__slide')
+		);
+		const count = slides.length;
+
+		const indexFromScroll = () =>
+			Math.round(track.scrollLeft / track.clientWidth);
+
+		const goTo = (i: number) => {
+			const clamped = Math.max(0, Math.min(count - 1, i));
+			track.scrollTo({ left: clamped * track.clientWidth, behavior: 'smooth' });
+		};
+
+		const sync = () => {
+			const i = indexFromScroll();
+			dots.forEach((d, di) =>
+				d.setAttribute('aria-selected', di === i ? 'true' : 'false')
+			);
+			if (prev) prev.disabled = i <= 0;
+			if (next) next.disabled = i >= count - 1;
+		};
+
+		prev?.addEventListener('click', () => goTo(indexFromScroll() - 1));
+		next?.addEventListener('click', () => goTo(indexFromScroll() + 1));
+		dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
+
+		let raf = 0;
+		track.addEventListener('scroll', () => {
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(sync);
+		});
+		window.addEventListener('resize', sync);
+		sync();
+	}
+</script>

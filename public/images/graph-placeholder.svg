@@ -1,0 +1,74 @@
+<!--
+  TODO: Replace with an actual screenshot of the Surface Labs node editor once
+  a real capture is available. This is a stylised placeholder illustration only
+  and does not depict the shipping application.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img"
+     aria-label="Stylised illustration of a node-based texture graph with connected nodes and a texture preview.">
+  <defs>
+    <linearGradient id="preview" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f6f62"/>
+      <stop offset="0.5" stop-color="#2f9e8b"/>
+      <stop offset="1" stop-color="#0f3b34"/>
+    </linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1.5" fill="#1b212c"/>
+    </pattern>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="720" height="480" fill="#0d1017"/>
+  <rect width="720" height="480" fill="url(#dots)"/>
+
+  <!-- Connection wires -->
+  <g fill="none" stroke="#34c6ac" stroke-width="2.5" opacity="0.85">
+    <path d="M188 132 C 240 132, 250 176, 300 176"/>
+    <path d="M188 250 C 240 250, 250 200, 300 200"/>
+    <path d="M452 188 C 500 188, 505 250, 556 250"/>
+  </g>
+
+  <!-- Node: Noise -->
+  <g filter="url(#soft)">
+    <rect x="64" y="96" width="124" height="72" rx="10" fill="#161c26" stroke="#2c3442"/>
+    <rect x="64" y="96" width="124" height="24" rx="10" fill="#20303a"/>
+    <text x="78" y="113" fill="#e8ebf1" font-family="monospace" font-size="12" font-weight="600">Noise</text>
+    <rect x="78" y="132" width="96" height="8" rx="4" fill="#0f141b"/>
+    <rect x="78" y="146" width="64" height="8" rx="4" fill="#0f141b"/>
+    <circle cx="188" cy="132" r="5" fill="#34c6ac"/>
+  </g>
+
+  <!-- Node: Gradient -->
+  <g filter="url(#soft)">
+    <rect x="64" y="214" width="124" height="72" rx="10" fill="#161c26" stroke="#2c3442"/>
+    <rect x="64" y="214" width="124" height="24" rx="10" fill="#20303a"/>
+    <text x="78" y="231" fill="#e8ebf1" font-family="monospace" font-size="12" font-weight="600">Gradient</text>
+    <rect x="78" y="250" width="96" height="8" rx="4" fill="#0f141b"/>
+    <rect x="78" y="264" width="72" height="8" rx="4" fill="#0f141b"/>
+    <circle cx="188" cy="250" r="5" fill="#34c6ac"/>
+  </g>
+
+  <!-- Node: Blend -->
+  <g filter="url(#soft)">
+    <rect x="300" y="150" width="152" height="88" rx="10" fill="#161c26" stroke="#2c3442"/>
+    <rect x="300" y="150" width="152" height="24" rx="10" fill="#20303a"/>
+    <text x="314" y="167" fill="#e8ebf1" font-family="monospace" font-size="12" font-weight="600">Blend</text>
+    <circle cx="300" cy="176" r="5" fill="#7e8a9b"/>
+    <circle cx="300" cy="200" r="5" fill="#7e8a9b"/>
+    <rect x="316" y="186" width="120" height="8" rx="4" fill="#0f141b"/>
+    <rect x="316" y="202" width="96" height="8" rx="4" fill="#0f141b"/>
+    <rect x="316" y="218" width="108" height="8" rx="4" fill="#0f141b"/>
+    <circle cx="452" cy="188" r="5" fill="#34c6ac"/>
+  </g>
+
+  <!-- Node: Output (preview) -->
+  <g filter="url(#soft)">
+    <rect x="556" y="182" width="132" height="150" rx="10" fill="#161c26" stroke="#2c3442"/>
+    <rect x="556" y="182" width="132" height="24" rx="10" fill="#20303a"/>
+    <text x="570" y="199" fill="#e8ebf1" font-family="monospace" font-size="12" font-weight="600">Output</text>
+    <circle cx="556" cy="250" r="5" fill="#7e8a9b"/>
+    <rect x="570" y="216" width="104" height="102" rx="6" fill="url(#preview)"/>
+  </g>
+</svg>

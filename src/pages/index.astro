@@ -1,0 +1,504 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Gallery from '../components/Gallery.astro';
+import materialImg from '../assets/screenshots/03-material.png';
+import {
+	SITE_TITLE,
+	SITE_DESCRIPTION,
+	ITCH_URL,
+	DISCORD_URL,
+	REPO_URL,
+	ITCH_EMBED_ID,
+	OG_IMAGE_PATH,
+	PLATFORMS,
+} from '../consts';
+
+const homeUrl = new URL('/', Astro.site).href;
+const ogImageUrl = new URL(OG_IMAGE_PATH, Astro.site).href;
+
+// SoftwareApplication structured data. Facts only — no price/offers, ratings or
+// unshipped version claims. Helps crawlers classify the product and gives AI
+// search a machine-readable summary of what Surface Labs is and does.
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'SoftwareApplication',
+	name: SITE_TITLE,
+	url: homeUrl,
+	description: SITE_DESCRIPTION,
+	applicationCategory: 'GraphicsApplication',
+	operatingSystem: ['Windows', 'macOS', 'Linux', 'iPadOS'],
+	image: ogImageUrl,
+	keywords:
+		'procedural texture authoring, node-based textures, PBR materials, Substance 3D Designer alternative, game development, indie game development, texture tool',
+	featureList: [
+		'Node-based procedural texture authoring',
+		'GPU-accelerated, non-destructive evaluation',
+		'Complete PBR material sets (albedo, normal, roughness, metallic, AO, height)',
+		'Custom shader nodes',
+		'Engine-aware export (Unreal, Unity, Godot, glTF)',
+	],
+	publisher: {
+		'@type': 'Organization',
+		name: SITE_TITLE,
+		url: homeUrl,
+	},
+	// Free during early access.
+	// TODO: update to price "10.00" per platform when v1.0.0 ships.
+	offers: {
+		'@type': 'Offer',
+		price: '0',
+		priceCurrency: 'USD',
+		url: ITCH_URL,
+	},
+	sameAs: [ITCH_URL, DISCORD_URL, REPO_URL],
+};
+
+// Input methods, surfaced as their own group in the platforms section.
+const inputs = ['Mouse', 'Keyboard', 'Apple Pencil', 'Touch', 'Game controller'];
+
+const why = [
+	{
+		title: 'Works the way you do',
+		body: 'Mouse, keyboard, Apple Pencil or touch, or run the entire editor from a game controller, built as an accessible alternative to mouse and touch. Same tool on desktop and tablet.',
+	},
+	{
+		title: 'Cross-platform, one codebase',
+		body: 'One codebase, built on Flutter, gives you the full native tool on every platform, including tablet.',
+	},
+	{
+		title: 'Nodes that do more',
+		body: 'Many nodes do the work of several. One Blend covers every mode, one Histogram scans and remaps, so your graphs stay small and readable.',
+	},
+	{
+		title: 'Programmable',
+		body: 'Write your own procedural nodes in a small built-in shading language when the stock library is not enough.',
+	},
+	{
+		title: 'GPU-first, non-destructive',
+		body: 'Every node runs as a fragment shader. Change any input and everything after it re-renders in real time, up to 4K.',
+	},
+	{
+		title: 'Yours, offline',
+		body: 'No sign-in, no telemetry, no cloud dependency. Nothing leaves your device unless you export it.',
+	},
+];
+
+// Node names drawn from the README's feature list.
+const nodeTags = [
+	'Perlin', 'FBM', 'Voronoi', 'Cells', 'Clouds', 'Checker', 'Gradient',
+	'Brick', 'Tile Sampler', 'Blur', 'Sharpen', 'Levels', 'Curves', 'HSL Shift',
+	'Threshold', 'Warp', 'Gradient Map', 'Blend', 'Normal from Height',
+	'Curvature', 'AO from Height', 'Edge Detect', 'Histogram', 'Channel Combine',
+];
+
+const exportTargets = ['Unreal Engine', 'Unity (URP & HDRP)', 'Godot', 'glTF / three.js'];
+
+// How It Compares — from the README. `note` renders as small print.
+const compareCols = ['Surface Labs', 'Substance Designer', 'Material Maker', 'Blender'];
+const compareRows = [
+	{
+		label: 'Desktop and tablet',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'One app, everywhere' },
+			{ k: 'no', t: 'Desktop only' },
+			{ k: 'no', t: 'Desktop only' },
+			{ k: 'no', t: 'Desktop only' },
+		],
+	},
+	{
+		label: 'Touch + Apple Pencil',
+		cells: [{ k: 'yes', t: 'Yes' }, { k: 'no', t: 'No' }, { k: 'no', t: 'No' }, { k: 'no', t: 'No' }],
+	},
+	{
+		label: 'Controller / gamepad navigation',
+		cells: [{ k: 'yes', t: 'Yes' }, { k: 'no', t: 'No' }, { k: 'no', t: 'No' }, { k: 'no', t: 'No' }],
+	},
+	{
+		label: 'Offline, no account',
+		cells: [
+			{ k: 'yes', t: 'Yes' },
+			{ k: 'warn', t: 'Account required' },
+			{ k: 'yes', t: 'Yes' },
+			{ k: 'yes', t: 'Yes' },
+		],
+	},
+	{
+		label: 'Built-in programmable shader nodes',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'Runs anywhere' },
+			{ k: 'yes', t: 'Yes', note: 'Desktop' },
+			{ k: 'yes', t: 'Yes', note: 'Desktop' },
+			{ k: 'warn', t: 'Scripting / OSL' },
+		],
+	},
+	{
+		label: 'One-click game-engine export presets',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'Unreal · Unity · Godot · glTF' },
+			{ k: 'yes', t: 'Yes' },
+			{ k: 'yes', t: 'Yes' },
+			{ k: 'warn', t: 'Not export-focused' },
+		],
+	},
+	{
+		label: 'GPU-accelerated on every platform',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'desktop and tablet' },
+			{ k: 'no', t: 'Desktop only' },
+			{ k: 'no', t: 'Desktop only' },
+			{ k: 'no', t: 'Desktop only' },
+		],
+	},
+	{
+		label: 'One-time purchase, no subscription',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'own it, no rental' },
+			{ k: 'warn', t: 'Subscription only' },
+			{ k: 'yes', t: 'Free' },
+			{ k: 'yes', t: 'Free' },
+		],
+	},
+];
+
+// Roadmap milestones, in order. The first is flagged "Next up".
+const roadmap = [
+	{
+		title: 'Flood fill nodes',
+		body: 'New flood-fill nodes for fast masking and fills.',
+		next: true,
+	},
+	{
+		title: '2D rendering on the Rust engine',
+		body: 'All 2D rendering moves to the Rust engine.',
+	},
+	{
+		title: '1.0.0-beta',
+		body: 'The first public beta release.',
+	},
+	{
+		title: 'Post-processing effects',
+		body: 'Post-processing effects for final output.',
+	},
+];
+
+// Surface Shading Language sample (from the custom shader node), with comments
+// marked up so they can be dimmed. No angle brackets, safe to set:html.
+const shaderCode = `<span class="tok-c">// Surface Shading Language. Declarations become ports and controls.</span>
+in sampler2D source;                    <span class="tok-c">// @optional</span>
+
+param vec3 tint = vec3(1.0, 0.6, 0.2);  <span class="tok-c">// @color</span>
+param float amount = 1.0;               <span class="tok-c">// @range(0, 2)</span>
+
+vec4 shade(vec2 uv) {
+    vec4 base = texture(source, uv);
+    vec3 rgb = mix(vec3(uv.x, uv.y, 0.5), base.rgb, base.a);
+    return vec4(rgb * tint * amount, 1.0);
+}`;
+---
+
+<BaseLayout title={`${SITE_TITLE}: Procedural Texture Authoring for Game Developers`} path="/">
+	<script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+	<Header />
+
+	<main id="main">
+		<!-- Hero -->
+		<section class="hero">
+			<div class="container hero__inner">
+				<div class="hero__copy">
+					<p class="eyebrow">Cross-platform · accessible · procedural</p>
+					<h1 class="hero__title">Procedural textures on any platform, with any input.</h1>
+					<p class="hero__lede">
+						Surface Labs is a node-based, GPU-accelerated PBR texturing tool that
+						runs natively on Windows, macOS, Linux and iPad. Work with a mouse,
+						keyboard, Apple Pencil or touch, or run the whole editor from a game
+						controller, built as an accessible alternative to mouse and touch.
+					</p>
+					<div class="hero__actions">
+						<a class="btn btn--primary" href={ITCH_URL} rel="noopener">Get on itch.io</a>
+						<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
+							<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+								<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
+							</svg>
+							Join the Discord
+						</a>
+						<a class="btn btn--secondary" href="#roadmap">See the roadmap</a>
+					</div>
+				</div>
+
+				<div class="hero__figure">
+					<div class="hero-cta-card">
+						<p class="hero-cta-card__title">Get Surface Labs</p>
+						<div class="itch-embed">
+							<!-- Official itch.io store embed. -->
+							<iframe
+								title="Surface Labs on itch.io"
+								src={`https://itch.io/embed/${ITCH_EMBED_ID}?dark=true`}
+								loading="eager"
+							>
+								<a href={ITCH_URL}>Surface Labs by Arctic Dev</a>
+							</iframe>
+						</div>
+						<p class="hero-cta-card__note">
+							For <strong>Windows</strong>, <strong>macOS</strong>,
+							<strong>Linux</strong> and <strong>iPad</strong>. Free while in
+							early access.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Why Surface Labs -->
+		<section class="section" aria-labelledby="why-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Why Surface Labs</p>
+					<h2 id="why-heading">Why texture artists choose Surface Labs</h2>
+				</div>
+				<div class="card-grid">
+					{why.map((item) => (
+						<article class="card">
+							<h3>{item.title}</h3>
+							<p>{item.body}</p>
+						</article>
+					))}
+				</div>
+			</div>
+		</section>
+
+		<!-- Gallery -->
+		<section class="section" aria-labelledby="gallery-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">A look inside</p>
+					<h2 id="gallery-heading">See it in action</h2>
+				</div>
+				<Gallery />
+			</div>
+		</section>
+
+		<!-- Feature: PBR materials -->
+		<section class="section" aria-labelledby="pbr-heading">
+			<div class="container feature">
+				<div class="feature__body">
+					<p class="eyebrow">Materials</p>
+					<h2 id="pbr-heading">Complete PBR material sets</h2>
+					<p>
+						Build full PBR materials from a single graph: albedo, normal,
+						roughness, metallic, AO and height. A 2D preview isolates any
+						channel, and a 3D preview renders the material on a mesh under your
+						own HDR lighting.
+					</p>
+					<ul class="feature__list">
+						<li>Albedo, normal, roughness, metallic, AO and height</li>
+						<li>2D preview with channel isolation</li>
+						<li>Drag-to-orbit 3D preview under HDR lighting</li>
+					</ul>
+				</div>
+				<div class="feature__media">
+					<figure class="frame" style="padding:0;overflow:hidden">
+						<Image
+							src={materialImg}
+							alt="A tiled ceramic PBR material authored in Surface Labs, rendered on a rounded cube."
+							widths={[480, 720, 960]}
+							sizes="(max-width: 900px) 100vw, 480px"
+							loading="lazy"
+						/>
+					</figure>
+				</div>
+			</div>
+		</section>
+
+		<!-- Feature: Programmable -->
+		<section class="section" aria-labelledby="prog-heading">
+			<div class="container feature feature--reverse">
+				<div class="feature__body">
+					<p class="eyebrow">Programmable</p>
+					<h2 id="prog-heading">Write your own nodes</h2>
+					<p>
+						When the stock library is not enough, write a node in the built-in
+						shading language. Declarations become ports and controls, and it
+						compiles and runs on the GPU alongside every other node. No native
+						shader compiler required.
+					</p>
+				</div>
+				<div class="feature__media">
+					<pre class="code"><code set:html={shaderCode} /></pre>
+					<p class="code__cap">Surface Shading Language: a custom node</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- Node library + export -->
+		<section class="section" aria-labelledby="library-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Toolbox</p>
+					<h2 id="library-heading">A deep node library, engine-aware export</h2>
+					<p>
+						Generators, filters, blends, transforms, normal and height tools,
+						channel operations, histograms and math. Many are multi-mode, doing
+						the job of several nodes at once.
+					</p>
+				</div>
+
+				<div class="badges" style="margin-bottom:36px">
+					{nodeTags.map((tag) => <span class="badge">{tag}</span>)}
+					<span class="badge">and more</span>
+				</div>
+
+				<div class="callout">
+					<h3>Export straight into your engine</h3>
+					<p>
+						Presets write the right maps with the right names and channel
+						packing for each target, including ORM packing and DirectX or OpenGL
+						normal orientation. Output as PNG, JPEG, TGA or BMP.
+					</p>
+					<div class="badges" style="margin-top:18px">
+						{exportTargets.map((t) => <span class="badge badge--now">{t}</span>)}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- How it compares -->
+		<section class="section" aria-labelledby="compare-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">How it compares</p>
+					<h2 id="compare-heading">Where Surface Labs goes further</h2>
+					<p>
+						How Surface Labs stacks up against Substance Designer, Material Maker
+						and Blender's shader graph.
+					</p>
+				</div>
+				<div class="compare-wrap">
+					<table class="compare">
+						<thead>
+							<tr>
+								<th scope="col"><span class="visually-hidden">Capability</span></th>
+								{compareCols.map((c, i) => (
+									<th scope="col" class={i === 0 ? 'col-ours' : undefined}>{c}</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{compareRows.map((row) => (
+								<tr>
+									<th scope="row">{row.label}</th>
+									{row.cells.map((cell, i) => (
+										<td class={`${cell.k}${i === 0 ? ' col-ours' : ''}`}>
+											{cell.t}
+											{cell.note && <small>{cell.note}</small>}
+										</td>
+									))}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+				<p class="compare__note">
+					Surface Labs runs everywhere you do, takes any input, works offline,
+					and exports straight to your engine. Buy it once and own it, no
+					subscription.
+				</p>
+			</div>
+		</section>
+
+		<!-- Platforms & input -->
+		<section class="section" aria-labelledby="platforms-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Cross-platform &amp; accessible</p>
+					<h2 id="platforms-heading">Every platform, every input</h2>
+					<p>
+						One Flutter codebase gives you the full native tool on desktop and
+						tablet, with first-class support for every input.
+					</p>
+				</div>
+				<div class="platform-cards">
+					<article class="card">
+						<h3>Cross-platform</h3>
+						<div class="badges badges--lg">
+							{PLATFORMS.map((p) => <span class="badge badge--now">{p}</span>)}
+						</div>
+						<p class="card__foot">The full native app on every platform, including tablet.</p>
+					</article>
+					<article class="card">
+						<h3>Accessible input</h3>
+						<div class="badges badges--lg">
+							{inputs.map((i) => <span class="badge">{i}</span>)}
+						</div>
+						<p class="card__foot">
+							Full game-controller navigation is built as an accessible
+							alternative to mouse and touch.
+						</p>
+					</article>
+				</div>
+			</div>
+		</section>
+
+		<!-- Roadmap -->
+		<section id="roadmap" class="section" aria-labelledby="roadmap-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Roadmap</p>
+					<h2 id="roadmap-heading">What's next</h2>
+					<p>The next four milestones we're building, in order.</p>
+				</div>
+
+				<ol class="roadmap">
+					{roadmap.map((item) => (
+						<li class={`roadmap__item${item.next ? ' roadmap__item--next' : ''}`}>
+							<span class="roadmap__marker" aria-hidden="true" />
+							<div class="roadmap__body">
+								{item.next && <span class="roadmap__tag">Next up</span>}
+								<h3>{item.title}</h3>
+								<p>{item.body}</p>
+							</div>
+						</li>
+					))}
+				</ol>
+
+				<div class="roadmap__cta">
+					<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
+						<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+							<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
+						</svg>
+						Suggest a feature on Discord
+					</a>
+				</div>
+			</div>
+		</section>
+
+		<!-- Pricing -->
+		<section id="pricing" class="section" aria-labelledby="pricing-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Pricing</p>
+					<h2 id="pricing-heading">Free while we build it</h2>
+					<p>Surface Labs is in active development. It's free to download and use during early access.</p>
+				</div>
+				<div class="price-grid">
+					<div class="price-card price-card--now">
+						<p class="price-card__when">Now (early access)</p>
+						<p class="price-card__amount">Free</p>
+						<p class="price-card__note">Every build, on every platform.</p>
+						<a class="btn btn--primary" href={ITCH_URL} rel="noopener">Get on itch.io</a>
+					</div>
+					<div class="price-card">
+						<p class="price-card__when">At v1.0.0</p>
+						<p class="price-card__amount">$10 <span>/ platform</span></p>
+						<p class="price-card__note">Planned price when Surface Labs reaches its 1.0.0 release.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<Footer />
+</BaseLayout>

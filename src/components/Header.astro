@@ -1,0 +1,38 @@
+---
+/** Site header: brand mark, primary navigation, theme toggle and store CTA. */
+import { SITE_TITLE, ITCH_URL, REPO_URL, DISCORD_URL } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
+---
+
+<header class="site-header">
+	<div class="container site-header__inner">
+		<a class="brand" href="/" aria-label={`${SITE_TITLE} home`}>
+			<svg
+				class="brand__mark"
+				viewBox="0 0 32 32"
+				fill="none"
+				aria-hidden="true"
+				focusable="false"
+			>
+				<rect x="1" y="1" width="30" height="30" rx="8" fill="#242118" stroke="#4a4636"></rect>
+				<path d="M11 11 C 17 11, 15 21, 21 21" stroke="#c09d6a" stroke-width="2" fill="none"></path>
+				<circle cx="11" cy="11" r="3.4" fill="#c09d6a"></circle>
+				<circle cx="21" cy="21" r="3.4" fill="#eae5d3"></circle>
+			</svg>
+			<span>{SITE_TITLE}</span>
+		</a>
+
+		<nav class="site-nav" aria-label="Primary">
+			<a class="site-nav__link" href={DISCORD_URL} rel="noopener">Discord</a>
+			<a
+				class="site-nav__link site-nav__link--hide-tablet"
+				href={REPO_URL}
+				rel="noopener"
+			>GitHub</a>
+			<ThemeToggle />
+			<a class="btn btn--primary site-nav__cta" href={ITCH_URL} rel="noopener">
+				Get on itch.io
+			</a>
+		</nav>
+	</div>
+</header>

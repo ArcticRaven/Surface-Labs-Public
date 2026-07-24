@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { DOCS_PATH } from '../consts';
+---
+
+<BaseLayout
+	title="Page not found | Surface Labs"
+	description="The page you were looking for could not be found."
+	path="/404"
+	noindex={true}
+>
+	<Header />
+
+	<main id="main" class="notfound">
+		<div class="container notfound__inner">
+			<p class="eyebrow">Error 404</p>
+			<h1 class="notfound__title">Page not found</h1>
+			<p class="notfound__lede">
+				The page you were looking for doesn't exist or may have moved.
+			</p>
+			<div class="notfound__actions">
+				<a class="btn btn--primary" href="/">Back to home</a>
+				<a class="btn btn--secondary" href={DOCS_PATH}>Documentation</a>
+			</div>
+		</div>
+	</main>
+
+	<Footer />
+</BaseLayout>
+
+<style>
+	.notfound {
+		display: flex;
+		align-items: center;
+		min-height: 62vh;
+	}
+
+	.notfound__inner {
+		text-align: center;
+		max-width: 560px;
+	}
+
+	.notfound__title {
+		font-size: clamp(2rem, 1.4rem + 3vw, 3rem);
+		margin: 8px 0 16px;
+	}
+
+	.notfound__lede {
+		color: var(--text-muted);
+		font-size: 1.1rem;
+		margin-bottom: 28px;
+	}
+
+	.notfound__actions {
+		display: flex;
+		gap: 14px;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+</style>
