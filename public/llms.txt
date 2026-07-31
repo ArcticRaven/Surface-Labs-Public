@@ -4,7 +4,7 @@
 
 Surface Labs builds complete PBR material sets (albedo, normal, roughness,
 metallic, ambient occlusion and height) from a graph of GPU-evaluated nodes on a
-native Rust/wgpu core. The graph is the single source, so changing an upstream
+native Rust engine. The graph is the single source, so changing an upstream
 input re-renders everything after it in real time, up to 8192 x 8192 in 8-, 16-
 or 32-bit float.
 
@@ -13,7 +13,7 @@ or 32-bit float.
 - Category: node-based procedural texture and PBR material authoring tool.
 - Audience: indie game developers and technical artists.
 - Platforms: Windows, macOS, Linux, Android and iPadOS — the same app on all
-  five, on a native Rust/wgpu core with Direct3D 12 (Windows), Metal (macOS,
+  five, on a native Rust engine with Direct3D 12 (Windows), Metal (macOS,
   iPad) and Vulkan (Linux) backends.
 - Packaging: portable Windows ZIP (no installer, nothing in the registry);
   signed, notarized, universal macOS build (Apple Silicon and Intel); Debian
@@ -21,10 +21,10 @@ or 32-bit float.
 - One project file: .surfacelabs is a single portable archive holding every
   material, subgraph, embedded image and export setting; fonts used by Text
   nodes are embedded so type renders identically on every machine.
-- Input: mouse, keyboard, touch, Apple Pencil and game controllers. Full
+- Input: mouse, keyboard, touch, stylus and game controllers. Full
   game-controller navigation is built as an accessibility-first alternative to
   mouse and touch.
-- Works fully offline with no account, sign-in or telemetry.
+- No account required to use it.
 - Node library includes Perlin/FBM/Voronoi/Cells noise, gradients and tile
   sampler; blur, sharpen, levels, curves, warp and gradient-map filters; blend
   and channel operations; normal-from-height, curvature and AO tools; histogram

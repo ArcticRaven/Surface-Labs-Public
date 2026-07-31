@@ -1,52 +1,45 @@
 ---
 title: "What's new in 1.2"
-description: "A native Rust/wgpu rendering engine, an MCP server, GPU-compute erosion, custom nodes in full GLSL, 8192² authoring, and more."
+description: "A native Rust engine, a built-in MCP server, GPU-compute erosion, a full GLSL editor, and authoring up to 8192²."
 date: 2026-07-31
 author: Arctic
 tags: [release, devlog]
 ---
 
-Surface Labs 1.2 is the biggest release yet. The short version: a native
-**Rust/wgpu** rendering engine, an **MCP server** for automation, real
-GPU-compute nodes, and custom nodes that now take **full GLSL**. The whole thing
-still runs on Windows, macOS, Linux, Android and iPad — same app, same node
-library, same project file.
+1.2 is the biggest release so far. A new native Rust engine, a built-in MCP
+server, GPU-compute nodes, and a full GLSL editor for custom nodes. Still one
+app across Windows, macOS, Linux, Android and iPad.
 
-Here's the long version.
+Here is what changed.
 
-## A native Rust/wgpu core
+## A native Rust engine
 
 Node evaluation, custom shaders and the export encoders now run on a native
-Rust/wgpu engine. That's Direct3D 12 on Windows, Metal on macOS and iPad, and
-Vulkan on Linux — the right backend on each platform, with one graph and one
-project format on top.
+Rust engine, with the right graphics backend on each platform: Direct3D 12 on
+Windows, Metal on macOS and iPad, Vulkan on Linux.
 
-It also lifts the ceilings. Author at up to **8192 × 8192**, in 8-, 16- or
-32-bit float, and export OpenEXR. An M-series iPad renders 8192² — the tablet
-isn't a reduced edition.
+It also raises the ceiling. You can author up to 8192 × 8192 in 8, 16 or 32-bit
+float. (8K is desktop-only for now. iPad support is in testing.)
 
-## Erosion and distance fields, as real compute passes
+Speed is the headline. Most nodes render in under a millisecond. Even a heavy
+graph stays under two.
 
-Two of the most-requested nodes landed, and they run as genuine GPU compute
-rather than fragment-shader approximations:
+## Erosion and distance fields
 
-- **Erosion** — hydraulic and thermal weathering. It *moves* material rather
-  than blurring it, so what one area loses turns up downstream. Roughly 230 ms
-  for 80 steps at 2048² on an RTX 3070.
-- **Distance Field** — computed by jump flooding, seamless across the tile edge.
+Two long-requested nodes landed, both running as real GPU compute.
 
-Alongside them: **Flood Fill** for per-region colour, scatter and query (the
-backbone for tiles, bricks and panels), a **Trim Sheet** node, a **Text** node
-that embeds its font into the project, and a long list of new filters and
-blends.
+- **Erosion.** Hydraulic and thermal weathering that moves material instead of
+  blurring it, so what one area loses shows up downstream. Around 230 ms for 80
+  steps at 2048² on an RTX 3070.
+- **Distance Field.** Computed by jump flooding, seamless across the tile edge.
 
-## Custom nodes in full GLSL
+Flood Fill, Trim Sheet and Text nodes came along with them, plus a pile of new
+filters and blends.
 
-The custom shader node used to speak a small built-in language. Now it's
-**ordinary GLSL** — loops, helper functions, structs, arrays — compiled to a
-real native pipeline and running alongside every other node.
+## A full GLSL editor
 
-A short declaration header becomes the node's ports and Properties controls:
+The custom shader node is now a full GLSL editor. Write real shader code, and a
+short header turns your declarations into ports and Properties controls.
 
 ```glsl
 in sampler2D source;                    // @optional
@@ -62,41 +55,32 @@ vec4 shade(vec2 uv) {
 ```
 
 Parameters bind as live uniforms, so dragging a slider re-renders without a
-recompile. And a shader that hangs the GPU is quarantined instead of taking the
-app down with it — fix it and it earns a fresh trial automatically.
+recompile. If a shader hangs the GPU it gets quarantined instead of taking the
+app down. Fix it and it runs again.
 
-## An MCP server
+## A built-in MCP server
 
-Surface Labs now ships an **MCP server**: a standard protocol interface that
-lets external tools read and edit a project the same way you do. Inspect a
-graph, add and rewire nodes, retune parameters, write a custom shader, render a
-node and get the image back, export the texture set.
+Surface Labs now ships its own MCP server. Point an AI client at it to read a
+graph, add and rewire nodes, retune parameters, write a shader, render a node,
+or export the whole texture set.
 
-It comes in two shapes. **Live** is hosted by the running app against the
-project you have open — edits land on your canvas and go into your undo history,
-so `Ctrl+Z` works on them. **Headless** (`surface_lab_headless`) is a standalone
-process with no window at all, driving `.surfacelabs` files from disk for batch
-runs, scripted variants and CI.
+There are two ways to run it. Live, hosted by the running app against the
+project you have open, with edits landing in your undo history. Headless, a
+separate process driving .surfacelabs files from disk for batch jobs and CI.
 
-Every edit goes through the same validation the canvas uses, so nothing can
-leave a project in a state the app won't open. Add the server in one line:
+Every edit runs through the same validation as the canvas, so a client cannot
+leave a project in a state the app will not open. Add it in one line.
 
 ```bash
 claude mcp add --transport http surface-labs http://127.0.0.1:4319/mcp
 ```
 
-## Smaller things worth naming
+## Also in 1.2
 
-- A **memory guard** that warns before you run out, instead of failing a render.
-- Resolution ceiling raised to **8192**.
-- Fonts used by Text nodes **embed into the project**, so type renders
-  identically on every machine.
+- A memory guard that warns before you run out.
+- Fonts used by Text nodes embed into the project, so type renders the same on
+  every machine.
 
-## Next
-
-Post-processing effects are up next, then engine plugins in 1.3, and the first
-public beta after that.
-
-Surface Labs is free during early access, on every platform. If you build
-something with it, come show it off in [the Discord](https://discord.com/invite/MjzQgVK9Jn) —
-feature requests there have a direct line to what gets built next.
+Surface Labs is free during early access. If you build something with it, show
+it off in [the Discord](https://discord.com/invite/MjzQgVK9Jn). Feature requests
+there have a direct line to what ships next.

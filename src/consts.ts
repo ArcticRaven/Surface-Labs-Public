@@ -24,6 +24,12 @@ export const DISCORD_URL = 'https://discord.com/invite/MjzQgVK9Jn';
 /** Public source repository. */
 export const REPO_URL = 'https://github.com/ArcticRaven/Surface-Labs-Public';
 
+/** General enquiries. */
+export const EMAIL_GENERAL = 'hello@surfacelabs.app';
+
+/** Help and support requests. */
+export const EMAIL_SUPPORT = 'support@surfacelabs.app';
+
 /** itch.io embed widget id (used for the store embed iframe). */
 export const ITCH_EMBED_ID = '4798821';
 

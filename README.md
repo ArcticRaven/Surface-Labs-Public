@@ -18,7 +18,6 @@ It's cross-platform from a single codebase and meets you on whatever hardware yo
 - **Nodes that do more.** Many nodes fold what other editors spread across three to six — one Blend with every mode, one Histogram that scans *and* remaps, full-control Levels and Curves — so your graphs stay small and readable.
 - **Programmable.** Write your own procedural nodes in a small built-in shading language when the stock library isn't enough — no native shader compiler required.
 - **GPU-first & non-destructive.** Every node runs as a fragment shader and the graph is the source of truth — tweak any upstream step and everything downstream updates in real time, up to 4K.
-- **Yours, offline.** No sign-in, no telemetry, no cloud dependency. Nothing leaves your device unless you export it.
 
 ## Features
 

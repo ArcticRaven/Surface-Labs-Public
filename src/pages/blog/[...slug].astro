@@ -3,7 +3,6 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import Newsletter from '../../components/Newsletter.astro';
 import { SITE_TITLE } from '../../consts';
 
 export async function getStaticPaths() {
@@ -58,8 +57,6 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 				</div>
 			</div>
 		</article>
-
-		<Newsletter compact={true} />
 	</main>
 
 	<Footer />

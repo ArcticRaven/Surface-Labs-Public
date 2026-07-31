@@ -14,21 +14,13 @@ Start with the documentation:
 - [Nodes](/docs/nodes/)
 - [FAQ](/docs/faq/)
 
-## Report an issue
+## Email us
 
-The public repository is on GitHub:
+- **Help and bug reports:** [support@surfacelabs.app](mailto:support@surfacelabs.app)
+- **Everything else:** [hello@surfacelabs.app](mailto:hello@surfacelabs.app)
 
-- [ArcticRaven/Surface-Labs-Public](https://github.com/ArcticRaven/Surface-Labs-Public)
+## Community
 
-<!-- TODO: Confirm where users should report bugs and request features (for
-example, GitHub Issues on the public repository or a contact channel on the
-itch.io page) and link to it directly here. -->
-
-## Store page
-
-You can also reach out through the store page:
-
-- [Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs)
-
-<!-- TODO: Add any additional support or community channels (for example, a
-Discord server or email address) once they are confirmed. -->
+- [Discord](https://discord.com/invite/MjzQgVK9Jn) — questions, feedback and feature requests
+- [Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs) — the store page
+- [ArcticRaven/Surface-Labs-Public](https://github.com/ArcticRaven/Surface-Labs-Public) — the public repository
