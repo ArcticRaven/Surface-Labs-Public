@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Gallery from '../components/Gallery.astro';
+import Contact from '../components/Contact.astro';
 import {
 	SITE_TITLE,
 	SITE_DESCRIPTION,
@@ -45,25 +46,31 @@ const why = [
 	{ title: 'Native everywhere', body: 'The same application runs everywhere you want it to.' },
 	{ title: 'One format', body: 'One .surfacelabs file opens on any device. Pick up right where you left off.' },
 	{ title: 'Any input', body: 'Mouse, keyboard, touch, stylus, or a controller.' },
-	{ title: 'Do more, faster', body: 'A native Rust engine renders most nodes in under 1 ms, and full graphs in under 2.' },
+	{ title: 'Do more, faster', body: 'A native Rust engine renders most nodes in under 2 ms.' },
 	{ title: 'Full GLSL editor', body: 'Out of nodes? Write your own in GLSL, compiled straight to the native engine.' },
-	{ title: 'High resolution', body: 'Author up to 8192 × 8192 in full 32-bit float.' },
+	{ title: 'High resolution', body: 'Author up to 8192 × 8192 in full 32-bit float.*' },
 ];
 
 // Per-platform packaging + backend. macOS and iPad share Metal.
 const platforms = [
 	{ name: 'Windows', detail: 'Portable. No installer.', backend: 'Direct3D 12' },
-	{ name: 'macOS & iPad', detail: 'Signed and notarized on Mac. Native iPad app.*', backend: 'Metal' },
+	{ name: 'macOS & iPad', detail: 'Signed and notarized on Mac. Native iPad app.', backend: 'Metal' },
 	{ name: 'Linux', detail: 'Built for Debian and Arch.', backend: 'Vulkan' },
 	{ name: 'Android', detail: 'arm64 and x64.', backend: '' },
 ];
 
 const inputs = ['Mouse', 'Keyboard', 'Touch', 'Stylus', 'Controller'];
 
-// Pipeline: two loud cards. Sell the feature, don't document it.
+// Pipeline: the one section that gets to be technical.
 const pipeline = [
-	{ name: 'Headless API', body: 'Render and export from the command line. Batch jobs, scripted variants, CI.' },
-	{ name: 'MCP integration', body: 'Wire Surface Labs into your AI tools. Read, edit and render projects over MCP.' },
+	{
+		name: 'Headless CLI',
+		body: 'A standalone process opens a .surfacelabs file, evaluates the graph, writes the full texture set, and exits. Same engine and export path as the app, so a build step reproduces exactly what the Export dialog would write. Batch a hundred variants or drop it into CI.',
+	},
+	{
+		name: 'MCP server',
+		body: 'A built-in server exposes the open project over MCP. A client can inspect the graph, add and rewire nodes, retune parameters, author a GLSL node, render any node back as an image, and export the set. Nine action-based tools, with the node registry served as JSON so the client reads the real parameter contract. Every edit is validated like the canvas, so nothing can leave a project the app will not open.',
+	},
 ];
 
 // Signature nodes that ship with the app. LUT authoring is future research.
@@ -204,6 +211,9 @@ const compareRows = [
 						</article>
 					))}
 				</div>
+				<p class="section-note">
+					* 8192² authoring is desktop-only. iPadOS and Android are capped lower.
+				</p>
 			</div>
 		</section>
 
@@ -212,7 +222,7 @@ const compareRows = [
 			<div class="container">
 				<div class="section__head">
 					<p class="eyebrow">Every platform</p>
-					<h2 id="platforms-heading">One build, everywhere. No cut-down edition.</h2>
+					<h2 id="platforms-heading">One build, everywhere</h2>
 				</div>
 
 				<div class="platform-rows">
@@ -232,7 +242,7 @@ const compareRows = [
 						{inputs.map((i) => <span class="badge">{i}</span>)}
 					</div>
 					<p class="section-note">
-						* 8K authoring is desktop-only right now. iPad support is in testing.
+						8K authoring and the MCP server run on desktop only. iPadOS and Android are memory-limited.
 					</p>
 				</div>
 			</div>
@@ -244,6 +254,11 @@ const compareRows = [
 				<div class="section__head">
 					<p class="eyebrow">Pipeline</p>
 					<h2 id="pipeline-heading">Built to be driven</h2>
+					<p>
+						Surface Labs is scriptable end to end. Drive it from the command line
+						for batch work and CI, or over MCP so an AI client reads and edits a
+						project the same way you do.
+					</p>
 				</div>
 				<div class="platform-cards">
 					{pipeline.map((c) => (
@@ -253,7 +268,9 @@ const compareRows = [
 						</article>
 					))}
 				</div>
-				<p class="section-note section-note--center">Windows, macOS and Linux.</p>
+				<p class="section-note section-note--center">
+					The headless CLI and MCP server run on Windows, macOS and Linux.
+				</p>
 			</div>
 		</section>
 
@@ -262,7 +279,13 @@ const compareRows = [
 			<div class="container">
 				<div class="section__head">
 					<p class="eyebrow">Nodes</p>
-					<h2 id="nodes-heading">Nodes you won't find elsewhere</h2>
+					<h2 id="nodes-heading">A deep library, small graphs</h2>
+					<p>
+						Generators, filters, blends, transforms, normals, channel ops and
+						math. Many are multi-mode: one Noise node covers eleven families, one
+						Blend covers every mode. Fewer nodes on the canvas, graphs you can
+						still read.
+					</p>
 				</div>
 				<div class="card-grid card-grid--nodes">
 					{nativeNodes.map((n) => (
@@ -275,10 +298,6 @@ const compareRows = [
 						</article>
 					))}
 				</div>
-				<p class="section-note">
-					Plus the full library: noise, blurs, blends, warps, curves, levels,
-					gradient maps and more.
-				</p>
 			</div>
 		</section>
 
@@ -339,41 +358,49 @@ const compareRows = [
 				</div>
 
 				<div class="whatsnew">
-					<ul class="whatsnew__list">
-						{whatsNew.map((item) => <li>{item}</li>)}
-					</ul>
+					<div class="whatsnew__col">
+						<ul class="whatsnew__list">
+							{whatsNew.map((item) => <li>{item}</li>)}
+						</ul>
+						<a class="whatsnew__link" href={WHATS_NEW_URL}>Read the full 1.2 devlog →</a>
+					</div>
 					<div class="whatsnew__next">
-						<h3>Get involved</h3>
-						<p>Feature requests in the Discord have a direct line to what ships next.</p>
-						<div class="whatsnew__actions">
-							<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
-								<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-									<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
-								</svg>
-								Join the Discord
-							</a>
-							<a class="whatsnew__link" href={WHATS_NEW_URL}>Read the full 1.2 devlog →</a>
-						</div>
+						<h3>Join the Discord</h3>
+						<p>
+							This is where Surface Labs gets built. Early builds land here first,
+							people post what they make, and feature requests have a direct line
+							to the next update. Come build with us.
+						</p>
+						<a class="btn btn--discord btn--block" href={DISCORD_URL} rel="noopener">
+							<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+								<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
+							</svg>
+							Join the Discord
+						</a>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- Download -->
-		<section class="section download" aria-labelledby="download-heading">
+		<!-- Get it + contact -->
+		<section class="section get" aria-labelledby="get-heading">
 			<div class="container">
-				<div class="download__card">
-					<h2 id="download-heading" class="download__title">Get Surface Labs</h2>
-					<div class="itch-embed">
-						<iframe
-							title="Surface Labs on itch.io"
-							src={`https://itch.io/embed/${ITCH_EMBED_ID}?dark=true`}
-							loading="lazy"
-						>
-							<a href={ITCH_URL}>Surface Labs by Arctic Dev</a>
-						</iframe>
+				<h2 id="get-heading" class="visually-hidden">Get Surface Labs and get in touch</h2>
+				<div class="get__grid">
+					<div class="get__download">
+						<p class="get__title">Get Surface Labs</p>
+						<div class="itch-embed">
+							<iframe
+								title="Surface Labs on itch.io"
+								src={`https://itch.io/embed/${ITCH_EMBED_ID}?dark=true`}
+								loading="lazy"
+							>
+								<a href={ITCH_URL}>Surface Labs by Arctic Dev</a>
+							</iframe>
+						</div>
+						<p class="get__note">Windows, macOS, Linux, Android and iPad. Free while in early access.</p>
 					</div>
-					<p class="download__note">Free while in early access.</p>
+					<Contact />
 				</div>
 			</div>
 		</section>

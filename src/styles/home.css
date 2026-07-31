@@ -264,6 +264,10 @@ img {
 	flex: none;
 }
 
+.btn--block {
+	width: 100%;
+}
+
 /* ------------------------------------------------------------------ *
  * Site header
  * ------------------------------------------------------------------ */
@@ -1255,30 +1259,92 @@ a.card .card__more {
 	white-space: nowrap;
 }
 
-/* Download section (bottom itch embed). */
-.download__card {
-	max-width: 600px;
-	margin-inline: auto;
-	text-align: center;
-	padding: clamp(28px, 4vw, 44px);
+/* Get it + contact (bottom section, two columns). */
+.get__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 24px;
+	align-items: start;
+}
+
+.get__download,
+.contact {
+	padding: clamp(24px, 3vw, 32px);
 	background: var(--panel);
 	border: 1px solid var(--border-strong);
 	border-radius: var(--radius);
-	box-shadow: 0 24px 60px -40px var(--shadow);
 }
 
-.download__title {
-	font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem);
-	margin-bottom: 20px;
+.get__title {
+	font-size: 1.2rem;
+	font-weight: 640;
+	letter-spacing: -0.01em;
+	margin-bottom: 16px;
 }
 
-.download__card .itch-embed {
-	margin-inline: auto;
-}
-
-.download__note {
+.get__note {
 	margin-top: 16px;
+	font-size: 0.88rem;
+	color: var(--text-dim);
+}
+
+.contact__lede {
+	color: var(--text-muted);
+	margin-bottom: 18px;
+}
+
+.contact__form {
+	display: grid;
+	gap: 12px;
+}
+
+.contact__form input,
+.contact__form textarea {
+	width: 100%;
+	padding: 12px 14px;
+	font-family: inherit;
+	font-size: 0.98rem;
+	color: var(--text);
+	background: var(--bg-elev);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+}
+
+.contact__form textarea {
+	resize: vertical;
+	min-height: 96px;
+}
+
+.contact__form input::placeholder,
+.contact__form textarea::placeholder {
+	color: var(--text-dim);
+}
+
+.contact__form .btn {
+	justify-self: start;
+}
+
+.contact__status {
+	margin: 0;
 	font-size: 0.9rem;
+	color: var(--text-muted);
+}
+
+.contact__status:empty {
+	display: none;
+}
+
+.contact__status.is-ok {
+	color: var(--status-success);
+}
+
+.contact__status.is-error {
+	color: var(--status-error);
+}
+
+.contact__alt {
+	margin-top: 16px;
+	font-size: 0.88rem;
 	color: var(--text-dim);
 }
 
@@ -1370,6 +1436,12 @@ kbd {
 	grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
 	gap: 24px;
 	align-items: start;
+}
+
+.whatsnew__col {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
 }
 
 .whatsnew__list {
@@ -1674,7 +1746,8 @@ kbd {
 	.hero__inner,
 	.feature,
 	.platform-cards,
-	.whatsnew {
+	.whatsnew,
+	.get__grid {
 		grid-template-columns: 1fr;
 		gap: 40px;
 	}

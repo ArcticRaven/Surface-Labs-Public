@@ -30,6 +30,19 @@ export const EMAIL_GENERAL = 'hello@surfacelabs.app';
 /** Help and support requests. */
 export const EMAIL_SUPPORT = 'support@surfacelabs.app';
 
+/**
+ * Web3Forms access key for the contact form. Web3Forms is a static-site form
+ * backend (no server needed): it forwards submissions to the email the key is
+ * registered to, and filters spam server-side (paired with the honeypot field
+ * in Contact.astro).
+ *
+ * TO ACTIVATE: create a free key at https://web3forms.com registered to
+ * hello@surfacelabs.app, then paste it here. Until then the form falls back to
+ * a mailto: link. Optionally add hCaptcha in the Web3Forms dashboard for
+ * stronger spam protection.
+ */
+export const WEB3FORMS_ACCESS_KEY = '';
+
 /** itch.io embed widget id (used for the store embed iframe). */
 export const ITCH_EMBED_ID = '4798821';
 

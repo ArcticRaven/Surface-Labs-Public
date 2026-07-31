@@ -1,0 +1,102 @@
+---
+/**
+ * Contact form. Posts to Web3Forms (see WEB3FORMS_ACCESS_KEY in consts), which
+ * forwards to hello@surfacelabs.app and filters spam. A hidden honeypot field
+ * ("botcheck") catches bots. If no access key is configured, the script falls
+ * back to a mailto: link so the form never dead-ends.
+ */
+import { EMAIL_GENERAL, WEB3FORMS_ACCESS_KEY } from '../consts';
+---
+
+<div class="contact">
+	<p class="get__title">Get in touch</p>
+	<p class="contact__lede">Questions, feedback or press. We read everything.</p>
+
+	<form
+		class="contact__form"
+		data-contact
+		action="https://api.web3forms.com/submit"
+		method="post"
+	>
+		<input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+		<input type="hidden" name="subject" value="New message from surfacelabs.app" />
+		<input type="hidden" name="from_name" value="Surface Labs website" />
+		{/* Honeypot: hidden from people, tempting to bots. */}
+		<input
+			type="checkbox"
+			name="botcheck"
+			class="visually-hidden"
+			tabindex="-1"
+			autocomplete="off"
+			aria-hidden="true"
+		/>
+
+		<label class="visually-hidden" for="c-name">Name</label>
+		<input id="c-name" name="name" placeholder="Name" autocomplete="name" required />
+
+		<label class="visually-hidden" for="c-email">Email</label>
+		<input
+			id="c-email"
+			type="email"
+			name="email"
+			placeholder="you@studio.com"
+			autocomplete="email"
+			required
+		/>
+
+		<label class="visually-hidden" for="c-message">Message</label>
+		<textarea id="c-message" name="message" rows="4" placeholder="What's on your mind?" required></textarea>
+
+		<button class="btn btn--primary" type="submit">Send</button>
+		<p class="contact__status" data-contact-status role="status" aria-live="polite"></p>
+	</form>
+
+	<p class="contact__alt">
+		Or email <a href={`mailto:${EMAIL_GENERAL}`}>{EMAIL_GENERAL}</a> directly.
+	</p>
+</div>
+
+<script>
+	for (const form of document.querySelectorAll<HTMLFormElement>('[data-contact]')) {
+		const status = form.querySelector<HTMLElement>('[data-contact-status]');
+		const keyField = form.querySelector<HTMLInputElement>('input[name="access_key"]');
+		const honeypot = form.querySelector<HTMLInputElement>('input[name="botcheck"]');
+		const key = keyField?.value.trim() ?? '';
+
+		const setStatus = (text: string, state: '' | 'is-ok' | 'is-error') => {
+			if (!status) return;
+			status.textContent = text;
+			status.className = state ? `contact__status ${state}` : 'contact__status';
+		};
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+
+			// Not wired to a provider yet: point people at email instead of failing.
+			if (!key) {
+				setStatus('The form is not connected yet. Please email hello@surfacelabs.app.', 'is-error');
+				return;
+			}
+			// Bot filled the honeypot.
+			if (honeypot?.checked) return;
+
+			setStatus('Sending…', '');
+			try {
+				const res = await fetch(form.action, {
+					method: 'POST',
+					headers: { Accept: 'application/json' },
+					body: new FormData(form),
+				});
+				const data = await res.json();
+				if (res.ok && data.success) {
+					setStatus('Thanks. We will get back to you.', 'is-ok');
+					form.reset();
+				} else {
+					setStatus(data.message || 'Something went wrong. Please email hello@surfacelabs.app.', 'is-error');
+				}
+			} catch {
+				setStatus('Something went wrong. Please email hello@surfacelabs.app.', 'is-error');
+			}
+		});
+	}
+</script>
