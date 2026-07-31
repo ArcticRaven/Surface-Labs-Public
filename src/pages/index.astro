@@ -3,17 +3,21 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Newsletter from '../components/Newsletter.astro';
 import Gallery from '../components/Gallery.astro';
+// Temporary hero visual. Placeholder until the five-platform composite (the same
+// graph on a Windows desktop, MacBook, Linux laptop, Android tablet and iPad) is
+// shot — see the marketing plan §7. Swap the import + alt when that art lands.
+import heroImg from '../assets/screenshots/01-app-overview.png';
 import materialImg from '../assets/screenshots/03-material.png';
 import {
 	SITE_TITLE,
 	SITE_DESCRIPTION,
 	ITCH_URL,
 	DISCORD_URL,
-	REPO_URL,
-	ITCH_EMBED_ID,
 	OG_IMAGE_PATH,
 	PLATFORMS,
+	WHATS_NEW_URL,
 } from '../consts';
 
 const homeUrl = new URL('/', Astro.site).href;
@@ -32,12 +36,14 @@ const jsonLd = {
 	operatingSystem: ['Windows', 'macOS', 'Linux', 'Android', 'iPadOS'],
 	image: ogImageUrl,
 	keywords:
-		'procedural texture authoring, node-based textures, PBR materials, Substance 3D Designer alternative, game development, indie game development, texture tool',
+		'procedural texture authoring, node-based textures, PBR materials, Substance 3D Designer alternative, game development, indie game development, texture tool, Rust wgpu, MCP server',
 	featureList: [
-		'Node-based procedural texture authoring',
-		'GPU-accelerated, non-destructive evaluation',
+		'Node-based procedural texture authoring on a native Rust/wgpu core',
+		'Native on Windows, macOS, Linux, Android and iPadOS (D3D12, Metal, Vulkan)',
 		'Complete PBR material sets (albedo, normal, roughness, metallic, AO, height)',
-		'Custom shader nodes',
+		'Custom nodes written in full GLSL',
+		'GPU compute erosion, distance fields and up to 8192×8192 authoring',
+		'MCP server and headless CLI for automation',
 		'Engine-aware export (Unreal, Unity, Godot, glTF)',
 	],
 	publisher: {
@@ -53,56 +59,98 @@ const jsonLd = {
 		priceCurrency: 'USD',
 		url: ITCH_URL,
 	},
-	sameAs: [ITCH_URL, DISCORD_URL, REPO_URL],
+	sameAs: [ITCH_URL, DISCORD_URL],
 };
 
 // Input methods, surfaced as their own group in the platforms section.
 const inputs = ['Mouse', 'Keyboard', 'Apple Pencil', 'Touch', 'Game controller'];
 
+// The six "why" cards — the pitch, in order (marketing plan §6).
 const why = [
 	{
+		title: 'Native on five platforms',
+		body: 'Direct3D 12 on Windows, Metal on macOS and iPad, Vulkan on Linux. A portable Windows ZIP, a signed universal macOS build, .deb and Arch packages. Same app, same nodes, same export.',
+	},
+	{
+		title: 'One file, everywhere',
+		body: 'A .surfacelabs project is a single archive holding every material, subgraph, embedded image and export setting — even the fonts your Text nodes use. Start on a desktop, finish on a tablet, hand it to someone on Linux.',
+	},
+	{
 		title: 'Works the way you do',
-		body: 'Mouse, keyboard, Apple Pencil or touch, or run the entire editor from a game controller, built as an accessible alternative to mouse and touch. Same tool on desktop and tablet.',
+		body: 'Mouse, keyboard, Apple Pencil, touch — or run the entire editor from a game controller, built as an accessibility-first alternative to mouse and touch. Load Substance, Blender, Houdini or Nuke shortcut schemes and keep your muscle memory.',
 	},
 	{
-		title: 'Cross-platform, one codebase',
-		body: 'One codebase, built on Flutter, gives you the full native tool on every platform, including tablet.',
+		title: 'A real GPU core',
+		body: 'Node evaluation, custom shaders and export encoders run on a native Rust/wgpu engine. Erosion and distance fields run as genuine compute passes. Author at up to 8192×8192 in 8-, 16- or 32-bit float.',
 	},
 	{
-		title: 'Nodes that do more',
-		body: 'Many nodes do the work of several. One Blend covers every mode, one Histogram scans and remaps, so your graphs stay small and readable.',
-	},
-	{
-		title: 'Programmable',
-		body: 'Write your own procedural nodes in a small built-in shading language when the stock library is not enough.',
-	},
-	{
-		title: 'GPU-first, non-destructive',
-		body: 'Every node runs as a fragment shader. Change any input and everything after it re-renders in real time, up to 4K.',
+		title: 'Write real GPU nodes',
+		body: 'When the library runs out, write a node in full GLSL. Loops, helper functions, structs, arrays. Declarations become ports and controls; parameters bind as live uniforms, so tuning a value re-renders without a recompile.',
 	},
 	{
 		title: 'Yours, offline',
-		body: 'No sign-in, no telemetry, no cloud dependency. Nothing leaves your device unless you export it.',
+		body: 'No sign-in. No cloud. Projects are ordinary files you can copy, back up and put in version control. Nothing leaves your device unless you export it.',
 	},
 ];
 
-// Node names drawn from the README's feature list.
-const nodeTags = [
-	'Perlin', 'FBM', 'Voronoi', 'Cells', 'Clouds', 'Checker', 'Gradient',
-	'Brick', 'Tile Sampler', 'Blur', 'Sharpen', 'Levels', 'Curves', 'HSL Shift',
-	'Threshold', 'Warp', 'Gradient Map', 'Blend', 'Normal from Height',
-	'Curvature', 'AO from Height', 'Edge Detect', 'Histogram', 'Channel Combine',
+// Per-platform packaging + backend detail (marketing plan §2 / §6).
+const platforms = [
+	{ name: 'Windows', detail: 'Portable ZIP. No installer, nothing in the registry.', backend: 'Direct3D 12' },
+	{ name: 'macOS', detail: 'Signed, notarized, universal — Apple Silicon and Intel.', backend: 'Metal' },
+	{ name: 'Linux', detail: '.deb and Arch .pkg.tar.zst.', backend: 'Vulkan' },
+	{ name: 'Android', detail: 'arm64 and x64.', backend: '' },
+	{ name: 'iPad', detail: 'Full native app. An M-series iPad renders 8192×8192.', backend: 'Metal' },
+];
+
+// Node library — the five that carry the section, then a longer "also" list.
+const featureNodes = [
+	{
+		name: 'Erosion',
+		body: 'Hydraulic and thermal weathering on GPU compute. It moves material rather than blurring it, so what one area loses turns up downstream.',
+	},
+	{
+		name: 'Flood Fill',
+		body: 'Assign every enclosed region an id, then colour, modify, query and scatter per region. The backbone for tiles, bricks, panels and scattered detail.',
+	},
+	{
+		name: 'Distance Field',
+		body: 'Computed by jump flooding, seamless across the tile edge.',
+	},
+	{
+		name: 'Trim Sheet',
+		body: 'Stack up to four maps or whole materials as horizontal strips, with layout presets, per-strip fill sliders and per-channel preview.',
+	},
+	{
+		name: 'Text',
+		body: 'Typeset a string into a mask using an imported or device font, embedded in the project so it renders the same everywhere.',
+	},
+];
+
+const alsoNodes = [
+	'Slope Blur', 'Height Blend', 'Rotate', 'Surface Detail', 'Flow Map',
+	'Vector Morph', 'Normal Blend', 'Frequency Split', 'Curves', 'Levels',
+	'Gradient Map',
 ];
 
 const exportTargets = ['Unreal Engine', 'Unity (URP & HDRP)', 'Godot', 'glTF / three.js'];
 
-// How It Compares — from the README. `note` renders as small print.
+// What's new in 1.2 — headline highlights (marketing plan §6).
+const whatsNew = [
+	'A native Rust/wgpu rendering engine',
+	'An MCP server and a headless CLI',
+	'Erosion, distance fields, Text and a lot of new nodes',
+	'Custom shaders take full GLSL',
+	'Resolution ceiling raised to 8192',
+	'A memory guard that warns before you run out',
+];
+
+// How It Compares. `note` renders as small print.
 const compareCols = ['Surface Labs', 'Substance Designer', 'Material Maker', 'Blender'];
 const compareRows = [
 	{
-		label: 'Desktop and tablet',
+		label: 'Native on 5 platforms',
 		cells: [
-			{ k: 'yes', t: 'Yes', note: 'One app, everywhere' },
+			{ k: 'yes', t: 'Yes', note: 'Win · Mac · Linux · Android · iPad' },
 			{ k: 'no', t: 'Desktop only' },
 			{ k: 'no', t: 'Desktop only' },
 			{ k: 'no', t: 'Desktop only' },
@@ -126,12 +174,21 @@ const compareRows = [
 		],
 	},
 	{
-		label: 'Built-in programmable shader nodes',
+		label: 'Custom nodes in full GLSL',
 		cells: [
 			{ k: 'yes', t: 'Yes', note: 'Runs anywhere' },
 			{ k: 'yes', t: 'Yes', note: 'Desktop' },
 			{ k: 'yes', t: 'Yes', note: 'Desktop' },
 			{ k: 'warn', t: 'Scripting / OSL' },
+		],
+	},
+	{
+		label: 'Automation (MCP + headless CLI)',
+		cells: [
+			{ k: 'yes', t: 'Yes', note: 'Live & headless' },
+			{ k: 'yes', t: 'Yes', note: 'Scripting API' },
+			{ k: 'warn', t: 'Limited' },
+			{ k: 'yes', t: 'Yes', note: 'Python' },
 		],
 	},
 	{
@@ -141,15 +198,6 @@ const compareRows = [
 			{ k: 'yes', t: 'Yes' },
 			{ k: 'yes', t: 'Yes' },
 			{ k: 'warn', t: 'Not export-focused' },
-		],
-	},
-	{
-		label: 'GPU-accelerated on every platform',
-		cells: [
-			{ k: 'yes', t: 'Yes', note: 'desktop and tablet' },
-			{ k: 'no', t: 'Desktop only' },
-			{ k: 'no', t: 'Desktop only' },
-			{ k: 'no', t: 'Desktop only' },
 		],
 	},
 	{
@@ -163,31 +211,11 @@ const compareRows = [
 	},
 ];
 
-// Roadmap milestones, in order. The first is flagged "Next up".
-const roadmap = [
-	{
-		title: 'Flood fill nodes',
-		body: 'New flood-fill nodes for fast masking and fills.',
-		next: true,
-	},
-	{
-		title: '2D rendering on the Rust engine',
-		body: 'All 2D rendering moves to the Rust engine.',
-	},
-	{
-		title: '1.0.0-beta',
-		body: 'The first public beta release.',
-	},
-	{
-		title: 'Post-processing effects',
-		body: 'Post-processing effects for final output.',
-	},
-];
+// The one-line MCP install command shown in the automation section.
+const mcpCommand = 'claude mcp add --transport http surface-labs http://127.0.0.1:4319/mcp';
 
-// Surface Shading Language sample (from the custom shader node), with comments
-// marked up so they can be dimmed. No angle brackets, safe to set:html.
-const shaderCode = `<span class="tok-c">// Surface Shading Language. Declarations become ports and controls.</span>
-in sampler2D source;                    <span class="tok-c">// @optional</span>
+// GLSL custom-node sample (marketing plan §6). No angle brackets, safe to set:html.
+const shaderCode = `in sampler2D source;                    <span class="tok-c">// @optional</span>
 
 param vec3 tint = vec3(1.0, 0.6, 0.2);  <span class="tok-c">// @color</span>
 param float amount = 1.0;               <span class="tok-c">// @range(0, 2)</span>
@@ -199,56 +227,51 @@ vec4 shade(vec2 uv) {
 }`;
 ---
 
-<BaseLayout title={`${SITE_TITLE}: Procedural Texture Authoring for Game Developers`} path="/">
+<BaseLayout title={`${SITE_TITLE}: Procedural Texture Authoring on Every Platform`} path="/">
 	<script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
-	<Header />
+	<Header current="home" />
 
 	<main id="main">
 		<!-- Hero -->
 		<section class="hero">
 			<div class="container hero__inner">
 				<div class="hero__copy">
-					<p class="eyebrow">Cross-platform · accessible · procedural</p>
-					<h1 class="hero__title">Procedural textures on any platform, with any input.</h1>
+					<p class="eyebrow">Windows · macOS · Linux · Android · iPad</p>
+					<h1 class="hero__title">Procedural textures on every platform, with any input.</h1>
 					<p class="hero__lede">
-						Surface Labs is a node-based, GPU-accelerated PBR texturing tool that
-						runs natively on Windows, macOS, Linux, Android and iPad. Work with a
-						mouse, keyboard, Apple Pencil or touch, or run the whole editor from a
-						game controller, built as an accessible alternative to mouse and
-						touch.
+						Surface Labs is a node-based PBR texturing tool with a native Rust/wgpu
+						core — the full app on Windows, macOS, Linux, Android and iPad. One
+						node library, one project file, no reduced edition.
+					</p>
+					<p class="hero__sub">
+						Work with a mouse and keyboard, an Apple Pencil, touch, or drive the
+						entire editor from a game controller.
 					</p>
 					<div class="hero__actions">
 						<a class="btn btn--primary" href={ITCH_URL} rel="noopener">Get on itch.io</a>
+						<a class="btn btn--secondary" href={WHATS_NEW_URL}>What's new in 1.2</a>
 						<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
 							<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 								<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
 							</svg>
 							Join the Discord
 						</a>
-						<a class="btn btn--secondary" href="#roadmap">See the roadmap</a>
 					</div>
+					<p class="hero__terms">Free during early access.</p>
 				</div>
 
 				<div class="hero__figure">
-					<div class="hero-cta-card">
-						<p class="hero-cta-card__title">Get Surface Labs</p>
-						<div class="itch-embed">
-							<!-- Official itch.io store embed. -->
-							<iframe
-								title="Surface Labs on itch.io"
-								src={`https://itch.io/embed/${ITCH_EMBED_ID}?dark=true`}
-								loading="eager"
-							>
-								<a href={ITCH_URL}>Surface Labs by Arctic Dev</a>
-							</iframe>
-						</div>
-						<p class="hero-cta-card__note">
-							For <strong>Windows</strong>, <strong>macOS</strong>,
-							<strong>Linux</strong>, <strong>Android</strong> and
-							<strong>iPad</strong>. Free while in early access.
-						</p>
-					</div>
+					<figure class="frame frame--flush">
+						<Image
+							src={heroImg}
+							alt="Surface Labs with a full procedural node graph and a live 3D preview of the material on a cube."
+							widths={[560, 840, 1120]}
+							sizes="(max-width: 1000px) 100vw, 520px"
+							loading="eager"
+							fetchpriority="high"
+						/>
+					</figure>
 				</div>
 			</div>
 		</section>
@@ -258,7 +281,7 @@ vec4 shade(vec2 uv) {
 			<div class="container">
 				<div class="section__head">
 					<p class="eyebrow">Why Surface Labs</p>
-					<h2 id="why-heading">Why texture artists choose Surface Labs</h2>
+					<h2 id="why-heading">The whole tool, and it goes everywhere</h2>
 				</div>
 				<div class="card-grid">
 					{why.map((item) => (
@@ -267,6 +290,48 @@ vec4 shade(vec2 uv) {
 							<p>{item.body}</p>
 						</article>
 					))}
+				</div>
+			</div>
+		</section>
+
+		<!-- Platforms & input (promoted directly under the cards) -->
+		<section class="section" aria-labelledby="platforms-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Every platform</p>
+					<h2 id="platforms-heading">The whole tool, on every machine you own</h2>
+					<p>
+						No feature-reduced edition anywhere. The node library, the custom
+						shader editor, the 3D preview and the export pipeline are identical on
+						all five.
+					</p>
+				</div>
+
+				<div class="platform-rows">
+					{platforms.map((p) => (
+						<div class="platform-row">
+							<span class="platform-row__name">{p.name}</span>
+							<span class="platform-row__detail">{p.detail}</span>
+							{p.backend
+								? <span class="platform-row__backend">{p.backend}</span>
+								: <span class="platform-row__backend platform-row__backend--none" aria-hidden="true" />}
+						</div>
+					))}
+				</div>
+
+				<div class="platform-input">
+					<h3>And every input</h3>
+					<p>
+						Two-finger scroll and pinch on a laptop touchpad. Middle-drag to pan.
+						Long-press for a node's context menu on iPad. Drag a selection to the
+						screen edge and the canvas scrolls to follow. Full game-controller
+						navigation drives the entire editor through a virtual cursor — built
+						as an accessibility-first alternative to mouse and touch, and tunable
+						in settings.
+					</p>
+					<div class="badges badges--lg" style="margin-top:20px">
+						{inputs.map((i) => <span class="badge">{i}</span>)}
+					</div>
 				</div>
 			</div>
 		</section>
@@ -282,22 +347,29 @@ vec4 shade(vec2 uv) {
 			</div>
 		</section>
 
-		<!-- Feature: PBR materials -->
+		<!-- Feature: Materials + 3D preview -->
 		<section class="section" aria-labelledby="pbr-heading">
 			<div class="container feature">
 				<div class="feature__body">
 					<p class="eyebrow">Materials</p>
-					<h2 id="pbr-heading">Complete PBR material sets</h2>
+					<h2 id="pbr-heading">One graph, the whole material</h2>
 					<p>
-						Build full PBR materials from a single graph: albedo, normal,
-						roughness, metallic, AO and height. A 2D preview isolates any
-						channel, and a 3D preview renders the material on a mesh under your
-						own HDR lighting.
+						Build albedo, normal, roughness, metallic, AO and height from a single
+						node graph. Isolate any channel in the 2D preview, tile it 3×3 to hunt
+						seams, and pick pixel values straight off the canvas.
+					</p>
+					<p>
+						Then look at it properly. The 3D preview renders your material on a
+						real tessellated mesh through the native renderer — image-based
+						lighting, a three-light rig with adjustable softness, fill and rim,
+						ACES filmic tonemapping and 4× MSAA.
 					</p>
 					<ul class="feature__list">
-						<li>Albedo, normal, roughness, metallic, AO and height</li>
-						<li>2D preview with channel isolation</li>
-						<li>Drag-to-orbit 3D preview under HDR lighting</li>
+						<li><strong>Import your own HDRIs.</strong> Light the material with the environment it'll actually ship in.</li>
+						<li><strong>Real displacement.</strong> Height drives vertex displacement across up to 256 subdivisions, with triplanar, spherical or UV projection.</li>
+						<li><strong>Turntable.</strong> Sweep the lighting across the surface and watch the reflections move.</li>
+						<li><strong>Isolate and hide.</strong> Flip any map off and see exactly what it was contributing.</li>
+						<li><strong>Export a 4K still</strong>, or use the render as your canvas background.</li>
 					</ul>
 				</div>
 				<div class="feature__media">
@@ -310,58 +382,156 @@ vec4 shade(vec2 uv) {
 							loading="lazy"
 						/>
 					</figure>
+					<p class="code__cap">Viewport settings — camera, lights, environment, shape — are remembered per project.</p>
 				</div>
 			</div>
 		</section>
 
-		<!-- Feature: Programmable -->
+		<!-- Node library -->
+		<section class="section" aria-labelledby="library-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Node library</p>
+					<h2 id="library-heading">Nodes that earn their place</h2>
+					<p>
+						Generators, filters, blends, transforms, normal and height tools,
+						channel ops, histograms and math. Many are multi-mode: one Noise node
+						covers eleven families, one Blend covers every mode, one Histogram
+						scans and remaps. Graphs stay small enough to read.
+					</p>
+				</div>
+
+				<div class="card-grid card-grid--nodes">
+					{featureNodes.map((n) => (
+						<article class="card">
+							<h3>{n.name}</h3>
+							<p>{n.body}</p>
+						</article>
+					))}
+				</div>
+
+				<div class="callout" style="margin-top:28px">
+					<p>
+						Also: {alsoNodes.map((n, i) => (<><span class="node-name">{n}</span>{i < alsoNodes.length - 1 ? ', ' : ''}</>))} and more —
+						Rotate with seamless angle snapping, Curves with unlimited points, a
+						Photoshop-style Levels editor, and Gradient Map with unlimited stops on
+						a live bar.
+					</p>
+					<p style="margin-top:14px">
+						Six node types carry multiple outputs — <strong>Voronoi alone has
+						six</strong> — so one node can feed several channels at once. Collapse
+						any selection into a subgraph and reuse it. Tag nodes and projects and
+						rearrange the library into your own categories.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- Feature: Custom shaders -->
 		<section class="section" aria-labelledby="prog-heading">
 			<div class="container feature feature--reverse">
 				<div class="feature__body">
-					<p class="eyebrow">Programmable</p>
-					<h2 id="prog-heading">Write your own nodes</h2>
+					<p class="eyebrow">Custom shaders</p>
+					<h2 id="prog-heading">When the library isn't enough, write the node</h2>
 					<p>
-						When the stock library is not enough, write a node in the built-in
-						shading language. Declarations become ports and controls, and it
-						compiles and runs on the GPU alongside every other node. No native
-						shader compiler required.
+						A short declaration header becomes the node's input ports and its
+						Properties controls. Everything below it is ordinary GLSL, compiled to
+						a real native pipeline and running alongside every other node.
+					</p>
+					<p>
+						Parameters bind as live uniforms, so dragging a slider re-renders
+						without recompiling. The editor gives you syntax highlighting, a line
+						gutter and compiler diagnostics as you type. A shader that hangs the
+						GPU gets quarantined instead of taking the app down with it — edit it
+						and it earns a fresh trial automatically.
 					</p>
 				</div>
 				<div class="feature__media">
 					<pre class="code"><code set:html={shaderCode} /></pre>
-					<p class="code__cap">Surface Shading Language: a custom node</p>
+					<p class="code__cap">A custom node in full GLSL</p>
 				</div>
 			</div>
 		</section>
 
-		<!-- Node library + export -->
-		<section class="section" aria-labelledby="library-heading">
+		<!-- Export -->
+		<section class="section" aria-labelledby="export-heading">
 			<div class="container">
 				<div class="section__head">
-					<p class="eyebrow">Toolbox</p>
-					<h2 id="library-heading">A deep node library, engine-aware export</h2>
+					<p class="eyebrow">Export</p>
+					<h2 id="export-heading">Output your engine can read without a fight</h2>
 					<p>
-						Generators, filters, blends, transforms, normal and height tools,
-						channel operations, histograms and math. Many are multi-mode, doing
-						the job of several nodes at once.
+						Choose a target and Surface Labs writes the maps it expects, named the
+						way it expects, packed the way it expects.
 					</p>
 				</div>
 
-				<div class="badges" style="margin-bottom:36px">
-					{nodeTags.map((tag) => <span class="badge">{tag}</span>)}
-					<span class="badge">and more</span>
-				</div>
-
 				<div class="callout">
-					<h3>Export straight into your engine</h3>
-					<p>
-						Presets write the right maps with the right names and channel
-						packing for each target, including ORM packing and DirectX or OpenGL
-						normal orientation. Output as PNG, JPEG, TGA or BMP.
+					<ul class="feature__list feature__list--wide">
+						<li><strong>ORM</strong> for Unreal, glTF and Godot · <strong>MetallicSmoothness</strong> for Unity URP · <strong>Mask Map</strong> for HDRP — correct channel order, smoothness inversion, neutral fills for channels you didn't wire.</li>
+						<li><strong>Normal orientation per target</strong> — DirectX Y− for Unreal, OpenGL Y+ elsewhere — with a manual override.</li>
+						<li><strong>Channels you left unconnected</strong> export as flat maps baked from the node's constant values, so nothing arrives missing.</li>
+						<li><strong>PNG, JPEG, TGA, BMP and OpenEXR</strong>, at 8-bit, 16-bit or 16/32-bit float.</li>
+					</ul>
+					<p style="margin-top:20px">
+						The dialog lists the exact files it's about to write before you commit.
+						Export per output node, so a project with several materials stays under
+						control.
 					</p>
 					<div class="badges" style="margin-top:18px">
 						{exportTargets.map((t) => <span class="badge badge--now">{t}</span>)}
 					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Automation (new) -->
+		<section class="section" aria-labelledby="automation-heading">
+			<div class="container">
+				<div class="section__head">
+					<p class="eyebrow">Automation</p>
+					<h2 id="automation-heading">Drive it from your pipeline</h2>
+					<p>
+						Surface Labs ships an MCP server: a standard protocol interface that
+						lets external tools read and edit a project the same way you do.
+						Inspect a graph, add and rewire nodes, retune parameters, write a
+						custom shader, render a node and get the image back, export the texture
+						set.
+					</p>
+				</div>
+
+				<div class="platform-cards">
+					<article class="card">
+						<h3>Live</h3>
+						<p>
+							Hosted by the running app against the project you have open. Edits
+							land on your canvas as they happen and go into your undo history,
+							so <kbd>Ctrl</kbd>+<kbd>Z</kbd> works on them. Nothing touches disk
+							until you save.
+						</p>
+					</article>
+					<article class="card">
+						<h3>Headless</h3>
+						<p>
+							<code class="inline-code">surface_lab_headless</code> — a standalone
+							process with no window at all, driving .surfacelabs files from disk.
+							Open a project, evaluate it, write its textures, exit. Batch runs,
+							scripted variants, CI.
+						</p>
+					</article>
+				</div>
+
+				<div class="callout" style="margin-top:28px">
+					<p>
+						Every edit goes through the same validation the canvas uses. A
+						connection that would make a cycle is refused. A parameter outside its
+						declared range is refused. Nothing can leave a project in a state the
+						app won't open. Nine action-based tools, with the node registry exposed
+						as structured JSON so a client reads the real parameter contract instead
+						of guessing at it.
+					</p>
+					<p class="cmd-label">Add the server in one line:</p>
+					<pre class="cmd"><code>{mcpCommand}</code></pre>
+					<p class="callout__foot">In-app server runs on Windows, macOS and Linux.</p>
 				</div>
 			</div>
 		</section>
@@ -393,6 +563,7 @@ vec4 shade(vec2 uv) {
 									<th scope="row">{row.label}</th>
 									{row.cells.map((cell, i) => (
 										<td class={`${cell.k}${i === 0 ? ' col-ours' : ''}`}>
+											<span class="visually-hidden">{cell.k === 'yes' ? 'Yes: ' : cell.k === 'no' ? 'No: ' : 'Partial: '}</span>
 											{cell.t}
 											{cell.note && <small>{cell.note}</small>}
 										</td>
@@ -410,71 +581,38 @@ vec4 shade(vec2 uv) {
 			</div>
 		</section>
 
-		<!-- Platforms & input -->
-		<section class="section" aria-labelledby="platforms-heading">
+		<!-- What's new (replaces the roadmap section) -->
+		<section id="whats-new" class="section" aria-labelledby="whatsnew-heading">
 			<div class="container">
 				<div class="section__head">
-					<p class="eyebrow">Cross-platform &amp; accessible</p>
-					<h2 id="platforms-heading">Every platform, every input</h2>
-					<p>
-						One Flutter codebase gives you the full native tool on desktop and
-						tablet, with first-class support for every input.
-					</p>
+					<p class="eyebrow">What's new</p>
+					<h2 id="whatsnew-heading">What's new in 1.2</h2>
+					<p>A big release. The headlines:</p>
 				</div>
-				<div class="platform-cards">
-					<article class="card">
-						<h3>Cross-platform</h3>
-						<div class="badges badges--lg">
-							{PLATFORMS.map((p) => <span class="badge badge--now">{p}</span>)}
+
+				<div class="whatsnew">
+					<ul class="whatsnew__list">
+						{whatsNew.map((item) => <li>{item}</li>)}
+					</ul>
+					<div class="whatsnew__next">
+						<p class="whatsnew__next-label">Next</p>
+						<p>Post-processing effects, engine plugins in 1.3, and the first public beta.</p>
+						<div class="whatsnew__actions">
+							<a class="btn btn--secondary" href={WHATS_NEW_URL}>Read the 1.2 devlog</a>
+							<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
+								<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+									<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
+								</svg>
+								Suggest a feature
+							</a>
 						</div>
-						<p class="card__foot">The full native app on every platform, including tablet.</p>
-					</article>
-					<article class="card">
-						<h3>Accessible input</h3>
-						<div class="badges badges--lg">
-							{inputs.map((i) => <span class="badge">{i}</span>)}
-						</div>
-						<p class="card__foot">
-							Full game-controller navigation is built as an accessible
-							alternative to mouse and touch.
-						</p>
-					</article>
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- Roadmap -->
-		<section id="roadmap" class="section" aria-labelledby="roadmap-heading">
-			<div class="container">
-				<div class="section__head">
-					<p class="eyebrow">Roadmap</p>
-					<h2 id="roadmap-heading">What's next</h2>
-					<p>The next four milestones we're building, in order.</p>
-				</div>
-
-				<ol class="roadmap">
-					{roadmap.map((item) => (
-						<li class={`roadmap__item${item.next ? ' roadmap__item--next' : ''}`}>
-							<span class="roadmap__marker" aria-hidden="true" />
-							<div class="roadmap__body">
-								{item.next && <span class="roadmap__tag">Next up</span>}
-								<h3>{item.title}</h3>
-								<p>{item.body}</p>
-							</div>
-						</li>
-					))}
-				</ol>
-
-				<div class="roadmap__cta">
-					<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
-						<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-							<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
-						</svg>
-						Suggest a feature on Discord
-					</a>
-				</div>
-			</div>
-		</section>
+		<!-- Newsletter -->
+		<Newsletter />
 
 		<!-- Pricing -->
 		<section id="pricing" class="section" aria-labelledby="pricing-heading">
@@ -488,13 +626,13 @@ vec4 shade(vec2 uv) {
 					<div class="price-card price-card--now">
 						<p class="price-card__when">Now (early access)</p>
 						<p class="price-card__amount">Free</p>
-						<p class="price-card__note">Every build, on every platform.</p>
+						<p class="price-card__note">Every build, every platform, no account.</p>
 						<a class="btn btn--primary" href={ITCH_URL} rel="noopener">Get on itch.io</a>
 					</div>
 					<div class="price-card">
 						<p class="price-card__when">At v1.0.0</p>
 						<p class="price-card__amount">$10 <span>/ platform</span></p>
-						<p class="price-card__note">Planned price when Surface Labs reaches its 1.0.0 release.</p>
+						<p class="price-card__note">No subscription. Buy what you use, once.</p>
 					</div>
 				</div>
 			</div>

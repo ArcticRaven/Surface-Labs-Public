@@ -16,6 +16,14 @@ const OG_IMAGE = `${SITE}/images/og.png`;
 // https://astro.build/config
 export default defineConfig({
 	site: SITE,
+	// Disable Astro's default Shiki highlighter for standalone Markdown (the
+	// blog). Shiki bakes a fixed dark background into every code block, which
+	// clashes with the light (parchment) theme. Blog code blocks are styled
+	// theme-aware in home.css instead. Starlight docs use Expressive Code and
+	// are unaffected by this setting.
+	markdown: {
+		syntaxHighlight: false,
+	},
 	// The custom marketing homepage lives at src/pages/index.astro. Starlight
 	// serves the documentation collection; every docs entry is nested under a
 	// `docs/` folder so it is routed beneath /docs/ and never claims `/`.

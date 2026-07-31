@@ -33,7 +33,7 @@ const META: Record<string, { caption: string; alt: string }> = {
 	},
 	'04-custom-shader': {
 		caption: 'Custom shader nodes',
-		alt: 'The Surface Labs custom shader node editor showing source in the built-in shading language and its generated controls.',
+		alt: 'The Surface Labs custom shader node editor showing a node written in full GLSL and its generated controls.',
 	},
 	'05-hub-library': {
 		caption: 'Project hub & library',
@@ -92,7 +92,7 @@ const count = slides.length;
 								src={slide.src}
 								alt={slide.alt}
 								widths={[600, 900, 1280, 1600]}
-								sizes="(max-width: 980px) 100vw, 940px"
+								sizes="(max-width: 1120px) 100vw, 1072px"
 								loading="lazy"
 							/>
 							<figcaption>{slide.caption}</figcaption>

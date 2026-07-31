@@ -3,27 +3,42 @@
 > Surface Labs is a node-based procedural PBR texture authoring tool for indie game developers. It is an independent, portable alternative to Substance 3D Designer.
 
 Surface Labs builds complete PBR material sets (albedo, normal, roughness,
-metallic, ambient occlusion and height) from a graph of GPU-evaluated nodes.
-Every node runs as a fragment shader and the graph is the single source, so
-changing an upstream input re-renders everything after it in real time, up to
-4K.
+metallic, ambient occlusion and height) from a graph of GPU-evaluated nodes on a
+native Rust/wgpu core. The graph is the single source, so changing an upstream
+input re-renders everything after it in real time, up to 8192 x 8192 in 8-, 16-
+or 32-bit float.
 
 ## Facts
 
 - Category: node-based procedural texture and PBR material authoring tool.
 - Audience: indie game developers and technical artists.
-- Platforms: Windows, macOS, Linux, Android and iPadOS, from a single (Flutter) codebase.
+- Platforms: Windows, macOS, Linux, Android and iPadOS — the same app on all
+  five, on a native Rust/wgpu core with Direct3D 12 (Windows), Metal (macOS,
+  iPad) and Vulkan (Linux) backends.
+- Packaging: portable Windows ZIP (no installer, nothing in the registry);
+  signed, notarized, universal macOS build (Apple Silicon and Intel); Debian
+  .deb and Arch .pkg.tar.zst on Linux; arm64 and x64 on Android.
+- One project file: .surfacelabs is a single portable archive holding every
+  material, subgraph, embedded image and export setting; fonts used by Text
+  nodes are embedded so type renders identically on every machine.
 - Input: mouse, keyboard, touch, Apple Pencil and game controllers. Full
-  game-controller navigation is built as an accessible alternative to mouse and
-  touch.
+  game-controller navigation is built as an accessibility-first alternative to
+  mouse and touch.
 - Works fully offline with no account, sign-in or telemetry.
-- Node library includes Perlin, FBM, Voronoi and Cells noise, gradients, tile
+- Node library includes Perlin/FBM/Voronoi/Cells noise, gradients and tile
   sampler; blur, sharpen, levels, curves, warp and gradient-map filters; blend
   and channel operations; normal-from-height, curvature and AO tools; histogram
-  and math nodes. Custom nodes can be written in a built-in shading language.
+  and math nodes; plus GPU-compute Erosion (hydraulic and thermal), Flood Fill,
+  Distance Field (jump flooding), Trim Sheet and Text. Custom nodes are written
+  in full GLSL, compiled to a native pipeline.
+- Automation: ships an MCP server (live, hosted by the running app, and a
+  headless CLI, surface_lab_headless) for reading and editing projects,
+  rendering nodes and exporting texture sets; every edit goes through the same
+  validation as the canvas.
 - Export presets: Unreal Engine, Unity (URP and HDRP), Godot and glTF /
-  three.js, with correct channel packing and DirectX or OpenGL normal
-  orientation. Output as PNG, JPEG, TGA or BMP.
+  three.js, with correct channel packing (ORM, MetallicSmoothness, HDRP Mask
+  Map) and DirectX or OpenGL normal orientation. Output as PNG, JPEG, TGA, BMP
+  or OpenEXR.
 - Pricing: free during early access; $10 per platform planned at the 1.0.0
   release. One-time purchase, no subscription.
 

@@ -27,8 +27,15 @@ export const REPO_URL = 'https://github.com/ArcticRaven/Surface-Labs-Public';
 /** itch.io embed widget id (used for the store embed iframe). */
 export const ITCH_EMBED_ID = '4798821';
 
-/** Documentation home (served by Starlight under /docs/). */
+/** Documentation home (served by Starlight under /docs/). Not yet published;
+ *  the site nav shows Docs as "coming soon" rather than linking here. */
 export const DOCS_PATH = '/docs/';
+
+/** Blog index. */
+export const BLOG_PATH = '/blog';
+
+/** The "What's new in 1.2" launch devlog (first blog post). */
+export const WHATS_NEW_URL = '/blog/whats-new-in-1-2';
 
 /** Default social share image (relative to the site origin). */
 export const OG_IMAGE_PATH = '/images/og.png';

@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { DOCS_PATH } from '../consts';
+import { BLOG_PATH } from '../consts';
 ---
 
 <BaseLayout
@@ -22,7 +22,7 @@ import { DOCS_PATH } from '../consts';
 			</p>
 			<div class="notfound__actions">
 				<a class="btn btn--primary" href="/">Back to home</a>
-				<a class="btn btn--secondary" href={DOCS_PATH}>Documentation</a>
+				<a class="btn btn--secondary" href={BLOG_PATH}>Read the blog</a>
 			</div>
 		</div>
 	</main>

@@ -1,0 +1,100 @@
+---
+/**
+ * Newsletter signup block.
+ *
+ * PLACEHOLDER WIRING: there is no email provider connected yet. The form has no
+ * live `action`, and the inline script below intercepts submit to show a
+ * friendly confirmation and point people at Discord in the meantime.
+ *
+ * To make it live, pick a provider (Buttondown, ConvertKit, Mailchimp, …) and:
+ *   1. Set `data-newsletter-action` to the provider's POST endpoint.
+ *   2. Set the <form> `action`/`method` and the email field `name` to match
+ *      what the provider expects.
+ *   3. Remove the `event.preventDefault()` branch in the script, or let the
+ *      script fall through when a real action is present (it already does).
+ */
+import { DISCORD_URL } from '../consts';
+
+interface Props {
+	/** Compact variant (used at the foot of the blog index). */
+	compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<section class:list={['section', 'newsletter', { 'newsletter--compact': compact }]} aria-labelledby="newsletter-heading">
+	<div class="container">
+		<div class="newsletter__card">
+			<div class="newsletter__copy">
+				<p class="eyebrow">Newsletter</p>
+				<h2 id="newsletter-heading">Get each release in your inbox</h2>
+				<p>
+					A short note when a new build ships — what's new, what's next. No spam,
+					unsubscribe any time. Or <a href={DISCORD_URL} rel="noopener">join the Discord</a>{' '}
+					for the day-to-day.
+				</p>
+			</div>
+
+			<form
+				class="newsletter__form"
+				data-newsletter
+				data-newsletter-action=""
+				action=""
+				method="post"
+				novalidate
+			>
+				<label class="visually-hidden" for="newsletter-email">Email address</label>
+				<input
+					id="newsletter-email"
+					class="newsletter__input"
+					type="email"
+					name="email"
+					inputmode="email"
+					autocomplete="email"
+					placeholder="you@studio.com"
+					required
+				/>
+				<button class="btn btn--primary" type="submit">Subscribe</button>
+				<p class="newsletter__status" data-newsletter-status role="status" aria-live="polite"></p>
+			</form>
+		</div>
+	</div>
+</section>
+
+<script>
+	// Progressive enhancement. Until a real provider endpoint is set on
+	// `data-newsletter-action`, intercept submit and show a placeholder message
+	// instead of navigating to a dead action.
+	for (const form of document.querySelectorAll<HTMLFormElement>('[data-newsletter]')) {
+		const status = form.querySelector<HTMLElement>('[data-newsletter-status]');
+		const action = form.getAttribute('data-newsletter-action')?.trim();
+
+		form.addEventListener('submit', (event) => {
+			const input = form.querySelector<HTMLInputElement>('input[type="email"]');
+			const valid = input?.checkValidity() ?? false;
+
+			// A real endpoint is configured — let the browser submit normally
+			// (but still block obviously invalid input).
+			if (action) {
+				if (!valid) {
+					event.preventDefault();
+					input?.reportValidity();
+				}
+				return;
+			}
+
+			// No endpoint yet: keep the preview from navigating anywhere.
+			event.preventDefault();
+			if (!status) return;
+			if (!valid) {
+				input?.reportValidity();
+				return;
+			}
+			status.textContent =
+				'Thanks! Signups aren’t wired up just yet — join the Discord and you won’t miss a release.';
+			status.classList.add('is-visible');
+			form.querySelector('input')?.setAttribute('disabled', 'true');
+			form.querySelector('button')?.setAttribute('disabled', 'true');
+		});
+	}
+</script>

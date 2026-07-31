@@ -1,9 +1,18 @@
 ---
 /** Site header: brand mark, primary navigation, theme toggle and store CTA. */
 import { Image } from 'astro:assets';
-import { SITE_TITLE, ITCH_URL, REPO_URL, DISCORD_URL } from '../consts';
+import { SITE_TITLE, ITCH_URL } from '../consts';
 import ThemeToggle from './ThemeToggle.astro';
 import appIcon from '../assets/app-icon.png';
+
+/**
+ * The page this header is rendered on, so the matching nav link can be marked
+ * `aria-current`. Pass "home", "blog", etc. Defaults to none.
+ */
+interface Props {
+	current?: 'home' | 'blog';
+}
+const { current } = Astro.props;
 ---
 
 <header class="site-header">
@@ -14,16 +23,28 @@ import appIcon from '../assets/app-icon.png';
 		</a>
 
 		<nav class="site-nav" aria-label="Primary">
-			<a class="site-nav__link" href={DISCORD_URL} rel="noopener">Discord</a>
 			<a
-				class="site-nav__link site-nav__link--hide-tablet"
-				href={REPO_URL}
-				rel="noopener"
-			>GitHub</a>
+				class="site-nav__link"
+				href="/"
+				aria-current={current === 'home' ? 'page' : undefined}
+			>Home</a>
+			<a
+				class="site-nav__link"
+				href="/blog"
+				aria-current={current === 'blog' ? 'page' : undefined}
+			>Blog</a>
+			{/* Docs exist but aren't published yet — shown as a non-link "soon"
+			    marker rather than pointing at the unfinished Starlight docs. */}
+			<span class="site-nav__link site-nav__link--soon" aria-disabled="true">
+				Docs <span class="nav-badge">Soon</span>
+			</span>
+		</nav>
+
+		<div class="site-header__actions">
 			<ThemeToggle />
 			<a class="btn btn--primary site-nav__cta" href={ITCH_URL} rel="noopener">
 				Get on itch.io
 			</a>
-		</nav>
+		</div>
 	</div>
 </header>
