@@ -41,9 +41,6 @@ export default defineConfig({
 			// emits <title>, canonical, description, og:title/description and
 			// twitter:card; these entries add the shared social image.
 			head: [
-				// The docs are not linked from the marketing site yet and are kept out
-				// of search results until they are ready. Remove this to publish them.
-				{ tag: 'meta', attrs: { name: 'robots', content: 'noindex, follow' } },
 				{ tag: 'meta', attrs: { property: 'og:image', content: OG_IMAGE } },
 				{
 					tag: 'meta',
@@ -70,7 +67,6 @@ export default defineConfig({
 				},
 			],
 		}),
-		// Keep /docs/* out of the sitemap while the docs are unpublished.
-		sitemap({ filter: (page) => !page.includes('/docs') }),
+		sitemap(),
 	],
 });
