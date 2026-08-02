@@ -1,7 +1,7 @@
 ---
 /** Site header: brand mark, primary navigation, theme toggle and store CTA. */
 import { Image } from 'astro:assets';
-import { SITE_TITLE, ITCH_URL } from '../consts';
+import { SITE_TITLE, ITCH_URL, DOCS_PATH } from '../consts';
 import ThemeToggle from './ThemeToggle.astro';
 import appIcon from '../assets/app-icon.png';
 
@@ -33,11 +33,11 @@ const { current } = Astro.props;
 				href="/blog"
 				aria-current={current === 'blog' ? 'page' : undefined}
 			>Blog</a>
-			{/* Docs exist but aren't published yet — shown as a non-link "soon"
-			    marker rather than pointing at the unfinished Starlight docs. */}
-			<span class="site-nav__link site-nav__link--soon" aria-disabled="true">
-				Docs <span class="nav-badge">Soon</span>
-			</span>
+			<a
+				class="site-nav__link"
+				href={DOCS_PATH}
+				aria-current={current === 'docs' ? 'page' : undefined}
+			>Docs</a>
 		</nav>
 
 		<div class="site-header__actions">

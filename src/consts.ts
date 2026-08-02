@@ -46,8 +46,7 @@ export const WEB3FORMS_ACCESS_KEY = '';
 /** itch.io embed widget id (used for the store embed iframe). */
 export const ITCH_EMBED_ID = '4798821';
 
-/** Documentation home (served by Starlight under /docs/). Not yet published;
- *  the site nav shows Docs as "coming soon" rather than linking here. */
+/** Documentation home (served by Starlight under /docs/). */
 export const DOCS_PATH = '/docs/';
 
 /** Blog index. */

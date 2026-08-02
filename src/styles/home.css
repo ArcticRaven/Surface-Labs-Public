@@ -339,24 +339,6 @@ a.site-nav__link:hover {
 	background: var(--panel);
 }
 
-/* Docs isn't a link yet — dim it and mark it "soon". */
-.site-nav__link--soon {
-	color: var(--text-dim);
-	cursor: default;
-}
-
-.nav-badge {
-	font-family: var(--font-mono);
-	font-size: 0.62rem;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	padding: 2px 6px;
-	border-radius: 999px;
-	border: 1px solid var(--border-strong);
-	color: var(--text-dim);
-	line-height: 1;
-}
-
 .site-header__actions {
 	display: flex;
 	align-items: center;
@@ -1132,11 +1114,6 @@ a.card .card__more {
 
 .site-footer__links a {
 	color: var(--text-muted);
-	font-size: 0.95rem;
-}
-
-.site-footer__soon {
-	color: var(--text-dim);
 	font-size: 0.95rem;
 }
 
