@@ -1,48 +1,52 @@
 ---
-title: Documentation
-description: Documentation for Surface Labs, a node-based procedural texture authoring application for game developers and digital artists.
+title: Overview
+description: A procedural texture and material authoring application. No subscription, no cloud, runs everywhere.
 ---
 
-import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+Surface Labs is a procedural texture and material authoring application.
 
-Welcome to the Surface Labs documentation. Surface Labs is a node-based
-procedural texture authoring application: you build textures and materials by
-connecting nodes into a graph and adjusting their parameters.
+It's built as an independent, portable alternative to tools like Substance
+Designer and Material Maker, with no subscription model and no cloud dependency.
+The application runs fully offline — the only thing you give up is the in-app
+documentation. Projects are ordinary files on disk, so you can back them up or
+move them between machines with Git, Dropbox, or a copy and paste.
 
-These pages describe how to get started, what the application does, and where to
-get help. Use the links below or the sidebar to navigate.
+## Who it's for
 
-<CardGrid>
-	<LinkCard
-		title="Getting Started"
-		href="/docs/getting-started/"
-		description="Install Surface Labs and create your first texture graph."
-	/>
-	<LinkCard
-		title="Features"
-		href="/docs/features/"
-		description="An overview of what the application does."
-	/>
-	<LinkCard
-		title="Nodes"
-		href="/docs/nodes/"
-		description="Reference for the nodes you connect together in a graph."
-	/>
-	<LinkCard
-		title="FAQ"
-		href="/docs/faq/"
-		description="Answers to common questions."
-	/>
-	<LinkCard
-		title="Changelog"
-		href="/docs/changelog/"
-		description="Notable changes across releases."
-	/>
-	<LinkCard
-		title="Support"
-		href="/docs/support/"
-		description="Where to get help and report issues."
-	/>
-</CardGrid>
+Everyone, though it started somewhere specific: Surface Labs came out of needing
+non-subscription software as an indie developer at a small studio with no
+funding.
 
-{/* TODO: Expand this overview as the documentation grows. */}
+It's new to the market, and it's ready for professional pipelines — Unity,
+Unreal Engine, Godot, VFX, or anything else that takes PBR textures.
+
+## What makes it different
+
+### It's f****** fast
+
+A Rust engine delivers up to 400x faster per-node render times on comparable
+graphs. Most individual nodes render in under a millisecond.
+
+{/* TODO: link to the SL vs Substance Designer benchmark post once published. */}
+
+### It works everywhere
+
+Native builds for every major operating system. Start a sketch on your tablet
+and polish it on your desktop.
+
+### MCP is built in
+
+The MCP server talks natively to the engine, so agentic workflows can drive your
+pipeline from project creation through to export.
+
+### No subscriptions
+
+A 3D project runs for years, and a subscription texturing tool bills you for
+every month of it. Surface Labs is a one-time purchase — hundreds of dollars
+saved over the life of a project, for comparable capability.
+
+## How it works
+
+Like most procedural workflows, textures are noise layered together into
+patterns and recognizable materials. The graph is non-destructive and puts
+tiling first, so you can iterate and polish all you'd like.
