@@ -57,6 +57,7 @@ export default defineConfig({
 					label: 'Documentation',
 					items: [
 						{ label: 'Overview', slug: 'docs' },
+						{ label: 'Install & Platforms', slug: 'docs/install-and-platforms' },
 						{ label: 'Getting Started', slug: 'docs/getting-started' },
 						{ label: 'Features', slug: 'docs/features' },
 						{ label: 'Nodes', slug: 'docs/nodes' },
