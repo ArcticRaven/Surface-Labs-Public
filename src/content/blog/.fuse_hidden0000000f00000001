@@ -59,12 +59,12 @@ not as a like-for-like kernel comparison.
 ![The same graph rebuilt in Substance 3D Designer 13.1.2, L16 at every stage.](../../assets/screenshots/sd_blur.png)
 
 <figure>
-  <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sl_blur.mp4" type="video/mp4" /><source src="/video/sl_blur.webm" type="video/webm" /></video>
+  <video src="/video/sl_blur.webm" controls muted loop playsinline preload="metadata" style="width:100%"></video>
   <figcaption>Surface Labs: stepping through each node's resolution and bit depth, then cycling seeds. Timings hold steady across rolls.</figcaption>
 </figure>
 
 <figure>
-  <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sd_blur.mp4" type="video/mp4" /><source src="/video/sd_blur.webm" type="video/webm" /></video>
+  <video src="/video/sd_blur.webm" controls muted loop playsinline preload="metadata" style="width:100%"></video>
   <figcaption>Designer: same graph, cycling seeds. Timings swing noticeably between rolls; the ranges below cover what the camera saw.</figcaption>
 </figure>
 
@@ -118,12 +118,12 @@ the material output. Everything at 2048², 16-bit, on both sides.
 ![The equivalent graph in Designer, with Shape and Polygon generators into Tile Sampler (X/Y Amount 16), Normal, and Base Material.](../../assets/screenshots/sd_sampler.png)
 
 <figure>
-  <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sl_sampler.mp4" type="video/mp4" /><source src="/video/sl_sampler.webm" type="video/webm" /></video>
+  <video src="/video/sl_sampler.webm" controls muted loop playsinline preload="metadata" style="width:100%"></video>
   <figcaption>Surface Labs: node settings, then seed cycling. The Tile Sampler sits at ~1 ms per roll.</figcaption>
 </figure>
 
 <figure>
-  <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sd_sampler.mp4" type="video/mp4" /><source src="/video/sd_sampler.webm" type="video/webm" /></video>
+  <video src="/video/sd_sampler.webm" controls muted loop playsinline preload="metadata" style="width:100%"></video>
   <figcaption>Designer: same 16×16 sampler, cycling seeds, 66 to 95 ms per roll.</figcaption>
 </figure>
 
