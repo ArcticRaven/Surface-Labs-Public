@@ -3,54 +3,52 @@ title: How Evaluation Works
 description: The evaluation model behind the graph, from dirty tracking and debounce to the native render core and the memory governor.
 ---
 
-Most of the application's behaviour follows from a handful of rules about when
+Most of the application's behavior follows from a handful of rules about when
 and how the graph renders. Understanding them explains why previews sharpen a
 moment after you release a slider, why some nodes need the native render core,
 and why thumbnails at the end of a chain sometimes clear and re-render.
 
 ## The graph is a directed acyclic graph
 
-Nodes produce textures; connections carry them downstream. Cycles are rejected
-at connection time, so a valid graph always has a well-defined evaluation
-order.
+The graph flows from left to right using connections. Loops are illegal in the
+system and are rejected at connection time so a graph maintains a well-defined
+evaluation order.
 
 ## Evaluation is dirty-driven and debounced
 
-Changing a parameter marks that node and everything downstream of it dirty.
-After a short pause once you stop editing, the dirty set is evaluated in
-dependency order.
+Changing a parameter marks that node and everything downstream of it "dirty".
+After a short pause once you stop editing, the dirty set is evaluated and rebuilt
+down the flow.
 
 While you are actively dragging a slider, the graph evaluates at reduced
 resolution so the whole downstream chain and both previews keep moving live.
 The full-quality pass follows shortly after you stop. This is why previews
-sharpen a moment after you let go: the draft result is replaced by the full
-render.
+sharpen a moment after you let go, the preview render is replaced by the
+full quality one.
 
 See [Resolution & Bit Depth](/docs/concepts/resolution-and-bit-depth/) for the
 exact debounce timings and the draft resolution cap.
 
 ## Evaluation runs on a native render core
 
-2D node evaluation, the 3D preview and custom shader compilation all run
-through a Rust/wgpu engine rather than the UI framework. Node work is
-expressed as a list of render operations, and readback of results is deferred
-so evaluation never blocks waiting for an image to materialise. Practically,
-this is what keeps large graphs interactive.
+2D and 3D shaders are compiled and written through a Rust/Wgpu engine. Node
+work is expressed as a list of render operations that are read back in a
+deferred state so evaluation never blocks the pipeline.
 
 ## Some nodes require GPU compute
 
 A handful of nodes need to read their own previous output, such as erosion
-simulation and jump-flooding distance fields, and so run as compute passes.
+simulation and jump-flooding distance fields, and run as compute passes.
 These cannot fall back to a simple fragment pass and will not render without
 the native core available.
 
 ## Memory is governed
 
-Rendered textures are held against a budget. When a graph exceeds it,
-previously rendered copies are released oldest-first, then the cached output
-of nodes nothing downstream reads. Output feeding another node is never
-released, so downstream re-renders always have what they need.
+Memory is maintained in a budget, and when exceeded the application will
+automagically respond by releasing the oldest renders first, followed by
+cached outputs of disconnected nodes downstream. Output feeding another node
+is never released so the evaluation graph always has data available.
 
-The visible symptom is end-of-chain thumbnails clearing and re-rendering on
-demand. This is expected behaviour, not a fault. The budgets themselves are
-listed in [Performance & Memory](/docs/help/performance-and-memory/).
+Visibly, this can create missing thumbnails in parts of the graphs, concentrated
+at dangling nodes and the earliest sections of the graph and will re-render
+on demand. This is expected behavior and budgets are listed in [Performance & Memory](/docs/help/performance-and-memory/).
