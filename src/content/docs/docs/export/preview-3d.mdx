@@ -28,7 +28,7 @@ six channels: **Base Color, Normal, Roughness, Metallic, AO, Height**.
   section's Opacity, Clearcoat and Coat Roughness sliders are preview-only
   scalars.
 - An unwired channel falls back to the constant on the PBR Output node (base
-  colour, roughness/glossiness, metallic/specular, AO, height values). An
+  color, roughness/glossiness, metallic/specular, AO, height values). An
   unwired Normal always falls back to a flat surface normal; it has no
   constant value.
 - A map only contributes when both the panel's per-map toggle and the matching
@@ -63,7 +63,7 @@ renderer and writes it as a PNG to a folder you pick. The button reads
 - The file is always named `material_preview_4k.png`, so repeated exports to
   the same folder overwrite each other.
 - Success: "Exported 4K preview to `<path>`". Failure: "4K preview export
-  failed". Cancelling the folder picker exits silently.
+  failed". Canceling the folder picker exits silently.
 
 ## Options sections
 
@@ -96,7 +96,7 @@ values.
 
 Below the rows: **Use as canvas background** draws a dedicated high-resolution
 material still (2048 px, matched to the canvas aspect, transparent backdrop,
-model centred) behind the node canvas. While it is on, the live viewport in
+model centered) behind the node canvas. While it is on, the live viewport in
 the panel unmounts to avoid rendering the material twice, and a notice with a
 **Show viewport here** button takes its place. Turning it off clears the
 canvas background immediately.
@@ -104,7 +104,7 @@ canvas background immediately.
 ### Environment
 
 - **Backdrop**: **Environment** (the lit environment itself, default) or
-  **Flat** (the interface's surface colour). A transparent backdrop also
+  **Flat** (the interface's surface color). A transparent backdrop also
   exists but is not a user option: it is used internally for the
   canvas-background still.
 - **Exposure**: 0.25 to 4.00, default 1.00. Feeds the ACES filmic tonemap.
@@ -135,8 +135,8 @@ derived from it.
 
 - **Light direction pad**: drag to set the key light's angle and elevation
   together.
-- **White / Warm / Cool** preset chips, plus a **Light Colour** picker
-  (saturation/value square, hue bar, hex field). Default key colour is a
+- **White / Warm / Cool** preset chips, plus a **Light Color** picker
+  (saturation/value square, hue bar, hex field). Default key color is a
   slightly warm white.
 - **Strength**: 0.00 to 10.00, default 2.50.
 - **Rotation**: 0.00 to 6.28, default 0.60.

@@ -1,6 +1,6 @@
 ---
 title: Connections & Reroutes
-description: How wires connect, the type rules that colour them, and the Reroute pin that bends them.
+description: How wires connect, the type rules that color them, and the Reroute pin that bends them.
 ---
 
 A graph is a directed acyclic graph: nodes produce data, connections carry it
@@ -37,9 +37,9 @@ in short:
 
 - **Texture** is image data, in three variants: a generic type used by filters
   that preserve whatever they're given, a **grayscale texture** for
-  single-channel data such as height, roughness and masks, and a **colour
-  texture** for three-channel data such as base colour and normals. The three
-  are freely interchangeable; the distinction drives wire and port colour only.
+  single-channel data such as height, roughness and masks, and a **color
+  texture** for three-channel data such as base color and normals. The three
+  are freely interchangeable; the distinction drives wire and port color only.
 - **Value** is a number or a 2-, 3- or 4-component vector. All value types
   interconnect.
 - **Boolean** is an on/off value; it connects only to boolean ports.
@@ -53,7 +53,7 @@ connection is not blocked: the wire is drawn in red to flag a type mismatch you
 should review.
 
 :::caution[missing screenshot]
-A red wire between a value output and a texture input, next to a normally coloured wire.
+A red wire between a value output and a texture input, next to a normally colored wire.
 :::
 
 ## Reroutes

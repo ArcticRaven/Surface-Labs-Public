@@ -1,6 +1,6 @@
 ---
 title: Properties Panel
-description: The per-type parameter controls, the colour editor, the specialist editors, undo behaviour and exposing parameters.
+description: The per-type parameter controls, the color editor, the specialist editors, undo behavior and exposing parameters.
 ---
 
 The Properties panel shows the parameters of the selected node as live controls,
@@ -8,7 +8,7 @@ chosen automatically from each parameter's type.
 
 :::caution[missing screenshot]
 The Properties panel for a typical node, showing a dropdown, sliders, a seed
-field and a colour editor.
+field and a color editor.
 :::
 
 ## Control types
@@ -19,26 +19,26 @@ field and a colour editor.
 | **Slider + decimal field** | Floating-point parameters |
 | **Stepped slider + integer field** | Integer parameters |
 | **Seed field + Random button** | Seed parameters (64-bit integers) |
-| **Colour editor** | A red/green/blue parameter triple, collapsed into one control |
+| **Color editor** | A red/green/blue parameter triple, collapsed into one control |
 | **Toggle** | Boolean parameters |
 
 Parameters can be **conditional**: multi-mode nodes (the unified Noise
 generator, the Flood Fill family) carry the union of every mode's controls and
 only show the ones relevant to the mode you have selected.
 
-## The colour editor
+## The color editor
 
-The shared colour control is a saturation/value square, a hue bar, and a hex
+The shared color control is a saturation/value square, a hue bar, and a hex
 field. Drag on the square to pick saturation and brightness, drag the hue bar to
-change hue, or type a hex value directly. The square lets you see the colour you
+change hue, or type a hex value directly. The square lets you see the color you
 are reaching for rather than solving for it one channel at a time.
 
 Two related controls look different: Settings → Appearance uses hex fields for
-theme tokens, and the comment recolour dialog uses an HSV wheel rather than a
+theme tokens, and the comment recolor dialog uses an HSV wheel rather than a
 square.
 
 :::caution[missing screenshot]
-The colour editor with the saturation/value square, hue bar and hex field.
+The color editor with the saturation/value square, hue bar and hex field.
 :::
 
 ## Specialist editors
@@ -48,7 +48,7 @@ Some nodes replace the generic controls with a purpose-built editor.
 ### Curve editor (Curves node)
 
 - Press anywhere on the pad to add a point, inserted in x order.
-- Drag any point in both axes; its x is clamped between its neighbours so the
+- Drag any point in both axes; its x is clamped between its neighbors so the
   ordering can never flip.
 - Drag a point off the pad to delete it. It hollows out as a warning and is
   removed on release. A minimum of two points always remains.
@@ -65,11 +65,11 @@ off the pad.
 ### Gradient editor (Gradient Map node)
 
 - Double-click the bar to add a stop at that position; it picks up the ramp's
-  current colour there, so the gradient does not jump.
-- Drag a chip along the strip to move a stop (clamped between its neighbours);
+  current color there, so the gradient does not jump.
+- Drag a chip along the strip to move a stop (clamped between its neighbors);
   drag it off the strip to delete it (it flags red first, minimum two stops).
-- Below the bar is a stop list: colour swatch, hex value, editable position,
-  and a per-row delete. Tapping a swatch opens the full colour editor for that
+- Below the bar is a stop list: color swatch, hex value, editable position,
+  and a per-row delete. Tapping a swatch opens the full color editor for that
   stop.
 
 ### Histogram editor
@@ -88,7 +88,7 @@ A Photoshop-style Levels control replacing the node's raw sliders. Top to
 bottom: the input's luminance histogram with the node's output distribution
 overlaid as a comparison outline; the input strip with draggable black, gamma
 and white handles; 0 to 255 readouts; the output gradient bar with its own two
-handles; and **Auto** / **Reset**. The gamma handle maps exponentially: centred
+handles; and **Auto** / **Reset**. The gamma handle maps exponentially: centered
 is 1.0, toward black brightens midtones, toward white darkens them.
 
 :::caution[missing screenshot]
@@ -98,7 +98,7 @@ The Levels editor with the histogram, comparison outline and all five handles.
 ### Trim sheet editor
 
 One fill slider per strip, with a percentage readout showing each strip's
-normalised share of the sheet among the strips actually in use.
+normalized share of the sheet among the strips actually in use.
 
 ### Custom shader editor
 
@@ -117,7 +117,7 @@ installed on the device.
 ### Draw modal
 
 A full-surface drawing canvas with a pencil, an eraser, a brush-size slider and
-a colour panel. The node's own input is shown behind what you draw, so you are
+a color panel. The node's own input is shown behind what you draw, so you are
 drawing on top of what the graph actually produces rather than on an empty
 square.
 
@@ -127,7 +127,7 @@ Shows the current file name and a **Browse…** button. Picking a file copies it
 bytes into the project's media store, so the image embeds into the archive when
 you save; the node references the embedded copy, not the original path on disk.
 
-## Undo behaviour
+## Undo behavior
 
 Every parameter edit gesture pushes exactly one undo step. Consecutive edits to
 the same parameter within a short window, such as the ticks of a slider drag,
@@ -144,7 +144,7 @@ Exposed parameters appear in the Global Variables panel (the Globals tab) with
 the same live controls, so key values from anywhere in the graph can be edited
 in one place. Exposures are saved into the project archive, and entries whose
 node has been deleted are pruned automatically. See
-[Exposed Parameters](/docs/graphs/exposed-parameters/) for the full behaviour.
+[Exposed Parameters](/docs/graphs/exposed-parameters/) for the full behavior.
 
 ## With nothing selected
 

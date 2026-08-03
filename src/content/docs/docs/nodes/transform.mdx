@@ -43,7 +43,7 @@ seamless.
 
 Type id: `rotate`
 
-Spins the input about the tile centre. Two independent choices: whether pixel
+Spins the input about the tile center. Two independent choices: whether pixel
 values are passed through as-is or re-oriented as vectors, and whether the
 result must keep tiling.
 
@@ -58,7 +58,7 @@ result must keep tiling.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Mode | enum | Image (degrees) | Image (degrees) · Vector (R,G) | Image passes the rotated pixels through unchanged, right for height, masks and colour. Vector also rotates the direction encoded in the red and green channels by the same angle, so a rotated normal or flow map still lights correctly; blue and alpha pass through. |
+| Mode | enum | Image (degrees) | Image (degrees) · Vector (R,G) | Image passes the rotated pixels through unchanged, right for height, masks and color. Vector also rotates the direction encoded in the red and green channels by the same angle, so a rotated normal or flow map still lights correctly; blue and alpha pass through. |
 | Angle | float | 0.0 | -180.0 to 180.0 degrees | |
 | Seamless | enum | Seamless (snaps angle) | Exact angle (seams) · Seamless (snaps angle) | Seamless snaps the angle to the nearest tiling-safe rotation, roughly every 3 to 10 degrees, and the result tiles perfectly at every snap point; the trade is that the content repeats proportionally more often. Exact rotates at the precise angle, but only quarter turns tile. |
 
@@ -78,7 +78,7 @@ way to make a regular pattern look natural.
 
 - Input (any texture, required): the image to displace.
 - Warp (any texture, required): the displacement field. Its red and green
-  channels drive movement on X and Y, centred on mid-grey, so mid-grey means
+  channels drive movement on X and Y, centered on mid-gray, so mid-gray means
   no movement. This port has no fallback: with nothing connected the node
   produces no output.
 - Mask (grayscale texture, optional): masked areas keep the undisplaced
@@ -107,7 +107,7 @@ image. Good for wind-blown, combed or brushed looks.
 
 - Input (any texture, required): the image to displace.
 - Warp (any texture, required): the driver. Its brightness sets how far each
-  pixel moves along the angle, centred on mid-grey, so brighter pushes one
+  pixel moves along the angle, centered on mid-gray, so brighter pushes one
   way and darker the other. This port has no fallback: with nothing connected
   the node produces no output.
 - Mask (grayscale texture, optional): masked areas keep the undisplaced

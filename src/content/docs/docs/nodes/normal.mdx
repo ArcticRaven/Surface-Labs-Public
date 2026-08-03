@@ -62,7 +62,7 @@ One sampling walk over a height map that produces ambient occlusion, thickness a
 
 **Outputs**
 
-- Occlusion (grayscale): classic ambient occlusion, dark where the neighbourhood stands above the point.
+- Occlusion (grayscale): classic ambient occlusion, dark where the neighborhood stands above the point.
 - Thickness (grayscale): how enclosed the point is, sampled at double the radius. Bright in troughs with material all around, dark on exposed ridges; drives subsurface and translucency masks.
 - Bent Normal (color): the average unoccluded direction encoded as a normal map, so cavities self-shadow correctly when lit along it.
 
@@ -116,7 +116,7 @@ Turns a height map or mask into a direction field, encoded in red and green with
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Mode | Choice | Downhill | Downhill, Along Contours | **Downhill** points the way water would run off the surface. **Along Contours** rotates the field a quarter turn so it follows contours instead of crossing them. |
-| Scale | Float | 4.0 | 1.0 to 64.0 | How far apart the samples that measure direction sit, in pixels. Raise it on smooth inputs; too small a spacing quantises the field into a handful of angles and facets it. |
+| Scale | Float | 4.0 | 1.0 to 64.0 | How far apart the samples that measure direction sit, in pixels. Raise it on smooth inputs; too small a spacing quantizes the field into a handful of angles and facets it. |
 | Curl | Float | 0.0 | 0.0 to 1.0 | Mixes in a swirling component, so flow curls around features rather than piling up against them. At 0 the field is pure gradient. |
 | Intensity | Float | 1.0 | 0.0 to 1.0 | Length of the output vectors. At 0 the map flattens to no flow. |
 

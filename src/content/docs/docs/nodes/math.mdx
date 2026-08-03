@@ -1,9 +1,9 @@
 ---
 title: Math Nodes
-description: Per-pixel arithmetic between two maps, hard thresholding, and tonal quantisation into flat bands.
+description: Per-pixel arithmetic between two maps, hard thresholding, and tonal quantization into flat bands.
 ---
 
-Arithmetic and tonal quantisation. All three carry an optional Mask, and all three fall back to their own input where the mask is dark.
+Arithmetic and tonal quantization. All three carry an optional Mask, and all three fall back to their own input where the mask is dark.
 
 ### Math
 
@@ -14,7 +14,7 @@ Applies one arithmetic operation between two inputs, pixel by pixel and channel 
 **Inputs**
 
 - A (any texture, required): the first operand; its alpha is carried to the output.
-- B (grayscale, required): the second operand. Typed grayscale for socket colouring, but any texture connects and a color one is applied channel by channel.
+- B (grayscale, required): the second operand. Typed grayscale for socket coloring, but any texture connects and a color one is applied channel by channel.
 - Mask (grayscale, optional): where dark, A passes through unchanged.
 
 **Outputs**
@@ -55,11 +55,11 @@ Before/after: a smooth grayscale gradient beside the hard black-and-white mask T
 
 Type id: `posterize`
 
-Quantises the input to a fixed number of steps, replacing continuous gradation with flat bands. Used for stylised looks and for stepped-height effects like terraces or stacked plating.
+Quantizes the input to a fixed number of steps, replacing continuous gradation with flat bands. Used for stylised looks and for stepped-height effects like terraces or stacked plating.
 
 **Inputs**
 
-- Input (any texture, required): the map to quantise.
+- Input (any texture, required): the map to quantize.
 - Mask (grayscale, optional): where dark, the input passes through unchanged.
 
 **Outputs**
@@ -68,5 +68,5 @@ Quantises the input to a fixed number of steps, replacing continuous gradation w
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Steps | Whole number | 4 | 2 to 32 | How many tonal levels remain. Each channel is quantised independently, so at 2 a color input collapses to the eight combinations of full-on and full-off channels. |
+| Steps | Whole number | 4 | 2 to 32 | How many tonal levels remain. Each channel is quantized independently, so at 2 a color input collapses to the eight combinations of full-on and full-off channels. |
 

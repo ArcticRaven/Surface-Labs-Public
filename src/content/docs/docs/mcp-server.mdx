@@ -237,7 +237,7 @@ graph tool operates on it.
 
 ### node_types
 
-The catalogue of node types this build can place, and their contracts. Read-only,
+The catalog of node types this build can place, and their contracts. Read-only,
 needs no open project and no GPU.
 
 | Action | Parameters | What it does |
@@ -313,7 +313,7 @@ per-preset normal Y-flip, resolved per-channel bit depth.
 
 | Action | Parameters | What it does |
 | --- | --- | --- |
-| `presets` | | The engine presets, workflows, formats and packed-map layouts export understands, plus the project's current settings. The catalogue part needs no project. |
+| `presets` | | The engine presets, workflows, formats and packed-map layouts export understands, plus the project's current settings. The catalog part needs no project. |
 | `configure` | `engine?`, `format?`, `material_type?`, `prefix?`, `write_packed_map?`, `write_split_maps?`, `normal_orientation?`, `jpeg_quality?`, `disabled_channels?` | Sets the project's export preset. Saved with the project, and the same preset the app's Export dialog shows. |
 | `plan` | `node_id?`, `prefix?`, `format?` | The file list an export would write: names, channels, packed layout, per-channel bit depths and a bit-depth warning, without rendering and without a GPU. Use it to confirm naming before committing to a 4K export. |
 | `run` | `directory?`, `prefix?`, `format?`, `node_id?`, `all_materials?` | Evaluates and writes the texture set. Requires the render tier. **Overwrites files of the same name.** `all_materials` exports every material, suffixing files with the material name. |
@@ -370,7 +370,7 @@ portable.
 
 A client can pull these without a tool call:
 
-- `surfacelab://node-registry`, the whole node catalogue as JSON
+- `surfacelab://node-registry`, the whole node catalog as JSON
 - `surfacelab://project`, the open project's active material as JSON
 - `surfacelab://conventions`, the invariants a graph must respect, covering
   seamless tiling, normal orientation and headless-unsupported node types

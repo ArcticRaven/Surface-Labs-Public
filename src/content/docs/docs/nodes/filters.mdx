@@ -1,6 +1,6 @@
 ---
 title: Filter Nodes
-description: Blur, sharpen, tonal, colour and shape filters that modify a texture in place, with a shared optional mask input.
+description: Blur, sharpen, tonal, color and shape filters that modify a texture in place, with a shared optional mask input.
 ---
 
 Filter nodes take a texture on their **Input** port, change it, and pass the
@@ -8,7 +8,7 @@ result out through **Output**. They are listed under the **Filters** category in
 the Node Library. Twenty-three nodes live in the category; the twenty-one
 single-pass filters are documented on this page.
 
-## Shared behaviour
+## Shared behavior
 
 - **Input** is required on every filter. Until something is wired into it, the
   node produces nothing.
@@ -23,9 +23,9 @@ single-pass filters are documented on this page.
   the node stays blank.
 - Two filters have [two outputs](/docs/graphs/multi-output/): Edge Detect
   (Magnitude, Direction) and Frequency Split (High Pass, Low Pass).
-- Port types are informational: they colour the wire and socket so data flow
+- Port types are informational: they color the wire and socket so data flow
   reads at a glance, and all texture types interconnect freely. "Grayscale"
-  means single-channel data (height, roughness, masks), "colour" means RGB
+  means single-channel data (height, roughness, masks), "color" means RGB
   data (albedo, normals), "any texture" means the node passes whatever it was
   given straight through.
 - Parameter names in the tables below are the labels shown in the
@@ -134,7 +134,7 @@ softening, and melting only the worn parts of a surface.
 | Radius | Decimal | 0.05 | 0.0 to 0.5 | The *maximum* blur radius, as a fraction of the shorter image edge. The Blur Map scales it per pixel. |
 
 Unlike Detail Blur this cannot be split into two cheap passes, because
-neighbouring pixels want different kernels. The sampling density follows the
+neighboring pixels want different kernels. The sampling density follows the
 local radius instead, which keeps the sharp areas cheap.
 
 ### Slope Blur
@@ -189,7 +189,7 @@ after a scatter or noise pass has left salt-and-pepper dots.
 | --- | --- | --- | --- | --- |
 | Radius | Choice | 5×5 (fast) | 3×3 (exact), 5×5 (fast) | Kernel size. |
 
-Each colour channel gets its own median, so colour input is handled per
+Each color channel gets its own median, so color input is handled per
 channel rather than by luminance.
 
 ## Detail and Edges
@@ -238,7 +238,7 @@ node, so their cutoffs can never drift apart.
 
 **Outputs**
 
-- **High Pass** (any texture): detail finer than the radius, centred on mid-gray (0.5 means "no deviation from the local average"), which drops straight into an Overlay or Add blend.
+- **High Pass** (any texture): detail finer than the radius, centered on mid-gray (0.5 means "no deviation from the local average"), which drops straight into an Overlay or Add blend.
 - **Low Pass** (any texture): the broad structure that was subtracted; this is the blur the high pass removed.
 
 | Parameter | Type | Default | Range / Options | Notes |
@@ -258,13 +258,13 @@ panel seams, and anything that needs to know where the silhouettes are.
 
 **Inputs**
 
-- **Input** (any texture, required): the texture to analyse; colour is reduced to luminance first.
+- **Input** (any texture, required): the texture to analyze; color is reduced to luminance first.
 - **Mask** (grayscale, optional): restricts the effect.
 
 **Outputs**
 
 - **Magnitude** (grayscale): bright where the input has an edge, dark on flat areas.
-- **Direction** (colour): the direction each edge runs, encoded in red and green centred on 0.5 exactly like a normal or flow map, so it feeds Warp, Vector Morph and Rotate's Vector mode unchanged. It is normalised, so a faint edge still reports a usable direction; strength is Magnitude's job.
+- **Direction** (color): the direction each edge runs, encoded in red and green centered on 0.5 exactly like a normal or flow map, so it feeds Warp, Vector Morph and Rotate's Vector mode unchanged. It is normalized, so a faint edge still reports a usable direction; strength is Magnitude's job.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -274,7 +274,7 @@ Edge detection wraps around the image borders, so it stays seamless on tiling
 maps. The response is calibrated against a 1024-pixel reference so the same
 content yields the same edge strength at any output size.
 
-## Colour and Tonal
+## Color and Tonal
 
 :::caution[missing screenshot]
 The Properties Panel for Levels, Curves (curve editor) and Gradient Map (gradient bar) with a before/after of each on the same input.
@@ -353,7 +353,7 @@ touching the highlights, or pinning the midtones while crushing both ends.
 The curve is interpolated with a monotone cubic that never overshoots, so a
 dialled-in curve cannot produce values outside the range its points span.
 Beyond the first and last points the curve extends flat, matching Photoshop.
-The same curve is applied to each colour channel independently; alpha passes
+The same curve is applied to each color channel independently; alpha passes
 through untouched. A malformed or missing curve falls back to the identity
 curve rather than failing the render.
 
@@ -361,29 +361,29 @@ curve rather than failing the render.
 
 Type id: `hsl`
 
-Rotates hue and scales saturation and lightness: recolour a material without
+Rotates hue and scales saturation and lightness: recolor a material without
 touching any of its structure.
 
 **Inputs**
 
-- **Input** (any texture, required): the texture to recolour.
+- **Input** (any texture, required): the texture to recolor.
 - **Mask** (grayscale, optional): restricts the shift.
 
 **Outputs**
 
-- **Output** (any texture): the recoloured result.
+- **Output** (any texture): the recolored result.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Hue Shift | Decimal | 0.0 | -0.5 to 0.5 | A full turn of the hue wheel is 1.0, so ±0.5 is a half turn; the full range reaches every hue. |
-| Saturation | Decimal | 1.0 | 0.0 to 2.0 | 0.0 removes all colour, 1.0 is unchanged, 2.0 doubles it. |
+| Saturation | Decimal | 1.0 | 0.0 to 2.0 | 0.0 removes all color, 1.0 is unchanged, 2.0 doubles it. |
 | Lightness | Decimal | 0.0 | -1.0 to 1.0 | Negative darkens, positive lightens. |
 
 ### Grayscale
 
 Type id: `grayscale`
 
-Collapses a colour input to luminance. Use it before any node that expects a
+Collapses a color input to luminance. Use it before any node that expects a
 height map or a mask.
 
 **Inputs**
@@ -416,15 +416,15 @@ lights the surface inside-out.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Mode | Choice | Colour | Colour, Normal Y, Normal X, Normal XY | Colour is the ordinary inversion. The three normal modes flip the named slope axes in signed space and leave Z alone, so the map still lights correctly. |
+| Mode | Choice | Color | Color, Normal Y, Normal X, Normal XY | Color is the ordinary inversion. The three normal modes flip the named slope axes in signed space and leave Z alone, so the map still lights correctly. |
 
 ### Gradient Map
 
 Type id: `gradient_map`
 
-Replaces each input value with a colour sampled from a gradient: the standard
-way to turn a height map into an albedo. Accepts grayscale or colour input;
-colour is reduced to luminance before the ramp is applied.
+Replaces each input value with a color sampled from a gradient: the standard
+way to turn a height map into an albedo. Accepts grayscale or color input;
+color is reduced to luminance before the ramp is applied.
 
 **Inputs**
 
@@ -433,11 +433,11 @@ colour is reduced to luminance before the ramp is applied.
 
 **Outputs**
 
-- **Output** (colour): the gradient-mapped result. Alpha passes through.
+- **Output** (color): the gradient-mapped result. Alpha passes through.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| *(gradient bar)* | Colour-stop list | A four-stop rust ramp: near-black `#0D0A08` at 0.0, dark brown `#592E1A` at 0.35, orange `#CC7326` at 0.70, cream `#FFF2D9` at 1.0 | Unlimited stops, each with a colour and a position 0.0 to 1.0 | Edited on the gradient bar in the Properties Panel; stops can be added, removed and moved. A malformed or missing ramp falls back to the default four stops. |
+| *(gradient bar)* | Color-stop list | A four-stop rust ramp: near-black `#0D0A08` at 0.0, dark brown `#592E1A` at 0.35, orange `#CC7326` at 0.70, cream `#FFF2D9` at 1.0 | Unlimited stops, each with a color and a position 0.0 to 1.0 | Edited on the gradient bar in the Properties Panel; stops can be added, removed and moved. A malformed or missing ramp falls back to the default four stops. |
 | Mid | Decimal | 0.5 | 0.01 to 0.99 | A gamma-style bias on the lookup. 0.5 is linear; lower values push more of the image toward the ramp's bright end, higher values toward its dark end. |
 
 ## Shape and Surface
@@ -470,7 +470,7 @@ flood-filled regions.
 | Shape | Choice | Disc | Disc, Square, Diamond | The structuring element the radius is measured with. |
 
 Open and Close are deliberately not options here. Each needs two full passes
-over the neighbourhood, so chain two of these nodes with opposite Amounts.
+over the neighborhood, so chain two of these nodes with opposite Amounts.
 
 ### Bevel
 
@@ -516,7 +516,7 @@ reproduces a plain Warp exactly.
 **Inputs**
 
 - **Input** (any texture, required): the texture to displace.
-- **Vector Map** (colour, **required**): the direction field, encoded in red and green centred on 0.5, the same convention Flow Map, Edge Detect's Direction output and normal maps use.
+- **Vector Map** (color, **required**): the direction field, encoded in red and green centered on 0.5, the same convention Flow Map, Edge Detect's Direction output and normal maps use.
 - **Mask** (grayscale, optional): restricts the displacement.
 
 **Outputs**
@@ -533,7 +533,7 @@ reproduces a plain Warp exactly.
 
 Type id: `normal_adjust`
 
-Scales, flips or re-normalises an existing normal map: the place to fix a
+Scales, flips or re-normalizes an existing normal map: the place to fix a
 green channel pointing the wrong way. Export already converts orientation per
 preset, so this node is for mid-graph conversion: bringing an
 OpenGL-convention map in through an Image node and matching it to the rest of
@@ -541,16 +541,16 @@ the graph before blending.
 
 **Inputs**
 
-- **Input** (colour, required): the normal map to fix.
+- **Input** (color, required): the normal map to fix.
 - **Mask** (grayscale, optional): restricts the effect.
 
 **Outputs**
 
-- **Output** (colour): the corrected normal map.
+- **Output** (color): the corrected normal map.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Operation | Choice | Normalize | Normalize, Flip Y (OpenGL ↔ DirectX), Flip X, Rebuild Z | Normalize only re-normalises. Flip Y converts between the two handedness conventions. Rebuild Z recomputes the blue channel from the red and green slopes. |
+| Operation | Choice | Normalize | Normalize, Flip Y (OpenGL ↔ DirectX), Flip X, Rebuild Z | Normalize only re-normalizes. Flip Y converts between the two handedness conventions. Rebuild Z recomputes the blue channel from the red and green slopes. |
 | Intensity | Decimal | 1.0 | 0.0 to 4.0 | Slope multiplier applied before the vector is re-encoded. 1.0 leaves the strength unchanged; below 1 flattens, above 1 exaggerates. |
 
 Maps inside the graph use the DirectX convention.
@@ -565,7 +565,7 @@ Ambient Occlusion or Curvature from normal-only source material.
 
 **Inputs**
 
-- **Input** (colour, required): the tangent-space normal map.
+- **Input** (color, required): the tangent-space normal map.
 - **Mask** (grayscale, optional): restricts the effect.
 
 **Outputs**

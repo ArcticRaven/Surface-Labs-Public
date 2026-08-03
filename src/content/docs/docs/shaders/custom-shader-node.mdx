@@ -9,7 +9,7 @@ pixel.
 
 The central idea is that the source text is the node definition. Declarations
 at the top of the source become the node's input ports and its Properties
-controls; the code below them computes the colour. One text buffer defines the
+controls; the code below them computes the color. One text buffer defines the
 whole node: ports, controls, and pixels.
 
 A new node arrives with a complete working source rather than an empty buffer,
@@ -40,7 +40,7 @@ Every source has the same two-part shape: a declaration header in SL (Surface
 Shading Language), then a body.
 
 The header is always SL. `in sampler2D …` and `param … // @…` lines are the
-node contract, and they carry UI metadata (ranges, enum labels, colour flags)
+node contract, and they carry UI metadata (ranges, enum labels, color flags)
 that plain GLSL has no way to express. The header is sliced out of the source
 textually and parsed by SL's own parser. See
 [Declaring Ports & Parameters](/docs/shaders/ports-and-parameters/).
@@ -76,7 +76,7 @@ one pipeline.
 Whatever you declare, the node always has:
 
 - a Mask input (grayscale), which you do not declare;
-- a single Output port (colour texture), which you do not declare.
+- a single Output port (color texture), which you do not declare.
 
 The Mask input blends the node's result back toward its first declared texture
 input. If your shader declares no `in sampler2D` at all, there is nothing to
@@ -87,7 +87,7 @@ blend back toward and the mask input is ignored entirely.
 The native renderer is a dynamic library loaded per platform:
 `surface_gpu.dll` on Windows, `libsurface_gpu.so` on Linux and Android, and a
 statically linked symbol table on Apple platforms. If it does not load or does
-not initialise, the session falls back to the interpreter for everything.
+not initialize, the session falls back to the interpreter for everything.
 
 - **Windows / Linux.** The native path is the validated one. Full-GLSL bodies
   work; the quarantine breaker is live.

@@ -58,7 +58,7 @@ threshold happened to find.
 **Inputs:**
 
 - Input (any texture, optional): the backdrop. Drawn beneath your strokes and
-  carried through into the output. Grayscale and colour both connect, so
+  carried through into the output. Grayscale and color both connect, so
   "draw on a height map" and "draw on an albedo" need no mode switch. With
   nothing connected, the area beneath the strokes is transparent.
 - Mask (grayscale texture, optional): masks the node's result.
@@ -74,7 +74,7 @@ button that opens a full-screen drawing canvas with these tools:
 | --- | --- | --- | --- | --- |
 | Pencil / Eraser | tool | Pencil | | The eraser clears back to the layer beneath: your painted marks only, leaving the backdrop intact. |
 | Size | float | 0.03 | 0.002 to 0.2 | Brush width as a fraction of the drawing's smaller dimension, not a pixel count, so a stroke keeps its proportions at every bake resolution. |
-| Colour | colour | white | | Saturation/brightness square, hue slider and hex field. Hidden while the eraser is active. |
+| Color | color | white | | Saturation/brightness square, hue slider and hex field. Hidden while the eraser is active. |
 | Undo | action | | | Removes the most recently finished stroke. No redo. |
 | Clear | action | | | Removes every stroke. Not reversible by Undo; use Cancel to abandon the session instead. |
 
@@ -91,7 +91,7 @@ project loads is skipped rather than blocking the rest of the drawing.
 
 :::caution[missing screenshot]
 The full-screen drawing canvas with a few pen strokes over a connected
-backdrop, showing the tool bar and colour picker.
+backdrop, showing the tool bar and color picker.
 :::
 
 ### Text

@@ -9,7 +9,7 @@ Surface Labs reads and writes four file formats of its own:
 | --- | --- |
 | `.surfacelabs` | The project archive: all materials, subgraphs, embedded images, export settings and cached thumbnails in one portable file |
 | `.surfacenode` | A single node or subgraph packaged for sharing, with embedded media and a preview thumbnail |
-| `.surfacetheme` | An exported colour theme |
+| `.surfacetheme` | An exported color theme |
 | `.mcpb` | A one-click Claude Desktop extension bundle exported by the [MCP server](/docs/mcp-server/) settings page |
 
 ## .surfacelabs, the project
@@ -18,7 +18,7 @@ A project is a single ZIP archive. Its internal structure:
 
 | Entry | Contents |
 | --- | --- |
-| `manifest.xml` | Format version (currently 1.0), app version stamp, project name, created and last-modified dates, and the project's tags written in full (id, label, colour) so tags survive moving between users |
+| `manifest.xml` | Format version (currently 1.0), app version stamp, project name, created and last-modified dates, and the project's tags written in full (id, label, color) so tags survive moving between users |
 | `graph/material.xml` | The **active** material: every node with parameters, seed, resolution mode and override, bit-depth mode and override, ports and port defaults, plus all connections |
 | `graph/m<n>.xml` | One file per **inactive** material in the project |
 | `materials.xml` | The material list: each material's name, and which index is active |
@@ -32,7 +32,7 @@ A project is a single ZIP archive. Its internal structure:
 | `fonts/<name>` | Imported fonts used by Text nodes, referenced as `font:<name>` |
 
 The graph XML also carries canvas furniture: Jump Nodes, comment boxes
-(position, size, background colour and opacity, text) and freehand annotation
+(position, size, background color and opacity, text) and freehand annotation
 strokes.
 
 The archive is zipped on a background thread, so autosaving a project with tens
@@ -92,9 +92,9 @@ packages.
 ## .surfacetheme, an interface theme
 
 A plain, indented **JSON** file (not a ZIP) holding one interface theme: its
-id, name, light/dark brightness, and one hex colour per interface token,
-covering surfaces, text, borders, accent, status colours, overlay scrim, and
-the per-type node-connection colours. Exported and imported from
+id, name, light/dark brightness, and one hex color per interface token,
+covering surfaces, text, borders, accent, status colors, overlay scrim, and
+the per-type node-connection colors. Exported and imported from
 [Settings → Appearance](/docs/help/settings/). Themes exported by older builds
 are still readable: tokens added later fall back to their defaults instead of
 failing the import. A file that cannot be read or does not match the expected

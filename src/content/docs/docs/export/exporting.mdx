@@ -50,7 +50,7 @@ planned-file preview.
 - **Engine.** The target preset. See
   [Export Presets and Engine Targets](/docs/export/presets/).
 - **Format.** PNG, JPEG, TGA, BMP, or EXR.
-- **Packed map.** Labelled with the layout the chosen engine uses (e.g.
+- **Packed map.** Labeled with the layout the chosen engine uses (e.g.
   *ORM (AO / Roughness / Metallic)*). On by default. Only offered in the
   Metallic / Roughness workflow; Specular / Glossiness never writes a packed
   map.
@@ -83,7 +83,7 @@ The Export button is always enabled in this mode.
 
 1. The dialog closes and the project is marked as modified, so the settings
    you chose get written into the project on the next save.
-2. A system folder picker opens, titled **Export Textures To…**. Cancelling it
+2. A system folder picker opens, titled **Export Textures To…**. Canceling it
    aborts the export silently, with no files and no message, but your dialog
    choices are already stored.
 3. Before writing, the app waits for any still-rendering maps and promotes
@@ -126,7 +126,7 @@ otherwise the project default. There is no export-size field in the dialog.
 | Nothing written, nothing wired | "Nothing exported - connect textures to this node first" | Warning |
 | Write or encode threw | "Export failed - no files were written" | Error |
 | <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>E</kbd> with no output node | "Add a PBR Output, Trim Sheet, or Custom Output node to export textures" | Warning |
-| Folder picker cancelled | (no message) | (none) |
+| Folder picker canceled | (no message) | (none) |
 
 The "(M not ready)" count is also where an EXR or 16-bit file that could not
 be encoded lands. See [Bit Depth and EXR](/docs/export/bit-depth-and-exr/).

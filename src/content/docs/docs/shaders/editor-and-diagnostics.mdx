@@ -32,10 +32,10 @@ reference pane open on the right, showing the two chips in the title bar.
 
 ## The code surface (shared by both editors)
 
-- **Syntax highlighting** in six classes, each with its own theme colour:
+- **Syntax highlighting** in six classes, each with its own theme color:
   keywords, types, built-in functions, literals, comments, and `@`
-  annotations. Annotations get their own colour precisely because they drive
-  your ports and controls. Colours come from the active theme and can be
+  annotations. Annotations get their own color precisely because they drive
+  your ports and controls. Colors come from the active theme and can be
   edited per-theme under Settings, Appearance; they round-trip through
   `.surfacetheme` files. See [Settings](/docs/help/settings/).
 - **Line-number gutter**, right-aligned, updating as you type.
@@ -52,7 +52,7 @@ reference pane open on the right, showing the two chips in the title bar.
 - Left: the label Shader source.
 - Middle: an instruction budget meter reading `<n> / 96`, shown only while
   the source is still runnable by the fallback interpreter. It turns to the
-  warning colour above about 82 instructions. Full-GLSL bodies have no
+  warning color above about 82 instructions. Full-GLSL bodies have no
   instruction budget and show no meter.
 - Right: the Open editor button (panel editor only).
 
@@ -97,11 +97,11 @@ line 14:9 - expected ';' but found 'return'
 That is `line <line>:<column>`, a dash, then the message, positioned in
 your source text: header offsets are already subtracted. The offending line
 number is tinted in the gutter and the code box border turns to the error
-colour.
+color.
 
 :::caution[missing screenshot]
 The editor showing a compile error: the status line message, the tinted line
-number in the gutter, and the error-coloured border around the code box.
+number in the gutter, and the error-colored border around the code box.
 :::
 
 ## What happens to the render while a source is broken
@@ -136,7 +136,7 @@ ports are untouched: the header still describes them.
 
 Nothing can prove that a shader terminates. A `while(true)` on the GPU means
 the operating system resets the graphics device after roughly two seconds,
-and can take the whole application down with it. The defence is a circuit
+and can take the whole application down with it. The defense is a circuit
 breaker keyed on the content of the generated shader:
 
 1. **Trial.** The first time a never-seen source renders, it runs a 64 × 64

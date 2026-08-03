@@ -26,7 +26,7 @@ output, **Output**, a grayscale field in the 0 to 1 range.
 
 In the [Properties panel](/docs/editor/properties/), pick a family from
 **Type** (Perlin is the default; fBm is a good start for natural surfaces).
-**Scale** sets the cells per axis, and pressing the randomise button next to
+**Scale** sets the cells per axis, and pressing the randomize button next to
 **Seed** reshuffles the pattern without changing anything else. Only the
 controls the chosen family uses stay visible.
 
@@ -72,7 +72,7 @@ Add a **PBR Output** node (Output category). It is the material endpoint: no
 input is required, and every channel has an on/off toggle with a constant
 fallback, so the material looks sensible with any subset connected. Wire:
 
-- Levels **Output** into **Base Color** (grayscale and colour textures are
+- Levels **Output** into **Base Color** (grayscale and color textures are
   interchangeable; see [Data Types & Ports](/docs/concepts/data-types/)).
 - Levels **Output** into **Roughness** and into **Height**.
 - Normal from Height **Output** into **Normal**.

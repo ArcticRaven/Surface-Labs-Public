@@ -52,7 +52,7 @@ Hidden controls are not reset: a parameter you set for one family keeps its
 value if you switch away and back.
 
 :::caution[missing screenshot]
-A grid of the eleven noise families rendered by one Noise node, labelled by
+A grid of the eleven noise families rendered by one Noise node, labeled by
 Type.
 :::
 
@@ -63,7 +63,7 @@ Type id: `voronoi_noise`
 The mosaic generator: it scatters seed points, fills each region with a flat
 random tone and separates regions with thin walls. The base for cracked mud,
 pebbles, scales and stained glass. Six outputs all come from the same scatter,
-so a cell-colour map and a distance map from one Voronoi node always agree
+so a cell-color map and a distance map from one Voronoi node always agree
 with each other (see [multiple outputs](/docs/graphs/multi-output/)). For the
 distance-field looks (F1, borders, crystal) reach for
 [Cells](#cells) instead.
@@ -78,10 +78,10 @@ distance-field looks (F1, borders, crystal) reach for
   normalized so the ramp spans 0 to 1 whatever the scale.
 - Edges (F2-F1) (grayscale texture): bright inside regions, black exactly on
   the boundary; the classic crack/edge mask.
-- Cell Color (color texture): a random RGB colour, flat-filled per region.
+- Cell Color (color texture): a random RGB color, flat-filled per region.
 - Cell Position (color texture): the owning seed point's location, flat-filled
   per region. Feeds per-region gradients and warps.
-- Cell ID (grayscale texture): a stable random grey per region, for driving
+- Cell ID (grayscale texture): a stable random gray per region, for driving
   per-region variation.
 
 | Parameter | Type | Default | Range / Options | Notes |
@@ -135,7 +135,7 @@ source.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Tiles X | whole number | 8 | 1 to 64 | Rounded to the nearest even value (minimum 2); an odd count would put two same-coloured cells against each other across the wrap. |
+| Tiles X | whole number | 8 | 1 to 64 | Rounded to the nearest even value (minimum 2); an odd count would put two same-colored cells against each other across the wrap. |
 | Tiles Y | whole number | 8 | 1 to 64 | Rounded to the nearest even value (minimum 2), same reason. |
 
 :::caution[missing screenshot]
@@ -159,8 +159,8 @@ cell ID and cell UV always line up with the brick mask.
   tone; the default output.
 - Mortar (grayscale texture): the exact complement of the brick mask, so the
   two never leave a hairline gap or overlap along the bevel.
-- Cell ID (grayscale texture): a stable random grey per brick, for per-brick
-  colour or roughness variation.
+- Cell ID (grayscale texture): a stable random gray per brick, for per-brick
+  color or roughness variation.
 - Cell UV (color texture): the position within each brick, 0 to 1 on each
   axis, carried in red and green. Wire it into a gradient or a sampler to
   place something inside every brick.
@@ -186,15 +186,15 @@ The six lattice options rendered with the same gutter and bevel settings.
 Type id: `gradient`
 
 A smooth ramp across the tile in one of five shapes. The starting point for
-most falloffs and blend masks. Every shape honours the angle, not just the
+most falloffs and blend masks. Every shape honors the angle, not just the
 linear one.
 
 **Inputs:**
 
 - Input (any texture, optional): when **Use Input** is on, this image's
   brightness offsets the ramp, so feeding noise in warps the ramp and feeding
-  a mask in remaps it. Colour input is reduced to brightness, so grayscale and
-  colour both connect cleanly.
+  a mask in remaps it. Color input is reduced to brightness, so grayscale and
+  color both connect cleanly.
 
 **Outputs:**
 
@@ -203,7 +203,7 @@ linear one.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Type | enum | Linear | Linear · Radial · Angular · Diamond · Square | Angular is the conical sweep; Square is a box ramp. |
-| Angle | float | 0.0 | 0.0 to 360.0 degrees | Rotation about the tile centre, applied to every shape. |
+| Angle | float | 0.0 | 0.0 to 360.0 degrees | Rotation about the tile center, applied to every shape. |
 | Start | float | 0.0 | 0.0 to 1.0 | Where the active range of the ramp begins. |
 | End | float | 1.0 | 0.0 to 1.0 | Where it ends. Narrowing Start and End steepens the ramp. |
 | Use Input | on/off | off | | Turns on the input modulation. With it off the node is a pure generator, whether or not something is connected. |
@@ -218,7 +218,7 @@ noise input.
 
 Type id: `shape`
 
-Draws a single primitive centred on the tile, with adjustable edge softness.
+Draws a single primitive centered on the tile, with adjustable edge softness.
 The building block for stamps and masks.
 
 **Inputs:** None.
@@ -246,14 +246,14 @@ softness.
 
 Type id: `uniform_color`
 
-Fills the whole tile with one flat colour. Handy as a constant for blends, or
+Fills the whole tile with one flat color. Handy as a constant for blends, or
 as a base albedo.
 
 **Inputs:** None.
 
 **Outputs:**
 
-- Output (color texture): the flat colour.
+- Output (color texture): the flat color.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -261,18 +261,18 @@ as a base albedo.
 | Green | float | 0.5 | 0.0 to 1.0 | |
 | Blue | float | 0.5 | 0.0 to 1.0 | |
 
-Properties presents the three channels as a single combined colour editor
+Properties presents the three channels as a single combined color editor
 rather than three sliders.
 
 :::caution[missing screenshot]
-A Uniform Color node with its combined colour editor open in Properties.
+A Uniform Color node with its combined color editor open in Properties.
 :::
 
 ### Value
 
 Type id: `value`
 
-Outputs a single constant number as a flat grey fill. Feed it into Math,
+Outputs a single constant number as a flat gray fill. Feed it into Math,
 Blend, Height Blend, a scale map, a threshold, or anywhere a single number
 needs to drive something.
 
@@ -287,7 +287,7 @@ needs to drive something.
 | Value | float | 0.5 | 0.0 to 1.0 | The pipeline is normalized, so the number lives in 0 to 1; there is no separate whole-number representation. |
 
 :::caution[missing screenshot]
-A Value node feeding a Blend node's opacity, with the flat grey output
+A Value node feeding a Blend node's opacity, with the flat gray output
 visible on the node card.
 :::
 
@@ -295,11 +295,11 @@ visible on the node card.
 
 Type id: `tile_sampler`
 
-Scatters a stamp across a grid, randomizing position, rotation, scale, colour
+Scatters a stamp across a grid, randomizing position, rotation, scale, color
 and tone per instance, and optionally driving all of that from input maps. The
 most flexible pattern generator in the library: pebbles, scales, planks,
 shingles, leaves, debris. Stamps composite across cell borders, so they may
-overgrow their own cell, overlap neighbours, and tessellate.
+overgrow their own cell, overlap neighbors, and tessellate.
 
 **Inputs:**
 
@@ -307,18 +307,18 @@ overgrow their own cell, overlap neighbours, and tessellate.
   to Pattern.
 - Pattern 2 through Pattern 8 (any texture, optional): seven more stamp slots.
   Tiles pick among the first **Pattern Count** of them.
-- Scale Map (grayscale texture, optional): sampled once at each tile's centre,
+- Scale Map (grayscale texture, optional): sampled once at each tile's center,
   so a tile scales as a whole.
 - Mask Map (grayscale texture, optional): sampled once per tile; tiles below
   **Mask Threshold** are dropped entirely.
 - Background (any texture, optional): composited under the stamps.
   Unconnected it is black, so the default output is stamps on nothing.
-- Color Map (color texture, optional): tints each tile by the colour under its
-  centre.
+- Color Map (color texture, optional): tints each tile by the color under its
+  center.
 - Rotation Map (grayscale texture, optional): per-tile rotation; brightness
   maps to a full turn.
 - Vector Map (color texture, optional): per-tile positional offset, read from
-  red and green centred on mid-grey like a warp.
+  red and green centered on mid-gray like a warp.
 - Mask (grayscale texture, optional): masks the node's result. Masked-out
   areas fall back to black, meaning "no tiles here".
 
@@ -329,14 +329,14 @@ overgrow their own cell, overlap neighbours, and tessellate.
   each pixel.
 - Random Value (grayscale texture): that tile's random value, for driving
   per-instance variation downstream.
-- Position (color texture): the owning tile's centre position.
+- Position (color texture): the owning tile's center position.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Tiles X | float | 8.0 | 1.0 to 64.0 | Grid columns. |
 | Tiles Y | float | 8.0 | 1.0 to 64.0 | Grid rows. |
 | Shape | enum | Circle | Circle · Square · Hexagon · Pattern | Pattern stamps the connected pattern inputs instead of a procedural shape. A connected pattern is ignored in the other three modes. |
-| Size | float | 0.6 | 0.0 to 20.0 | Stamp size in cell units. 1.0 spans a whole cell; above that stamps overlap neighbours and merge into continuous coverage. Very large values are expensive; the compositing window grows with size. |
+| Size | float | 0.6 | 0.0 to 20.0 | Stamp size in cell units. 1.0 spans a whole cell; above that stamps overlap neighbors and merge into continuous coverage. Very large values are expensive; the compositing window grows with size. |
 | Scale X | float | 1.0 | 0.05 to 4.0 | Stretches the stamp on X without stretching the grid. |
 | Scale Y | float | 1.0 | 0.05 to 4.0 | Stretches the stamp on Y without stretching the grid. |
 | Row Offset | float | 0.0 | 0.0 to 1.0 | Horizontal stagger of alternate rows, in cells. 0.5 gives hexagonal or brick packing. |
@@ -354,12 +354,12 @@ overgrow their own cell, overlap neighbours, and tessellate.
 | Pattern Count | whole number | 1 | 1 to 8 | How many of the pattern inputs are in play. Each tile picks one of the first N. |
 | Blend Mode | enum | Max | Max · Add · Topmost | How overlapping stamps combine: brightest wins, sum, or a random per-tile stacking order. |
 | Seed | seed | 0 | | |
-| Collision Radius | float | 0.0 | 0.0 to 4.0 | Minimum centre-to-centre spacing in cell units; 0 disables it. A tile is dropped when a higher-priority neighbour sits closer than this. Priority is a stable per-tile value, so the same tile always wins and the result never flickers. |
+| Collision Radius | float | 0.0 | 0.0 to 4.0 | Minimum center-to-center spacing in cell units; 0 disables it. A tile is dropped when a higher-priority neighbor sits closer than this. Priority is a stable per-tile value, so the same tile always wins and the result never flickers. |
 | Layers | whole number | 0 | 0 to 3 | Extra finer scatter layers, each at double the tile count and half the size. 0 is a single layer. Gives hierarchical scattering, big shapes with progressively smaller ones filling the gaps, from one node instead of a stack of them. |
 
 :::caution[missing screenshot]
 A Tile Sampler scattering an imported leaf stamp with randomized rotation,
-scale and colour, next to the same grid with Layers set to 2.
+scale and color, next to the same grid with Layers set to 2.
 :::
 
 ## Deprecated noise nodes

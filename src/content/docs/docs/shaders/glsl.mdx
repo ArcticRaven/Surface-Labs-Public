@@ -65,7 +65,7 @@ follow from how the sampler is rewritten for the native backend:
 
 - **Keep each `texture(...)` call on one line.** A call split across lines
   fails to compile. Whitespace and tabs within the line are fine
-  (`texture ( source , uv)` is normalised), but a newline between `texture(`
+  (`texture ( source , uv)` is normalized), but a newline between `texture(`
   and the input's name is not.
 - **`texture()` is the only sampling form that works on a declared input.**
   `textureLod`, `texelFetch`, `textureGrad` and `textureSize` applied to a
@@ -123,7 +123,7 @@ axes. Two rules cover nearly everything:
 
 - **Generators.** Wrap every per-cell index with `mod(cell, count)`, so cell
   `count` is cell 0 again.
-- **Neighbour taps** (blur, edge detect, warp). Wrap every offset coordinate
+- **Neighbor taps** (blur, edge detect, warp). Wrap every offset coordinate
   with `fract(uv + offset)`, so a tap past the right edge reads from the
   left.
 
@@ -142,4 +142,4 @@ coordinate is already in range.
 
 The body is compiled as desktop-style GLSL (the wrapper supplies
 `#version 450`), not GLSL ES, so ES-only idioms may be rejected, and
-`precision` qualifiers are ignored rather than honoured.
+`precision` qualifiers are ignored rather than honored.

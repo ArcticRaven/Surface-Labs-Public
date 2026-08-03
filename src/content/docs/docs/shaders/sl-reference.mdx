@@ -86,7 +86,7 @@ mix sets: `.xg` is an error. Reading a component past the value's size is an
 error. A one-component swizzle produces a scalar.
 
 ```glsl
-vec3 colour = base.rgb;
+vec3 color = base.rgb;
 float height = base.r;
 vec2 flipped = uv.yx;
 ```
@@ -130,8 +130,8 @@ Use a full-GLSL body if you need them.
 
 | Name | Where | Meaning |
 | --- | --- | --- |
-| `uv` (or whatever you named the `shade` parameter) | Both tiers | Normalised output coordinate, 0.0 to 1.0 across the image. Origin is the framebuffer's top-left |
-| `fragColor` | Both tiers | The output colour. In `void main()` form, assign to it. In `shade` form, return instead |
+| `uv` (or whatever you named the `shade` parameter) | Both tiers | Normalized output coordinate, 0.0 to 1.0 across the image. Origin is the framebuffer's top-left |
+| `fragColor` | Both tiers | The output color. In `void main()` form, assign to it. In `shade` form, return instead |
 | `uWidth`, `uHeight` | GLSL body only | Output width and height in pixels, as floats. Using them makes the source native-only |
 | `FlutterFragCoord()`, `gl_FragCoord` | GLSL body only | Pixel coordinates, origin top-left. Native-only |
 
@@ -148,12 +148,12 @@ animated. Use a hash function seeded from `uv` (and optionally a
   `return`, or a `return` nested inside an `if`, is rejected with an
   explanation. Assign to a variable in each branch and return it at the end.
 - Alternatively, assign to `fragColor` instead of returning.
-- Variable declarations must initialise: `vec3 c = …;`. There is no
-  uninitialised declaration.
+- Variable declarations must initialize: `vec3 c = …;`. There is no
+  uninitialized declaration.
 - There are no loops and no user-defined functions in the subset. Both are
   fine in a GLSL body.
 
-A subset shader that never produces a colour (no trailing `return` and no
+A subset shader that never produces a color (no trailing `return` and no
 `fragColor` assignment) is a compile error.
 
 ## SL subset limits

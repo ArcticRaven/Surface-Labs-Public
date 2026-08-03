@@ -37,7 +37,7 @@ A shape mask next to its Signed, Inside and Outside distance fields at the same 
 
 **Outputs**
 
-- **Output** (grayscale): the normalised distance field.
+- **Output** (grayscale): the normalized distance field.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -78,7 +78,7 @@ A terrain height map before and after Hydraulic and Thermal erosion, plus the Fl
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Type | Choice | Hydraulic | Hydraulic, Thermal | Hydraulic: water lands, runs downhill, dissolves material into suspension, carries it, and drops it where the flow slows; cuts channels and builds silt fans. Thermal: material on slopes steeper than its angle of repose slides to lower neighbours; rounds ridges and piles scree at the foot of cliffs. |
+| Type | Choice | Hydraulic | Hydraulic, Thermal | Hydraulic: water lands, runs downhill, dissolves material into suspension, carries it, and drops it where the flow slows; cuts channels and builds silt fans. Thermal: material on slopes steeper than its angle of repose slides to lower neighbors; rounds ridges and piles scree at the foot of cliffs. |
 | Iterations | Whole number | 24 | 1 to 128 | How long the simulation runs, and the node's main cost. Material travels about one pixel per iteration at a 1024-pixel reference size. |
 | Strength | Decimal | 0.5 | 0.0 to 1.0 | How much material moves per step. |
 | Talus | Decimal | 0.35 | 0.0 to 1.0 | *Thermal only.* The angle of repose: how steep a slope has to be before material slides. Lower values let material slide off gentler slopes, so more of the terrain flattens. |
@@ -104,4 +104,4 @@ settings give the same picture at every size. The honest consequence is that a
 4K render really does run about four times the passes of a 1K one.
 
 A common pairing is to erode the height first, then use the same node's Flow
-output as a mask for dirt in the base colour.
+output as a mask for dirt in the base color.

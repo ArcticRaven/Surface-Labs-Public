@@ -9,11 +9,11 @@ Tonal analysis. Both nodes show a live histogram of their input in the Propertie
 
 Type id: `histogram`
 
-Shows the tonal distribution of its input and lets you remap a slice of it in the same node. Read it to see where your values actually sit; drag its window bars to compress them into a band. Left at defaults it is a pure analyser and passes the image through unchanged.
+Shows the tonal distribution of its input and lets you remap a slice of it in the same node. Read it to see where your values actually sit; drag its window bars to compress them into a band. Left at defaults it is a pure analyzer and passes the image through unchanged.
 
 **Inputs**
 
-- Input (any texture, required): the texture to analyse and remap.
+- Input (any texture, required): the texture to analyze and remap.
 
 **Outputs**
 
@@ -21,7 +21,7 @@ Shows the tonal distribution of its input and lets you remap a slice of it in th
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Position | Float | 0.5 | 0.0 to 1.0 | Centre of the output band. Edited by dragging the histogram window rather than by a slider; no slider row is shown. |
+| Position | Float | 0.5 | 0.0 to 1.0 | Center of the output band. Edited by dragging the histogram window rather than by a slider; no slider row is shown. |
 | Range | Float | 1.0 | 0.0 to 1.0 | Width of the output band. Also edited by dragging the histogram window. At 1.0 with Position 0.5 the remap is an identity passthrough. |
 | Midpoint | Float | 0.5 | 0.05 to 0.95 | A levels-style midtone control applied before the band compression. 0.5 is neutral; lower brightens midtones, higher darkens them. Shown as a normal slider. |
 | Mode | Choice | Luminance | Luminance, RGB, Red, Green, Blue | Which distribution the Properties histogram plots. Display only; it does not change the output. |
@@ -51,6 +51,6 @@ Sweeps a soft threshold window across the tonal range, a contrast-aware alternat
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Position | Float | 0.5 | 0.0 to 1.0 | Centre of the scanned band. Edited by dragging the histogram window; no slider row is shown. |
+| Position | Float | 0.5 | 0.0 to 1.0 | Center of the scanned band. Edited by dragging the histogram window; no slider row is shown. |
 | Contrast | Float | 0.5 | 0.0 to 1.0 | Width of the band, inverted: at 0 the ramp spans the whole tonal range, at 1 it collapses to a hard binary cut. Also edited by dragging the histogram window. |
 

@@ -4,7 +4,7 @@ description: Panning and zooming, the dot grid, the Node Map minimap, Jump Nodes
 ---
 
 The canvas is where the graph lives. It is effectively infinite; the initial
-view is centred on the world origin, with a very large amount of headroom in
+view is centered on the world origin, with a very large amount of headroom in
 every direction.
 
 ## Panning and zooming
@@ -20,7 +20,7 @@ zoom step is limited to between half and double the current scale.
   drag does not pan. As soon as a second finger touches down, the in-progress
   one-finger pan, tap or long-press is abandoned.
 - Pinch and scroll zoom anchor on the pointer or the pinch focal point. Zoom
-  commands and the toolbar zoom field anchor on the centre of the viewport.
+  commands and the toolbar zoom field anchor on the center of the viewport.
 - **Canvas Zoom Sensitivity** (Settings → Accessibility, 0.1 to 2.0, default
   1.0) multiplies every pinch and scroll step.
 
@@ -57,7 +57,7 @@ on touch) to select a region. Selection, undo and the clipboard are covered in
 
 ## Comments and annotations
 
-Comment boxes are labelled, resizable boxes drawn behind the nodes, and
+Comment boxes are labeled, resizable boxes drawn behind the nodes, and
 annotations are freehand strokes drawn above everything else. Neither affects
 what the graph renders. See [Comments](/docs/graphs/comments/).
 
@@ -86,13 +86,13 @@ and the Jump Node list open.
 
 ## Jump Nodes
 
-Jump Nodes are labelled navigation markers: 120 by 64 points, with a header
+Jump Nodes are labeled navigation markers: 120 by 64 points, with a header
 strip and an accent glow, carrying an editable label (default *Jump*). They have
 no ports and take no part in texture evaluation. They move, duplicate and delete
 like any other node, are renamed through the context menu's **Rename**, and are
 saved with the project.
 
-Selecting one from the minimap's Jump Node list recentres the canvas on it
+Selecting one from the minimap's Jump Node list recenters the canvas on it
 without changing zoom. With none placed, the list reads *No Jump Nodes on
 canvas*.
 
