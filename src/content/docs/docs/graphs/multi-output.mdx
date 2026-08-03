@@ -1,0 +1,81 @@
+---
+title: Multi-Output Nodes
+description: The six node types with more than one output port, and what each port carries.
+---
+
+A multi-output node exposes more than one output port, each carrying different
+data derived from the same computation. Because every port comes from a single
+evaluation, the outputs always agree with each other: a cell-colour map and a
+distance map taken from one Voronoi node describe the same scatter, and an
+ambient occlusion map and a bent normal from one Surface Detail node can never
+disagree about radius.
+
+Six node types do this. Each is listed below with its ports; full parameter
+tables live on the linked reference pages.
+
+:::caution[missing screenshot]
+A multi-output node on the canvas showing several output sockets, with two of them wired to different consumers.
+:::
+
+## Voronoi
+
+Type id: `voronoi_noise`. See [Generators](/docs/nodes/generators/).
+
+| Output | Carries |
+| --- | --- |
+| Cells | Flat random fill per region with dark walls between them; the default output. |
+| F1 Distance | Distance to the nearest seed point, normalized so the ramp spans 0 to 1 whatever the scale. |
+| Edges (F2-F1) | Bright inside regions, black exactly on the boundary; the classic crack and edge mask. |
+| Cell Color | A random RGB colour, flat-filled per region. |
+| Cell Position | The owning seed point's location, flat-filled per region. Feeds per-region gradients and warps. |
+| Cell ID | A stable random grey per region, for driving per-region variation. |
+
+## Brick
+
+Type id: `brick`. See [Generators](/docs/nodes/generators/).
+
+| Output | Carries |
+| --- | --- |
+| Bricks | The brick faces, each shaded with its own random tone; the default output. |
+| Mortar | The exact complement of the brick mask, so the two never leave a hairline gap or overlap along the bevel. |
+| Cell ID | A stable random grey per brick, for per-brick colour or roughness variation. |
+| Cell UV | The position within each brick, 0 to 1 on each axis, carried in red and green. Wire it into a gradient or a sampler to place something inside every brick. |
+
+## Tile Sampler
+
+Type id: `tile_sampler`. See [Generators](/docs/nodes/generators/).
+
+| Output | Carries |
+| --- | --- |
+| Pattern | The composited scatter; the default output. |
+| Instance ID | A stable identifier for the tile owning each pixel. |
+| Random Value | That tile's random value, for driving per-instance variation downstream. |
+| Position | The owning tile's centre position. |
+
+## Frequency Split
+
+Type id: `high_pass`. See [Filters](/docs/nodes/filters/).
+
+| Output | Carries |
+| --- | --- |
+| High Pass | Detail finer than the radius, centred on mid-gray (0.5 means no deviation from the local average), which drops straight into an Overlay or Add blend. |
+| Low Pass | The broad structure that was subtracted; this is the blur the high pass removed. |
+
+## Edge Detect
+
+Type id: `edge_detect`. See [Filters](/docs/nodes/filters/).
+
+| Output | Carries |
+| --- | --- |
+| Magnitude | Bright where the input has an edge, dark on flat areas. |
+| Direction | The direction each edge runs, encoded in red and green centred on 0.5 exactly like a normal or flow map, so it feeds Warp, Vector Morph and Rotate's Vector mode unchanged. It is normalised, so a faint edge still reports a usable direction; strength is Magnitude's job. |
+
+## Surface Detail
+
+Type id: `ao_from_height`. See [Normal](/docs/nodes/normal/).
+
+| Output | Carries |
+| --- | --- |
+| Occlusion | Classic ambient occlusion, dark where the neighbourhood stands above the point. |
+| Thickness | How enclosed the point is, sampled at double the radius: bright in troughs with material all around, dark on exposed ridges. Drives subsurface and translucency masks. |
+| Bent Normal | The average unoccluded direction encoded as a normal map, so cavities self-shadow correctly when lit along it. |

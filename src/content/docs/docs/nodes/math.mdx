@@ -1,0 +1,72 @@
+---
+title: Math Nodes
+description: Per-pixel arithmetic between two maps, hard thresholding, and tonal quantisation into flat bands.
+---
+
+Arithmetic and tonal quantisation. All three carry an optional Mask, and all three fall back to their own input where the mask is dark.
+
+### Math
+
+Type id: `math`
+
+Applies one arithmetic operation between two inputs, pixel by pixel and channel by channel. The general-purpose value node. Reach for it to offset, scale, clamp or combine maps without any visual character of its own.
+
+**Inputs**
+
+- A (any texture, required): the first operand; its alpha is carried to the output.
+- B (grayscale, required): the second operand. Typed grayscale for socket colouring, but any texture connects and a color one is applied channel by channel.
+- Mask (grayscale, optional): where dark, A passes through unchanged.
+
+**Outputs**
+
+- Output (any texture): the result, clamped to the 0 to 1 range.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Add | Add, Subtract, Multiply, Divide, Min, Max, Power | Seven operations, in this order. Add saturates at white and Subtract bottoms out at black. Divide and Power are guarded against a zero operand, so black regions in B never produce runaway values. |
+
+Both A and B must be connected before the node evaluates.
+
+### Threshold
+
+Type id: `threshold`
+
+Cuts the input into pure black and white at a chosen level, turning any gradient into a hard mask. Color input is reduced to brightness first, weighted so green contributes most and blue least.
+
+**Inputs**
+
+- Input (any texture, required): the map to cut.
+- Mask (grayscale, optional): where dark, the input passes through unchanged.
+
+**Outputs**
+
+- Output (grayscale): the two-tone mask. The input's alpha is preserved.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Threshold | Float | 0.5 | 0.0 to 1.0 | The cutoff. Above it goes white, below goes black. |
+| Softness | Float | 0.0 | 0.0 to 0.5 | How far the transition extends on each side of the cutoff. At 0 the edge is hard; at 0.5 the ramp covers the whole range and the result reads as a smooth gradient. |
+
+:::caution[missing screenshot]
+Before/after: a smooth grayscale gradient beside the hard black-and-white mask Threshold produces from it at the default cutoff.
+:::
+
+### Posterize
+
+Type id: `posterize`
+
+Quantises the input to a fixed number of steps, replacing continuous gradation with flat bands. Used for stylised looks and for stepped-height effects like terraces or stacked plating.
+
+**Inputs**
+
+- Input (any texture, required): the map to quantise.
+- Mask (grayscale, optional): where dark, the input passes through unchanged.
+
+**Outputs**
+
+- Output (grayscale): the banded result. The input's alpha is preserved.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Steps | Whole number | 4 | 2 to 32 | How many tonal levels remain. Each channel is quantised independently, so at 2 a color input collapses to the eight combinations of full-on and full-off channels. |
+

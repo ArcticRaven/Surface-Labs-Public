@@ -1,0 +1,159 @@
+---
+title: Flood Fill Nodes
+description: Label each enclosed region of a mask, then select, reshape, query and scatter detail per region.
+---
+
+Most procedural texturing works pixel by pixel: every operation looks at a colour value and returns a new one, with no idea which brick, tile or pebble that pixel belongs to. The Flood Fill family breaks that limit. Feed it a black-and-white image and it performs *connected-component labelling*: it walks the image, finds every enclosed shape, and gives each one its own internal identity number. From that moment on, the rest of the family can address shapes individually. Make every brick a different colour, grow each stone by a different random amount, put one rivet in the centre of each cell, keep only the three biggest shapes.
+
+The family is five nodes, meant to be used in workflow order: Flood Fill, then Region Select, then Region Modify, then Region Query or Region Scatter. Flood Fill does the analysis and nothing else. On its own it is pure data, and its preview simply paints each region a random grey so you can see what it found. Everything downstream reads that one shared analysis. This matters for speed: the source image is analysed once, no matter how many Region nodes you hang off it, so you can pull five different properties out of the same Flood Fill for the price of one.
+
+Region data travels the wires as an ordinary texture. That is deliberate. You can plug a Region Query straight into a Blend, a Warp, a Levels or a Gradient Map, and using this data in ways it was not "meant" for is encouraged. Two practical rules to remember: all five nodes work in tiling space by default, so a shape that crosses the image edge stays a single region; and every Region node renders at the Flood Fill's analysis resolution, which means their own per-node resolution control has no effect.
+
+A good starting point is a Cells or Voronoi node from the [Generators](/docs/nodes/generators/) for instant brick, pebble or scale regions, or a thresholded Perlin/FBM for organic blobs.
+
+:::caution[missing screenshot]
+A Cells pattern wired through Flood Fill into a Region Query, showing the workflow order across the canvas and a per-region result on the right.
+:::
+
+### Flood Fill
+
+Type id: `flood_fill`
+
+Labels each connected region of a mask so later nodes can address them individually. This node produces data, not a picture. Its preview shows each region as a flat random grey; wire it into a Region node to see anything useful.
+
+**Inputs:** Height / Mask (texture, required), the image to analyse. It is thresholded into shape and background before labelling.
+
+**Outputs:** Regions (texture), the region carrier every other Flood Fill node reads.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Source Channel | Choice | Luminance | Luminance, Red, Green, Blue, Alpha | Which channel of the input is thresholded. |
+| Threshold | Slider | 0.5 | 0.0 to 1.0 | The cutoff between "shape" and "background". |
+| Invert | Toggle | Off | On / Off | Swaps shape and background. |
+| Connectivity | Choice | 8-connected | 4-connected, 8-connected | 8-connected merges diagonally touching pixels into one region; 4-connected keeps them separate. |
+| Background | Choice | Exclude | Exclude, Include as Region | Exclude treats the below-threshold area as empty space between shapes. Include as Region also cuts the background into its own regions. |
+| Tiling | Toggle | On | On / Off | Treats the image as seamless, so a shape crossing the edge counts as one region rather than two. Keep this on for tileable materials. |
+| Seed | Seed | 0 | Any whole number | Reshuffles the per-region random values and colours. |
+
+:::caution[missing screenshot]
+A Flood Fill node's random-grey preview next to the black-and-white input that produced it.
+:::
+
+### Region Select
+
+Type id: `region_select`
+
+Picks regions out of a Flood Fill (largest, smallest, by index, at random or by area) and outputs them as a white-on-black mask. Everything downstream of a Select sees only the surviving regions, so chain it before a Query or a Modify to affect just the chosen shapes.
+
+**Inputs:** Regions (texture, required), a Flood Fill or another Region node carrying an analysis.
+
+**Outputs:** Selection (texture), a white-on-black mask of the regions that survived the filter, plus the filtered analysis for downstream Region nodes.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Largest | All, Largest, Smallest, Index, Index Range, Random, By Area | A new node starts on Largest with Count 1, i.e. showing only the single biggest shape. |
+| Count | Integer | 1 | 0 to 256 | How many regions to keep for Largest, Smallest and Random. In Index mode this doubles as the index of the one region to keep. Shown for Largest, Smallest, Index and Random. |
+| Range Start | Integer | 0 | 0 to 256 | First region index of the run. Shown for Index Range. |
+| Range End | Integer | 4 | 0 to 256 | End of the run, exclusive: Start 0 / End 4 keeps regions 0, 1, 2 and 3. Shown for Index Range. |
+| Area Min | Slider | 0.0 | 0.0 to 1.0 | Lower area bound, as a fraction of the image. Shown for By Area. |
+| Area Max | Slider | 1.0 | 0.0 to 1.0 | Upper area bound. Shown for By Area. |
+| Seed | Seed | 0 | Any whole number | Which regions the Random mode picks. Stable for a given seed. Shown for Random. |
+
+Only the controls that matter for the current mode are shown; All has no extra controls at all.
+
+:::caution[missing screenshot]
+The same Flood Fill through Region Select in Largest, Random and By Area modes, three previews side by side.
+:::
+
+### Region Modify
+
+Type id: `region_modify`
+
+Grows, shrinks or softens each Flood Fill region independently, optionally by a different random amount per region. The random mode is the one that turns a regular grid of cells into hand-cut, irregular stonework.
+
+**Inputs:** Regions (texture, required), the analysis to reshape.
+
+**Outputs:** Regions (texture), the reshaped regions, ready for a Query, a Scatter or another Modify.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Operation | Choice | Expand | Expand, Contract, Feather, Random | Expand grows every region outward; Contract shrinks every region inward; Feather softens the silhouette into a smooth-edged mask without changing the underlying regions; Random grows *or* shrinks each region by its own amount. |
+| Amount | Slider | 0.05 | 0.0 to 0.5 | Distance as a fraction of the shorter image edge. For Random this is the maximum magnitude in either direction. |
+| Bias | Slider | 0.5 | 0.0 to 1.0 | Tips the Random balance: 0 = everything contracts, 0.5 = even, 1 = everything expands. Shown for Random only. |
+| Seed | Seed | 0 | Any whole number | Which region gets which random amount. Shown for Random only. |
+
+Expand, Contract and Random move the actual region boundaries, so masks and further chaining stay correct. Feather only softens the visible edge; downstream nodes still see the original hard-edged regions. After an Expand or Contract, per-region statistics (area, centroid, average colour, average height) are inherited from before the change rather than recomputed, so a later Region Query reads the pre-modify numbers.
+
+Recipe, stone walls and cracked plates: Cells, then Flood Fill, then Region Modify set to Random with Amount around 0.1, then adjust Seed until the silhouette reads right. Follow with a Region Query in Distance to Edge for chiselled bevels.
+
+:::caution[missing screenshot]
+A regular Cells grid before and after Region Modify in Random mode, showing the grid turned into irregular stonework.
+:::
+
+### Region Query
+
+Type id: `region_query`
+
+Reads one property of the regions and outputs it as a map. This single node replaces a whole shelf of "flood fill to X" nodes; pick what you want from the Mode list. Drop several Region Query nodes on the same Flood Fill to pull different properties at once; they all share the one analysis.
+
+**Inputs:** Regions (texture, required), the analysis to read.
+
+**Outputs:** Output (texture), a grayscale map, a colour map or a packed vector depending on the mode, deliberately typed as a generic texture so it wires into anything.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Random Value | Random Value, Random Color, Average Color, Average Height, Area, Perimeter, Aspect Ratio, Region ID, Local UV, Centroid, Bounding Box, Distance to Edge, Distance to Center, Border Mask, Interior Mask, Region Count | Which property to output. See the table below. |
+| Scale | Slider | 1.0 | 0.0 to 8.0 | Widens the distance falloff and the Border/Interior margin. Shown only for Distance to Edge, Distance to Center, Border Mask and Interior Mask. |
+
+Modes, in list order:
+
+| Mode | What it outputs |
+| --- | --- |
+| Random Value | Each region a flat random grey. The classic flood-fill look; drive roughness or height variation with it. |
+| Random Color | Each region a flat random colour. |
+| Average Color | Each region filled with the average colour of the input underneath it. |
+| Average Height | Each region filled with the average brightness of the input underneath it. |
+| Area | Brighter = larger region, as a fraction of the image. |
+| Perimeter | A rough "how convoluted is the outline" value per region. |
+| Aspect Ratio | Square regions read black, long thin ones read white (1:1 reads 0, 8:1 reads 1). |
+| Region ID | A ramp from the first region to the last; useful as a mask source or gradient index. |
+| Local UV | A 0 to 1 gradient across each region's bounding box, packed into Red and Green. Feed it a warp or gradient for per-region effects. |
+| Centroid | Each region flat-filled with its centre position (Red = x, Green = y). |
+| Bounding Box | Each region's box packed as Red/Green/Blue/Alpha = min x, min y, max x, max y. |
+| Distance to Edge | 0 at the region edge, rising toward the centre. Great for bevels and inset masks. |
+| Distance to Center | 0 at the centroid, rising toward the edges. |
+| Border Mask | A band hugging each region's outline, on both sides of the boundary. |
+| Interior Mask | The inside of each region, past a margin. |
+| Region Count | A single flat grey encoding how many regions were found (value is roughly the count divided by 256). This is the one mode that also fills the background. |
+
+Every mode except Region Count leaves the background black.
+
+Recipes: per-brick colour is Cells, Flood Fill, then Region Query in Random Color. Worn tile heights are Flood Fill, Region Query in Random Value, then Levels, blended over your base height. Bevelled edges are Region Query in Distance to Edge into Levels or Curves.
+
+:::caution[missing screenshot]
+A grid of Region Query previews on the same Flood Fill: Random Value, Random Color, Distance to Edge, Local UV, Border Mask and Area.
+:::
+
+### Region Scatter
+
+Type id: `region_scatter`
+
+Places one copy of a stamp per region, positioned and sized to fill each region's footprint rather than clipped to the blob shape, so it reads as a positioned instance instead of a mask. Each region owns a territory, so stamps do not overlap. The result sits on a transparent background; put a [Blend](/docs/nodes/blend/) after it to composite over a base.
+
+**Inputs:** Regions (texture, required), the analysis that decides where stamps land. Stamp (texture, required), the thing to place: a Shape, an imported image, or any sub-graph.
+
+**Outputs:** Output (texture), the stamps, one per region, on transparency.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Scale | Slider | 1.0 | 0.0 to 4.0 | Stamp size relative to each region's box. |
+| Scale Random | Slider | 0.0 | 0.0 to 1.0 | Per-region random size variation. |
+| Rotation | Slider | 0.0 | -180.0 to 180.0 | Base rotation, in degrees. |
+| Rotation Random | Slider | 0.0 | 0.0 to 1.0 | Per-region random spin on top of the base rotation. |
+| Seed | Seed | 0 | Any whole number | Reshuffles the random scale and rotation. |
+
+Tip: feed a Shape (circle or hex) as the stamp to drop one shape per cell. Studs on a plate, rivets, pebbles.
+
+:::caution[missing screenshot]
+A hex Shape scattered over Cells regions with some scale and rotation randomness, one stamp per cell on a transparent background.
+:::

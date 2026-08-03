@@ -1,0 +1,78 @@
+---
+title: Data Types & Ports
+description: What ports are, which data types they carry, how type mismatches are flagged, and the file formats the application reads and writes.
+---
+
+Every node exchanges data through ports, and every port carries one kind of
+data. Type determines which connections are allowed, and the wire and port
+colours tell you at a glance what is flowing where.
+
+## Ports
+
+A port is a connection point. Input ports receive data; output ports supply
+it. A placed node's ports are fixed by its node type, together with its label,
+category and parameter list.
+
+An input may be **required** or **optional**:
+
+- A **required** input must be connected before the node produces anything.
+- An **optional** input changes the result when connected but the node works
+  without it.
+
+Some nodes expose more than one output port, each carrying different data
+derived from the same computation. See
+[Multi-Output Nodes](/docs/graphs/multi-output/).
+
+:::caution[missing screenshot]
+A node on the canvas with input ports on one side and an output port on the
+other, showing a required input connected and an optional Mask input left
+empty.
+:::
+
+## The Mask input
+
+Many nodes across most categories carry an optional **Mask** input. Where the
+mask is dark, the node's effect is removed and the result falls back to the
+node's primary input, or to a constant for nodes that have no input. This is
+the standard way to confine a filter or generator to part of a texture.
+
+## Data types
+
+- **Texture**: image data. Three variants exist: a generic type used by
+  filters that preserve whatever they are given, a **grayscale texture** for
+  single-channel data such as height, roughness and masks, and a **colour
+  texture** for three-channel data such as base colour and normals. The three
+  are freely interchangeable; the distinction drives wire and port colour
+  only.
+- **Value**: a number or a 2-, 3- or 4-component vector. All value types
+  interconnect.
+- **Boolean**: an on/off value; connects only to boolean ports.
+- **Material**: a whole map-set carried on a single wire, used by the PBR
+  Output and Trim Sheet nodes.
+- **Custom**: an unchecked type used by the Reroute node; connects to anything
+  and bypasses type validation.
+
+Textures and values are **not** interchangeable with each other.
+
+## Type mismatches
+
+A mismatched connection is not blocked. Instead the wire is drawn in red to
+flag a type mismatch you should review. See
+[Connections](/docs/graphs/connections/) for how connections are made and
+removed.
+
+:::caution[missing screenshot]
+Two connected nodes with a red wire between them, indicating a texture output
+wired into a value input.
+:::
+
+## File formats
+
+| Extension | What it is |
+| --- | --- |
+| `.surfacelabs` | The project archive: all materials, subgraphs, embedded images, export settings and cached thumbnails in one portable file |
+| `.surfacenode` | A single node or subgraph packaged for sharing, with embedded media and a preview thumbnail |
+| `.surfacetheme` | An exported colour theme |
+| `.mcpb` | A one-click Claude Desktop extension bundle exported by the MCP server settings page |
+
+See [File Formats](/docs/help/file-formats/) for details on each.

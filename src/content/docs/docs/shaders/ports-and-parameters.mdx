@@ -1,0 +1,133 @@
+---
+title: Declaring Ports & Parameters
+description: How in and param declarations at the top of a shader source become input ports, Properties controls, and live uniforms.
+---
+
+Declarations must come first. The header ends at the first line that is not a
+declaration, not blank, and not a comment; everything from there down is body.
+Blank and comment lines between declarations stay in the header.
+
+A declaration line starts with the word `in` or `param` followed by a space or
+tab. That whitespace rule is what keeps ordinary code like `int x = 3;` or a
+call to `parameterize()` from being mistaken for a declaration.
+
+## Input ports
+
+```glsl
+in sampler2D source;
+in sampler2D detail;    // @optional
+```
+
+| Rule | Behaviour |
+| --- | --- |
+| Syntax | `in sampler2D <name>;` and nothing else is accepted after `in` |
+| Port order | Declaration order, top to bottom |
+| Port label | The declared name, title-cased with a space inserted before an interior capital: `source` becomes Source, `baseColor` becomes Base Color |
+| Required by default | A node with an unconnected required input produces no output |
+| `// @optional` | Makes the port optional. Unconnected, it reads as opaque mid-grey (0.5, 0.5, 0.5, 1.0) |
+| Maximum | 4. Declaring a 5th is a compile error |
+| Portability | 3 or 4 inputs makes the source native-only (the fallback interpreter binds 2 samplers) |
+
+Read an input in the body with `texture(<name>, uv)`. Input textures are
+sampled with repeat addressing and linear filtering at LOD 0, so sampling
+outside 0.0 to 1.0 reads from the tiled repeat, which is what a seamless
+neighbour tap needs.
+
+## Parameters
+
+```glsl
+param float amount = 1.0;                // @range(0, 2)
+param int   mode   = 0;                  // @enum(Add, Multiply, Screen)
+param bool  invert = false;
+param seed  variation;
+param vec3  tint   = vec3(1.0, 0.6, 0.2); // @color
+```
+
+Syntax is `param <type> <name>` with an optional `= <default>` and an optional
+trailing annotation comment. Omit the initialiser and the parameter starts
+at 0.
+
+| Declared type | Properties control | Type seen in the body | Stored parameter name(s) |
+| --- | --- | --- | --- |
+| `float` | Number field; a slider appears only when `@range` gives both bounds | `float` | `<name>` |
+| `int` | Number field and stepped slider, min 0 / max 1 unless `@range` overrides. With `@enum`, a dropdown instead | `float`, not `int`. Write `int(name)` for integer math | `<name>` |
+| `bool` | On/off toggle | `bool`; `if (invert)` works | `<name>` |
+| `seed` | Number field and Random button, no slider | `float` in 0.0 to 100.0, derived from the stored 64-bit seed. A hash offset, not the number in the panel | `<name>` (stores the raw integer) |
+| `vec3` or `vec4` with `@color` | Colour editor with RGB sliders and a hex field | `vec3`, or `vec4` with alpha pinned to 1.0 | Three params: `<name>Red`, `<name>Green`, `<name>Blue`, each 0 to 1 |
+| `vec2` / `vec3` / `vec4` without `@color` | One plain float control | `float`, see the warning below | `<name>` |
+
+:::caution[missing screenshot]
+The Properties panel of a Custom Shader node showing the controls generated
+from the five declarations above: slider, dropdown, toggle, seed field with
+Random button, and colour editor.
+:::
+
+:::caution[Trap: a vector parameter without @color is not a vector]
+The control set has no multi-component widget outside the colour editor, so a
+`param vec2 offset;` produces a single float control and the body sees a
+single `float offset;`. If you want two numbers, declare two `float` params.
+:::
+
+:::caution[Trap: @color params have no parameter called `<name>`]
+They are stored as the Red/Green/Blue triple. This matters if you drive the
+node from the [MCP tools](/docs/mcp-server/) or from an
+[exposed global variable](/docs/graphs/exposed-parameters/).
+:::
+
+## Annotations
+
+Annotations are `//` comments whose first non-space character is `@`. Several
+may share one comment (`// @color @range(0, 1)`); block comments are never
+annotations.
+
+| Annotation | Applies to | Effect |
+| --- | --- | --- |
+| `@optional` | `in sampler2D` | Port becomes optional; unconnected reads as opaque mid-grey |
+| `@range(<min>, <max>)` | `float`, `int` | Bounds the control and adds a slider. Exactly two numeric values, or it is an error |
+| `@enum(<label>, <label>, …)` | `int` | Dropdown with those labels; maximum becomes label-count minus one |
+| `@color` | `vec3`, `vec4` | Colour editor. Applying it to a smaller type is a compile error |
+
+:::caution[Trap: an annotation attaches to the declaration above it, not below]
+Write it as a trailing comment on the same line. A `// @range(0, 2)` on its
+own line above a `param` will be read as metadata for the previous
+declaration.
+:::
+
+`@enum` on a `float` param, or `@range` on a `bool`, `seed` or `@color` param,
+is silently ignored.
+
+## Defaults
+
+An initialiser may be a plain number, a signed number, `true` / `false`, or a
+constructor of literals such as `vec3(1.0, 0.6, 0.2)`. A single-argument
+constructor broadcasts: `vec3(0.5)` is `vec3(0.5, 0.5, 0.5)`.
+
+Initialisers are literals only. Expressions (`1.0 / 2.0`), scientific
+notation (`1e-3`), and hex (`0x10`) are not accepted in the header; the
+header's number scanner understands digits, one decimal point, and a trailing
+`f`/`F` suffix. All three are fine inside the body.
+
+## Parameters are live uniforms
+
+Every scalar channel a parameter needs is bound as its own live GPU uniform.
+The compiled pipeline depends only on the source text, never on parameter
+values, so dragging a slider re-renders without recompiling the shader. One
+source is one pipeline.
+
+Inside the body, parameters arrive as ordinary global variables carrying the
+names you declared. Writing to one is legal but affects nothing beyond the
+pixel being shaded; treat them as read-only.
+
+Custom Shader parameters can be exposed as project-level globals from the
+[Properties panel](/docs/editor/properties/) like any other node parameter.
+See [Exposed Parameters](/docs/graphs/exposed-parameters/).
+
+## Declaration limits
+
+| Limit | Value |
+| --- | --- |
+| Texture inputs | 4 maximum; a 5th is a compile error |
+| Inputs before the source becomes native-only | 3 or more |
+| Parameters | No fixed cap |
+| Parameter defaults | Literals or literal constructors only; no expressions, no `1e-3`, no hex |
+| Vector params | Only `vec3`/`vec4` with `@color` produce a vector in the body |

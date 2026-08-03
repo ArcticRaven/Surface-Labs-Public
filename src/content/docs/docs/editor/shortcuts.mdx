@@ -1,0 +1,138 @@
+---
+title: Keyboard Shortcuts
+description: The default bindings, the muscle-memory presets, remapping and conflicts, and the command palette.
+---
+
+Throughout this page, **Mod** means <kbd>Ctrl</kbd> on Windows and Linux, and
+<kbd>Cmd</kbd> on macOS and iPadOS. Bindings are stored in a
+platform-independent form and displayed with the right label for the platform
+you are on, so the same stored binding reads correctly everywhere. Ctrl and Cmd
+are treated as the same modifier when recording a new binding.
+
+Bindings are stored with your application preferences, not inside a project.
+
+## Default bindings
+
+| Category | Action | Default binding | What it does |
+| --- | --- | --- | --- |
+| File | Save Project | <kbd>Mod</kbd>+<kbd>S</kbd> | Save the current project to disk |
+| File | Open Project | *unbound* | Open an existing project from disk |
+| File | New Project | *unbound* | Create a new project |
+| File | Go to Hub | *unbound* | Return to the project hub |
+| File | Export Textures | <kbd>Mod</kbd>+<kbd>E</kbd> | Open the export dialog for the graph's best output node |
+| Editor | Open Settings | <kbd>F1</kbd> | Open the settings window |
+| Editor | Toggle Command Palette | <kbd>Mod</kbd>+<kbd>P</kbd> | Show or hide the command palette |
+| Editor | Toggle Left Panel | <kbd>Mod</kbd>+<kbd>←</kbd> | Collapse or expand the left panel |
+| Editor | Toggle Right Panel | <kbd>Mod</kbd>+<kbd>→</kbd> | Collapse or expand the right panel |
+| Editor | Toggle Bottom Panel | <kbd>Mod</kbd>+<kbd>↓</kbd> | Collapse or expand the bottom panel |
+| Editor | Toggle Focus Mode | <kbd>Mod</kbd>+<kbd>↑</kbd> | Hide all panels to focus on the canvas |
+| Graph | Undo | <kbd>Mod</kbd>+<kbd>Z</kbd> | Undo the last graph change |
+| Graph | Redo | <kbd>Mod</kbd>+<kbd>Y</kbd> | Redo the last undone graph change |
+| Graph | Select All | <kbd>Mod</kbd>+<kbd>A</kbd> | Select all nodes in the graph |
+| Graph | Delete Selected | <kbd>Delete</kbd> | Delete the selected nodes |
+| Graph | Duplicate Selected | <kbd>Mod</kbd>+<kbd>D</kbd> | Duplicate the selected nodes |
+| Graph | Copy Selected | <kbd>Mod</kbd>+<kbd>C</kbd> | Copy the selected nodes to the clipboard |
+| Graph | Paste Nodes | <kbd>Mod</kbd>+<kbd>V</kbd> | Paste nodes from the clipboard |
+| Canvas | Zoom to Fit | *unbound* | Zoom the canvas to fit all nodes |
+| Canvas | Zoom to Selection | <kbd>Tab</kbd> | Zoom the canvas to fit the selected nodes |
+| Canvas | Zoom In | *unbound* | Zoom the canvas in |
+| Canvas | Zoom Out | *unbound* | Zoom the canvas out |
+| Canvas | Toggle Minimap | <kbd>Mod</kbd>+<kbd>M</kbd> | Show or hide the canvas minimap |
+| Canvas | Open Node Picker | <kbd>Space</kbd> | Open the node picker to add a node |
+| Canvas | Place Comment | <kbd>C</kbd> | Place a new comment at the centre of the viewport |
+| Canvas | Frame Selection | <kbd>F</kbd> | Create an empty comment box sized around the selected nodes |
+| Canvas | Toggle Annotation Mode | *unbound* | Switch between drawing annotations and normal canvas input |
+
+Seven actions are unbound out of the box: Open Project, New Project, Go to Hub,
+Zoom to Fit, Zoom In, Zoom Out and Toggle Annotation Mode. All of them can be
+reached another way (the hub, the toolbar, the zoom field) and all can be given
+a binding.
+
+On the Shortcuts page key names are shown in lower case (`mod+s`, `f1`,
+`delete`, `mod+arrowleft`); modifier names keep their capitals. The Space
+binding on Open Node Picker displays as a blank space rather than a word.
+
+:::caution[missing screenshot]
+The Settings → Shortcuts page with the binding list and the preset selector.
+:::
+
+## Presets
+
+A preset is a bundle of overrides layered on the Surface Labs defaults, a
+muscle-memory bridge from another node tool. Applying one replaces your current
+overrides entirely. Only the differences are listed here; every action not shown
+keeps its Surface Labs default.
+
+| Preset | Changes |
+| --- | --- |
+| **Surface Labs** | (the defaults above) |
+| **Substance Designer** | Zoom to Selection <kbd>F</kbd>, Frame Selection <kbd>Shift</kbd>+<kbd>F</kbd>, Zoom to Fit <kbd>Home</kbd> |
+| **Blender** | Select All <kbd>A</kbd>, Delete Selected <kbd>X</kbd>, Duplicate Selected <kbd>Shift</kbd>+<kbd>D</kbd>, Zoom to Fit <kbd>Home</kbd>, Toggle Command Palette <kbd>F3</kbd>, Redo <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> |
+| **Houdini** | Open Node Picker <kbd>Tab</kbd>, Zoom to Selection <kbd>G</kbd>, Zoom to Fit <kbd>H</kbd> |
+| **Nuke** | Open Node Picker <kbd>Tab</kbd>, Zoom to Selection <kbd>F</kbd>, Frame Selection <kbd>Shift</kbd>+<kbd>F</kbd>, Zoom to Fit <kbd>Home</kbd> |
+| **Custom** | Not selectable. This label appears automatically once you remap anything by hand |
+
+## Remapping
+
+1. Open Settings → Shortcuts.
+2. Click a row's binding. It is replaced by a pulsing *Press a key...* box.
+3. Press the combination you want, holding modifiers first. Modifier keys
+   pressed on their own are ignored while the row is listening, so you can hold
+   <kbd>Shift</kbd> and then choose the key. The combination is captured on the
+   first non-modifier key press.
+4. Press <kbd>Escape</kbd> while the row is listening to cancel without
+   changing anything.
+
+Recorded modifiers are the primary modifier (Ctrl/Cmd), <kbd>Shift</kbd> and
+<kbd>Alt</kbd>.
+
+Any manual remap, or a per-row reset, flips the stored preset label to Custom.
+
+## Conflicts
+
+If the combination you press is already assigned to another action, the row
+stops listening and shows an inline warning: *Already used by* the other
+action's name, *Reassign?*, with **Reassign** and **Cancel** buttons.
+
+- **Reassign** gives the combination to the action you were editing and
+  unbinds the other action.
+- **Cancel** abandons the remap.
+
+Once the warning is showing, the row is no longer listening for keys, so
+<kbd>Escape</kbd> at that point closes Settings instead of cancelling. Use
+Cancel.
+
+:::caution[missing screenshot]
+A shortcut row showing the inline conflict warning with the Reassign and Cancel
+buttons.
+:::
+
+## When shortcuts do not fire
+
+Shortcuts are deliberately suppressed while a text field has keyboard focus:
+the comment box inline editor, the toolbar zoom field, the Jump Node label
+editor, a search box. Typing <kbd>C</kbd> in a comment writes a c instead of
+placing another comment. <kbd>Escape</kbd> is the exception: it is never routed
+through the shortcut system, so it always reaches whatever it needs to cancel.
+
+Which actions are live also depends on where you are. Go to Hub, Toggle Command
+Palette, New Project and Open Project are registered application-wide, so they
+work in the hub as well as the editor. Save, Export Textures, the three panel
+toggles and Focus Mode are registered by the editor. Undo, Redo, Select All,
+Delete, Duplicate, Copy, Paste and the canvas actions are registered by the
+canvas. An action whose handler is not currently registered simply does nothing.
+
+## The command palette
+
+<kbd>Mod</kbd>+<kbd>P</kbd> opens a small overlay in the upper part of the
+window with a search field, focused automatically, and the hint line *Run any
+action or jump to a shortcut*. <kbd>Mod</kbd>+<kbd>P</kbd> again or
+<kbd>Escape</kbd> closes it (<kbd>Escape</kbd> also clears the typed text;
+<kbd>Mod</kbd>+<kbd>P</kbd> leaves it in place for next time). It works in the
+hub and in the editor.
+
+:::note[The palette does not yet run actions]
+It is currently the search field and hint only, with no result list and no
+execution. On iPad it needs an attached hardware keyboard; there is no on-screen
+button or gesture that opens it.
+:::

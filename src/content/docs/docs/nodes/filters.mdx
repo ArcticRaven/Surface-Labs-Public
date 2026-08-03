@@ -1,0 +1,589 @@
+---
+title: Filter Nodes
+description: Blur, sharpen, tonal, colour and shape filters that modify a texture in place, with a shared optional mask input.
+---
+
+Filter nodes take a texture on their **Input** port, change it, and pass the
+result out through **Output**. They are listed under the **Filters** category in
+the Node Library. Twenty-three nodes live in the category; the twenty-one
+single-pass filters are documented on this page.
+
+## Shared behaviour
+
+- **Input** is required on every filter. Until something is wired into it, the
+  node produces nothing.
+- **Mask** is an optional grayscale input present on *every* filter in this
+  category. Where the mask is white the effect applies at full strength; where
+  it is black the node's own **Input** shows through unchanged; values in
+  between crossfade. Masking a filter therefore always means "less of this
+  effect here", never "black here".
+- Three filters take an extra **required** second input: Slope Blur
+  (**Slope**), Non-Uniform Blur (**Blur Map**) and Vector Morph
+  (**Vector Map**). Those ports have no fallback; leave one unconnected and
+  the node stays blank.
+- Two filters have [two outputs](/docs/graphs/multi-output/): Edge Detect
+  (Magnitude, Direction) and Frequency Split (High Pass, Low Pass).
+- Port types are informational: they colour the wire and socket so data flow
+  reads at a glance, and all texture types interconnect freely. "Grayscale"
+  means single-channel data (height, roughness, masks), "colour" means RGB
+  data (albedo, normals), "any texture" means the node passes whatever it was
+  given straight through.
+- Parameter names in the tables below are the labels shown in the
+  [Properties Panel](/docs/editor/properties/). Enum parameters are shown as a
+  dropdown; whole-number and decimal parameters get a slider plus a typed
+  field.
+- Two nodes in this category (Distance Field and Erosion) run an iterative
+  GPU compute simulation and require the native render core; they are
+  documented under [Simulation & Compute Nodes](/docs/nodes/simulation/).
+  Bevel uses the compute path when it is available and falls back to a cheaper
+  approximation when it is not.
+
+## Blur and Softening
+
+:::caution[missing screenshot]
+Side-by-side comparison of the same input through Quick Blur, Detail Blur, Directional Blur, Non-Uniform Blur, Slope Blur and Median.
+:::
+
+### Quick Blur
+
+Type id: `quick_blur`
+
+A cheap, single-pass blur that stays responsive at large resolutions at the
+cost of edge quality. Reach for this while you are building and tuning a
+graph, then swap in Detail Blur on the branch that actually feeds an output.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to soften.
+- **Mask** (grayscale, optional): restricts the blur.
+
+**Outputs**
+
+- **Output** (any texture): the blurred result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Decimal | 4.0 | 0.0 to 64.0 | Measured in pixels at the node's current render resolution, so the same value softens less at a higher export size. 0 passes the input through untouched. |
+
+### Detail Blur
+
+Type id: `blur`
+
+A high-quality gaussian blur. Slower than Quick Blur, but clean enough for
+large radii and for final output. Use it on anything that reaches an output
+map.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to soften.
+- **Mask** (grayscale, optional): restricts the blur.
+
+**Outputs**
+
+- **Output** (any texture): the blurred result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Decimal | 4.0 | 0.0 to 64.0 | Measured in pixels at the node's current render resolution. 0 passes the input through untouched. |
+
+Detail Blur is internally a separable two-pass gaussian (horizontal, then
+vertical), which is why it is both slower and cleaner than Quick Blur.
+
+### Directional Blur
+
+Type id: `directional_blur`
+
+Smears the image along a single axis instead of in all directions: motion
+streaks, brushed metal, fabric weave, and the anisotropic feel of a machined
+surface.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to smear.
+- **Mask** (grayscale, optional): restricts the smear.
+
+**Outputs**
+
+- **Output** (any texture): the streaked result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Angle | Decimal | 0.0 | 0.0 to 360.0 | Degrees. Sets the axis the blur runs along. |
+| Distance | Decimal | 0.05 | 0.0 to 0.5 | How far the smear travels, as a fraction of the image. Resolution-independent. |
+
+### Non-Uniform Blur
+
+Type id: `non_uniform_blur`
+
+Blurs by a per-pixel radius read from a second map, so some areas stay razor
+sharp while others smear. The workhorse for depth-of-field looks, selective
+softening, and melting only the worn parts of a surface.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to soften.
+- **Blur Map** (grayscale, **required**): white blurs at the full radius, black leaves the pixel untouched, grays scale in between.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (any texture): the selectively blurred result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Decimal | 0.05 | 0.0 to 0.5 | The *maximum* blur radius, as a fraction of the shorter image edge. The Blur Map scales it per pixel. |
+
+Unlike Detail Blur this cannot be split into two cheap passes, because
+neighbouring pixels want different kernels. The sampling density follows the
+local radius instead, which keeps the sharp areas cheap.
+
+### Slope Blur
+
+Type id: `slope_blur`
+
+Marches samples downhill along the slopes of a second, driving texture instead
+of blurring in a fixed direction. This is the classic weathering and run-off
+effect: rust streaking down a panel, dirt collecting in crevices, paint
+melting off an edge. The march re-reads the slope at every step, so the path
+curves along the terrain the way water would.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture being smeared.
+- **Slope** (grayscale, **required**): the height field whose gradient steers the march.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (any texture): the smeared result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Intensity | Decimal | 0.1 | 0.0 to 0.5 | How far the march travels, as a fraction of the image. |
+| Samples | Whole number | 32 | 1 to 64 | Steps taken along the march. The node also caps this at the march length, since more steps than pixels only resamples the same pixels. |
+| Mode | Choice | Blur | Blur, Min (Erode), Max (Melt) | Blur averages the samples (a smear). Min (Erode) keeps the darkest, carving the input away. Max (Melt) keeps the brightest, growing it. |
+| Falloff | Decimal | 1.0 | 0.0 to 1.0 | How the reduction weighs distance. At 1.0 a sample counts for less the further along the march it sits, so one distant extreme cannot decide the pixel; raising Samples then adds detail. At 0.0 every sample counts in full, which is the plain running minimum or maximum other tools compute: a harder, more aggressive carve, where raising Samples mostly adds reach. |
+
+Slope Blur is *not* Erosion: it smears pixels along a gradient, which reads as
+wear but conserves nothing.
+[Erosion](/docs/nodes/simulation/) actually transports material.
+
+### Median
+
+Type id: `median`
+
+Removes speckle and isolated stray pixels while keeping edges sharp: a
+denoiser that does not soften structure the way a blur does. Reach for it
+after a scatter or noise pass has left salt-and-pepper dots.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to clean up.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (any texture): the despeckled result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Choice | 5×5 (fast) | 3×3 (exact), 5×5 (fast) | Kernel size. |
+
+Each colour channel gets its own median, so colour input is handled per
+channel rather than by luminance.
+
+## Detail and Edges
+
+:::caution[missing screenshot]
+A noisy height map through Sharpen, Frequency Split (both outputs shown) and Edge Detect (Magnitude and Direction shown).
+:::
+
+### Sharpen
+
+Type id: `sharpen`
+
+Boosts local contrast to bring fine detail forward. Overdo it and you get
+bright halos along every edge.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to sharpen.
+- **Mask** (grayscale, optional): restricts the sharpening.
+
+**Outputs**
+
+- **Output** (any texture): the sharpened result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Amount | Decimal | 1.0 | 0.0 to 8.0 | Unsharp-mask strength. 0 passes the input through. |
+
+The reference blur the sharpen subtracts is scaled to hold a constant
+footprint as the output grows, so the node has the same character at 512 as at
+4K.
+
+### Frequency Split
+
+Type id: `high_pass`
+
+Separates fine detail from broad shape so you can edit one without disturbing
+the other: strip the lighting and large-scale drift out of a photo-sourced
+map, keep only surface detail, then recombine. Both halves come out of one
+node, so their cutoffs can never drift apart.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to split.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **High Pass** (any texture): detail finer than the radius, centred on mid-gray (0.5 means "no deviation from the local average"), which drops straight into an Overlay or Add blend.
+- **Low Pass** (any texture): the broad structure that was subtracted; this is the blur the high pass removed.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Decimal | 0.05 | 0.0 to 0.5 | Cutoff, as a fraction of the shorter image edge. *Larger* keeps more of the broad structure in the high pass, because the low pass it subtracts is wider. |
+| Amount | Decimal | 1.0 | 0.0 to 8.0 | Scales the retained detail around mid-gray. |
+
+High Pass plus Low Pass recombine to the original input, which is what makes
+this a genuine split rather than two independent effects.
+
+### Edge Detect
+
+Type id: `edge_detect`
+
+Finds edges in the input and outputs them as a mask: outlines, wear masks,
+panel seams, and anything that needs to know where the silhouettes are.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to analyse; colour is reduced to luminance first.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Magnitude** (grayscale): bright where the input has an edge, dark on flat areas.
+- **Direction** (colour): the direction each edge runs, encoded in red and green centred on 0.5 exactly like a normal or flow map, so it feeds Warp, Vector Morph and Rotate's Vector mode unchanged. It is normalised, so a faint edge still reports a usable direction; strength is Magnitude's job.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Intensity | Decimal | 1.0 | 0.0 to 8.0 | Gain on the edge magnitude. Affects the Magnitude output only. |
+
+Edge detection wraps around the image borders, so it stays seamless on tiling
+maps. The response is calibrated against a 1024-pixel reference so the same
+content yields the same edge strength at any output size.
+
+## Colour and Tonal
+
+:::caution[missing screenshot]
+The Properties Panel for Levels, Curves (curve editor) and Gradient Map (gradient bar) with a before/after of each on the same input.
+:::
+
+### Levels
+
+Type id: `levels`
+
+Remaps the input black point, white point and gamma onto a new output range:
+the workhorse for setting contrast precisely rather than by feel.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to remap.
+- **Mask** (grayscale, optional): restricts the remap.
+
+**Outputs**
+
+- **Output** (any texture): the remapped result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| In Black | Decimal | 0.0 | 0.0 to 1.0 | Input value that becomes fully black. |
+| In White | Decimal | 1.0 | 0.0 to 1.0 | Input value that becomes fully white. |
+| Gamma | Decimal | 1.0 | 0.1 to 4.0 | Biases the midtones between the two input points. |
+| Out Black | Decimal | 0.0 | 0.0 to 1.0 | Low end of the range the result is written into. |
+| Out White | Decimal | 1.0 | 0.0 to 1.0 | High end of the range the result is written into. |
+
+Out Black and Out White are independent; neither is constrained to stay below
+the other, so swapping them inverts the result.
+
+### Brightness/Contrast
+
+Type id: `brightness_contrast`
+
+Shifts overall lightness and stretches or compresses the tonal range: the
+quickest way to strengthen or calm a map when you do not need Levels'
+precision.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to adjust.
+- **Mask** (grayscale, optional): restricts the adjustment.
+
+**Outputs**
+
+- **Output** (any texture): the adjusted result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Brightness | Decimal | 0.0 | -1.0 to 1.0 | Negative darkens, positive lightens. 0 is no change. |
+| Contrast | Decimal | 0.0 | -1.0 to 1.0 | Negative flattens toward mid-gray, positive stretches away from it. 0 is no change. |
+
+### Curves
+
+Type id: `curves`
+
+Reshapes the tonal response through a draggable curve. Finer control than
+Levels when only part of the range needs moving: lifting the shadows without
+touching the highlights, or pinning the midtones while crushing both ends.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to remap.
+- **Mask** (grayscale, optional): restricts the remap.
+
+**Outputs**
+
+- **Output** (any texture): the remapped result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| *(curve pad)* | Control-point list | Identity (two points, at the bottom-left and top-right corners) | Unlimited control points, each anywhere in 0.0 to 1.0 on both axes | There are no numeric parameters. The curve editor in the Properties Panel is the entire interface: add, move and remove points freely, including horizontally. |
+
+The curve is interpolated with a monotone cubic that never overshoots, so a
+dialled-in curve cannot produce values outside the range its points span.
+Beyond the first and last points the curve extends flat, matching Photoshop.
+The same curve is applied to each colour channel independently; alpha passes
+through untouched. A malformed or missing curve falls back to the identity
+curve rather than failing the render.
+
+### HSL Shift
+
+Type id: `hsl`
+
+Rotates hue and scales saturation and lightness: recolour a material without
+touching any of its structure.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to recolour.
+- **Mask** (grayscale, optional): restricts the shift.
+
+**Outputs**
+
+- **Output** (any texture): the recoloured result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Hue Shift | Decimal | 0.0 | -0.5 to 0.5 | A full turn of the hue wheel is 1.0, so ±0.5 is a half turn; the full range reaches every hue. |
+| Saturation | Decimal | 1.0 | 0.0 to 2.0 | 0.0 removes all colour, 1.0 is unchanged, 2.0 doubles it. |
+| Lightness | Decimal | 0.0 | -1.0 to 1.0 | Negative darkens, positive lightens. |
+
+### Grayscale
+
+Type id: `grayscale`
+
+Collapses a colour input to luminance. Use it before any node that expects a
+height map or a mask.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to reduce.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (grayscale): single-channel luminance.
+
+No parameters.
+
+### Invert
+
+Type id: `invert`
+
+Flips the input so light becomes dark. It has dedicated normal-map modes
+because a plain inversion of a normal map also negates the Z component and
+lights the surface inside-out.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to flip.
+- **Mask** (grayscale, optional): restricts the inversion.
+
+**Outputs**
+
+- **Output** (any texture): the inverted result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Colour | Colour, Normal Y, Normal X, Normal XY | Colour is the ordinary inversion. The three normal modes flip the named slope axes in signed space and leave Z alone, so the map still lights correctly. |
+
+### Gradient Map
+
+Type id: `gradient_map`
+
+Replaces each input value with a colour sampled from a gradient: the standard
+way to turn a height map into an albedo. Accepts grayscale or colour input;
+colour is reduced to luminance before the ramp is applied.
+
+**Inputs**
+
+- **Input** (any texture, required): the values to remap.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (colour): the gradient-mapped result. Alpha passes through.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| *(gradient bar)* | Colour-stop list | A four-stop rust ramp: near-black `#0D0A08` at 0.0, dark brown `#592E1A` at 0.35, orange `#CC7326` at 0.70, cream `#FFF2D9` at 1.0 | Unlimited stops, each with a colour and a position 0.0 to 1.0 | Edited on the gradient bar in the Properties Panel; stops can be added, removed and moved. A malformed or missing ramp falls back to the default four stops. |
+| Mid | Decimal | 0.5 | 0.01 to 0.99 | A gamma-style bias on the lookup. 0.5 is linear; lower values push more of the image toward the ramp's bright end, higher values toward its dark end. |
+
+## Shape and Surface
+
+:::caution[missing screenshot]
+A text mask through Dilate / Erode (both signs of Amount), Bevel (all three profiles) and the same mask converted with Normal to Height feeding a Normal node.
+:::
+
+### Dilate / Erode
+
+Type id: `morphology`
+
+Grows or shrinks bright regions by a radius. Thicken a mask, close small
+gaps, or eat away at edges. The general-purpose counterpart to
+[Flood Fill](/docs/nodes/flood-fill/)'s Region Modify, which only reshapes
+flood-filled regions.
+
+**Inputs**
+
+- **Input** (any texture, required): the mask or height field to reshape.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (any texture): the reshaped result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Amount | Decimal | 0.02 | -0.5 to 0.5 | Signed, as a fraction of the shorter image edge. Positive dilates (grows bright regions), negative erodes (shrinks them), 0 passes through. One control instead of two nodes pointing opposite ways. |
+| Shape | Choice | Disc | Disc, Square, Diamond | The structuring element the radius is measured with. |
+
+Open and Close are deliberately not options here. Each needs two full passes
+over the neighbourhood, so chain two of these nodes with opposite Amounts.
+
+### Bevel
+
+Type id: `bevel`
+
+Rounds the edges of a mask into a soft height ramp: chamfers, panel edges,
+chiselled tiles and raised lettering. Feed it a mask, take the height into a
+[Normal node](/docs/nodes/normal/). Bevel runs as GPU compute where the native
+render core is available and falls back to an approximation without it.
+
+**Inputs**
+
+- **Input** (any texture, required): the mask to shape; anything above the threshold counts as "inside".
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (any texture): a height ramp running inward from the silhouette.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Bevel Width | Decimal | 0.03 | 0.0 to 0.5 | How far inward from the silhouette the ramp runs, as a fraction of the shorter image edge. |
+| Profile | Choice | Chamfer | Chamfer, Round, Ridge | Chamfer is a straight ramp, Round is a smooth shoulder, Ridge peaks and comes back down. |
+| Threshold | Decimal | 0.5 | 0.0 to 1.0 | Mask cutoff; what counts as inside the shape. |
+
+With the native render core present, Bevel is driven by the same jump-flooding
+distance field the [Distance Field](/docs/nodes/simulation/) node uses, run in
+Inside mode, with the profile shaping applied on top. That makes the ramp
+exact at any width. Without the native core it falls back to a bounded outward
+search capped at the bevel width, whose accuracy is limited by its sample
+budget; a wide bevel can visibly step. A Bevel Width of exactly 0 always uses
+the fallback, which returns solid white.
+
+### Vector Morph
+
+Type id: `vector_morph`
+
+Displaces the input along a vector field in repeated small steps, re-reading
+the field at each new position, so pixels follow a *curved* path: material
+flowing around a form rather than sliding past it. Set Steps to 1 and it
+reproduces a plain Warp exactly.
+
+**Inputs**
+
+- **Input** (any texture, required): the texture to displace.
+- **Vector Map** (colour, **required**): the direction field, encoded in red and green centred on 0.5, the same convention Flow Map, Edge Detect's Direction output and normal maps use.
+- **Mask** (grayscale, optional): restricts the displacement.
+
+**Outputs**
+
+- **Output** (any texture): the displaced result.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Intensity | Decimal | 0.05 | -0.5 to 0.5 | Total displacement, as a fraction of the texture. Negative values follow the field backwards. |
+| Steps | Whole number | 4 | 1 to 16 | Integration steps. 1 is a plain Warp and is the cheap setting, not a broken one; more steps follow curvature more faithfully. |
+| Angle | Decimal | 0.0 | 0.0 to 360.0 | Rotates the vector field before it is followed, in degrees. Lets one vector map drive several directions without re-authoring it. |
+
+### Normal Adjust
+
+Type id: `normal_adjust`
+
+Scales, flips or re-normalises an existing normal map: the place to fix a
+green channel pointing the wrong way. Export already converts orientation per
+preset, so this node is for mid-graph conversion: bringing an
+OpenGL-convention map in through an Image node and matching it to the rest of
+the graph before blending.
+
+**Inputs**
+
+- **Input** (colour, required): the normal map to fix.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (colour): the corrected normal map.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Operation | Choice | Normalize | Normalize, Flip Y (OpenGL ↔ DirectX), Flip X, Rebuild Z | Normalize only re-normalises. Flip Y converts between the two handedness conventions. Rebuild Z recomputes the blue channel from the red and green slopes. |
+| Intensity | Decimal | 1.0 | 0.0 to 4.0 | Slope multiplier applied before the vector is re-encoded. 1.0 leaves the strength unchanged; below 1 flattens, above 1 exaggerates. |
+
+Maps inside the graph use the DirectX convention.
+
+### Normal to Height
+
+Type id: `normal_to_height`
+
+Integrates a normal map back into an approximate height map. For rebuilding
+displacement from art you only have as normals, and for feeding Height Blend,
+Ambient Occlusion or Curvature from normal-only source material.
+
+**Inputs**
+
+- **Input** (colour, required): the tangent-space normal map.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (grayscale): the recovered height.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Decimal | 0.1 | 0.0 to 0.5 | Integration reach, as a fraction of the shorter image edge. Raise it for large forms, lower it for fine detail and speed. |
+| Intensity | Decimal | 1.0 | 0.0 to 8.0 | Output contrast around mid-gray. |
+
+This is an approximation by construction. Two consequences are worth knowing:
+absolute height is meaningless, only relative shape survives, and forms
+broader than Radius are not recovered at all, because the integration never
+reaches far enough to see them.
+
+## Simulation nodes
+
+The two remaining Filters-category nodes, Distance Field and Erosion, run as
+iterative GPU compute simulations and are documented under
+[Simulation & Compute Nodes](/docs/nodes/simulation/).

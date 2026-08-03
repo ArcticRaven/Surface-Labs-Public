@@ -1,0 +1,93 @@
+---
+title: Interface Tour
+description: A short orientation to the Project Hub, the editor toolbar, the canvas, and the panel system.
+---
+
+The application has two main screens: the Project Hub, where you manage and
+open projects, and the editor, where you build materials. This page is a quick
+orientation; each section links to a page with the full detail.
+
+## Project Hub
+
+The Project Hub is the first interactive screen after the splash. It shows
+your projects as cards grouped into shelves (Recents, Favorites, your own
+shelves, and a Library of everything), with search and tag filtering above
+them. A sidebar holds New Project, Open File, Settings, a What's New card and
+community links. Opening a project replaces the hub with the editor; Back to
+Hub returns you. See [Project Hub](/docs/editor/project-hub/).
+
+:::caution[missing screenshot]
+The Project Hub with the sidebar, the Recents carousel and the Library grid
+visible.
+:::
+
+## Toolbar
+
+A fixed strip across the top of the editor window. It holds Back to Hub and
+the save-status dot, plus buttons for Add Node, Import Asset, the minimap,
+annotation mode, focus mode, Settings and a zoom field that accepts a typed
+percentage. Every button is a glyph with a screen-reader label. See
+[Editor Layout](/docs/editor/layout/) for the full button table.
+
+:::caution[missing screenshot]
+The editor toolbar with each zone labelled.
+:::
+
+## Canvas
+
+The canvas is the central area where the node graph lives: nodes, wires,
+comments and annotations. The zoom field in the toolbar reflects the canvas
+zoom, and collapsing panels gives their space to the canvas. See
+[Canvas](/docs/editor/canvas/).
+
+:::caution[missing screenshot]
+The canvas with a small node graph connected to an output node.
+:::
+
+## Panel slots and panel types
+
+There are exactly three panel slots: left, right and bottom. Six panel types
+can be assigned to any slot, so where each panel lives is your choice, not a
+fixed location: Node Picker, [Properties](/docs/editor/properties/),
+Materials, [Preview 2D](/docs/export/preview-2d/),
+[Preview 3D](/docs/export/preview-3d/), and Globals. All six render real
+content. See [Editor Layout](/docs/editor/layout/) for slot assignment and
+persistence.
+
+:::caution[missing screenshot]
+The editor with all three panel slots populated, each showing a different
+panel type.
+:::
+
+## Tabs
+
+Each slot has a header with a tab bar, a + button and a collapse chevron.
+Tapping a tab switches the active view; + opens a Panel Views sheet where you
+pin or unpin any of the six types to that slot. The last remaining tab in a
+slot cannot be unpinned.
+
+:::caution[missing screenshot]
+A panel header with several tabs and the Panel Views sheet open.
+:::
+
+## Collapsing and focus mode
+
+The chevron in a panel header collapses that slot, and a collapsed slot gives
+its entire area to the canvas; a small floating pill on the canvas edge
+expands it again. Focus mode (<kbd>Ctrl</kbd>+<kbd>↑</kbd> or
+<kbd>Cmd</kbd>+<kbd>↑</kbd>, or the toolbar button) slides all three panels
+out and collapses the toolbar, leaving a single Exit Focus Mode pill.
+
+:::caution[missing screenshot]
+The editor in focus mode, showing only the canvas and the Exit Focus Mode
+pill.
+:::
+
+## Resizing
+
+Drag the handle on a panel's inner edge; the panel tracks the pointer exactly
+and snaps to a whole pixel on release. Sizes are stored as percentages of the
+window, so the layout scales when you resize or move between monitors. One
+layout is kept for all projects, per user, and restored on every editor
+launch. Limits and defaults are listed in
+[Editor Layout](/docs/editor/layout/).

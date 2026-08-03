@@ -1,0 +1,154 @@
+---
+title: Exporting Textures
+description: How the Export dialog works, which output nodes it accepts, which channels get written, and where the settings are stored.
+---
+
+Export writes the maps of one output node to image files in a folder you pick.
+Every export is per-node: you choose which output node you are exporting, and
+the dialog previews the exact list of files before anything is written.
+
+## Which nodes can be exported
+
+| Node | Export mode | What it writes |
+| --- | --- | --- |
+| PBR Output | Material | The full channel set for the chosen engine preset: individual maps, the packed map, or both |
+| Trim Sheet | Material | The same channel set, composed from the sheet's strips (Metallic / Roughness workflow only) |
+| Custom Output | Single texture | One file, from the single texture wired into it |
+
+## How to start an export
+
+- **Export button.** Select a PBR Output, Custom Output, or Trim Sheet node and
+  press **Export Textures…** at the top of the Properties panel. This is the
+  only way to choose which output node you export when a project has several.
+- **Keyboard shortcut.** <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>E</kbd>
+  ("Export Textures"). This does not ask which node: it picks the first
+  PBR Output in the graph, and if there is none, the first Trim Sheet, and if
+  there is none, the first Custom Output. If the graph has none of the three,
+  nothing opens and a warning appears: "Add a PBR Output, Trim Sheet, or
+  Custom Output node to export textures".
+
+The dialog title is **Export** followed by the name of the node being exported.
+
+:::note
+There is no "Export Textures" entry on the canvas node right-click menu. That
+menu's export entry is *Export .surfacenode…*, a different feature.
+:::
+
+## Dialog controls
+
+Shown for material exports (PBR Output / Trim Sheet):
+
+:::caution[missing screenshot]
+The Export dialog for a PBR Output node, showing the engine, format, packed and
+individual toggles, channel chips, normal format, prefix field, and the
+planned-file preview.
+:::
+
+- **Material type.** *Metallic / Roughness* or *Specular / Glossiness*. Shown
+  for PBR Output only; it is seeded from the workflow set on the node itself,
+  not from the saved preset. Trim Sheet exports are always Metallic / Roughness.
+- **Engine.** The target preset. See
+  [Export Presets and Engine Targets](/docs/export/presets/).
+- **Format.** PNG, JPEG, TGA, BMP, or EXR.
+- **Packed map.** Labelled with the layout the chosen engine uses (e.g.
+  *ORM (AO / Roughness / Metallic)*). On by default. Only offered in the
+  Metallic / Roughness workflow; Specular / Glossiness never writes a packed
+  map.
+- **Individual maps (one file per channel).** On by default.
+- **Maps to export.** Appears only while *Individual maps* is on. One chip per
+  channel the node can actually produce; tapping a chip removes that channel
+  from the individual-map set. This does not affect the packed map. The packed
+  map always keeps its full engine layout, because dropping a channel from it
+  would produce a file the engine misreads.
+- **Normal format.** *Engine default* (showing the preset's orientation),
+  *OpenGL (Y+)*, or *DirectX (Y-)*. See
+  [Normal maps and the Y flip](/docs/export/presets/).
+- **File name prefix.** The leading part of every file name. Leaving it empty
+  uses the placeholder, which is the project's file name with the extension
+  removed, lowercased, with runs of other characters replaced by underscores.
+  If no project file is open (or the result is empty) the prefix is
+  `material`. The field accepts only letters, digits, period, underscore, and
+  hyphen; anything else is rejected as you type.
+- **Planned-file preview.** Under the prefix field the dialog lists the exact
+  file names the run will write, e.g. "Will write 5 files:" followed by one
+  name per line. When nothing can be written it reads "Nothing to write -
+  connect maps to this node first" and the **Export** button is disabled.
+- **Export** / **Cancel**.
+
+For a Custom Output the dialog is reduced to **Format** and **File name
+prefix**, plus a one-line hint: "Writes `<prefix>_<node-label-slug>.<ext>`".
+The Export button is always enabled in this mode.
+
+## What happens after you press Export
+
+1. The dialog closes and the project is marked as modified, so the settings
+   you chose get written into the project on the next save.
+2. A system folder picker opens, titled **Export Textures To…**. Cancelling it
+   aborts the export silently, with no files and no message, but your dialog
+   choices are already stored.
+3. Before writing, the app waits for any still-rendering maps and promotes
+   every preview-resolution texture to full resolution, so an export never
+   captures a stale or low-res image.
+4. Files are written and a toast reports the result.
+
+Files with the same name in the target folder are overwritten. There is no
+automatic numeric-suffix collision handling.
+
+## Which channels get written
+
+A channel is exported when it is either connected, or unconnected but backed
+by an enabled constant on the PBR Output node (the channel's on/off toggle
+plus its value). Constant channels are baked to a flat image at the export
+resolution; this is how you ship, say, a flat roughness map without building a
+graph for it.
+
+- Normal is the exception: it has no constant form, so a Normal map is
+  exported only when something is wired into it.
+- Channel order for Metallic / Roughness: Base Color, Normal, Roughness,
+  Metallic, AO, Height, Opacity, Clearcoat.
+- Channel order for Specular / Glossiness: Base Color, Normal, Specular,
+  Glossiness, AO, Height, Opacity.
+- A Trim Sheet exports Base Color, Normal, Roughness, Metallic, AO and Height,
+  and only when at least one of its four slots has a source.
+- Export follows reroute chains upstream to the texture that actually feeds a
+  channel.
+
+Export resolution is the output node's resolution override when it has one,
+otherwise the project default. There is no export-size field in the dialog.
+
+## Messages you may see
+
+| Situation | Message | Type |
+| --- | --- | --- |
+| Files written | "Exported N textures" ("Exported 1 texture" for a single file) | Success |
+| Files written, some maps unavailable | "Exported N textures (M not ready)" | Success |
+| Nothing written, some maps unavailable | "Nothing exported - connected textures are still rendering" | Warning |
+| Nothing written, nothing wired | "Nothing exported - connect textures to this node first" | Warning |
+| Write or encode threw | "Export failed - no files were written" | Error |
+| <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>E</kbd> with no output node | "Add a PBR Output, Trim Sheet, or Custom Output node to export textures" | Warning |
+| Folder picker cancelled | (no message) | (none) |
+
+The "(M not ready)" count is also where an EXR or 16-bit file that could not
+be encoded lands. See [Bit Depth and EXR](/docs/export/bit-depth-and-exr/).
+So the "still rendering" wording can appear when the real cause is an
+unavailable encoder.
+
+## Saved export settings
+
+The format, JPEG quality, prefix, engine preset, material type,
+packed/individual toggles, normal override, and the list of unticked channels
+are all stored inside the project file as a single "last used" preset, and
+restored when the project is reopened. There are no named, multiple presets.
+
+If the stored settings are missing or unreadable they fall back to: PNG, JPEG
+quality 90, no prefix override, Generic PBR engine, Metallic / Roughness,
+packed map on, individual maps on, no normal override, no disabled channels.
+Projects saved before the preset overhaul keep their format, quality and
+prefix and land on Generic PBR, with their old "Pack ORM" flag carried over as
+the packed-map toggle.
+
+:::note
+JPEG quality is stored per project in the range 1 to 100 (default 90) but the
+dialog exposes no control for it. It can only be changed through the
+automation surface; see [MCP Server](/docs/mcp-server/).
+:::

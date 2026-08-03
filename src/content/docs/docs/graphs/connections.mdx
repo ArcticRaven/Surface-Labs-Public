@@ -1,0 +1,78 @@
+---
+title: Connections & Reroutes
+description: How wires connect, the type rules that colour them, and the Reroute pin that bends them.
+---
+
+A graph is a directed acyclic graph: nodes produce data, connections carry it
+downstream. A few rules govern every wire:
+
+- An input may be **required** or **optional**. A node with a required input
+  produces nothing until that input is connected.
+- **Inputs take one wire.** Connecting into an occupied input replaces the wire
+  that fed it.
+- **Outputs fan out.** One output can feed any number of inputs.
+- **Cycles are rejected** at connection time. A wire that would feed a node's
+  output back into its own ancestry cannot be made.
+
+## Making connections
+
+Drag from a port socket to another socket to connect. Connections can be drawn
+in either direction. Dragging from an already-connected input grabs the
+existing wire and re-anchors the drag to the upstream output.
+
+While dragging, the nearest valid socket within 24 screen points is snapped to;
+illegal targets are skipped, and an exact type match beats a convertible one at
+the same distance. Socket hit targets are 30 points on desktop and 45 points on
+tablet, where they clear the 44-point minimum touch target.
+
+:::caution[missing screenshot]
+A wire mid-drag with the nearest valid socket highlighted and snapped to.
+:::
+
+## Type rules
+
+Every port carries one kind of data, and type determines which connections are
+allowed. See [Data types](/docs/concepts/data-types/) for the full treatment;
+in short:
+
+- **Texture** is image data, in three variants: a generic type used by filters
+  that preserve whatever they're given, a **grayscale texture** for
+  single-channel data such as height, roughness and masks, and a **colour
+  texture** for three-channel data such as base colour and normals. The three
+  are freely interchangeable; the distinction drives wire and port colour only.
+- **Value** is a number or a 2-, 3- or 4-component vector. All value types
+  interconnect.
+- **Boolean** is an on/off value; it connects only to boolean ports.
+- **Material** is a whole map-set carried on a single wire, used by the PBR
+  Output and Trim Sheet nodes.
+- **Custom** is an unchecked type used by the Reroute node; it connects to
+  anything and bypasses type validation.
+
+Textures and values are **not** interchangeable with each other. A mismatched
+connection is not blocked: the wire is drawn in red to flag a type mismatch you
+should review.
+
+:::caution[missing screenshot]
+A red wire between a value output and a texture input, next to a normally coloured wire.
+:::
+
+## Reroutes
+
+A Reroute is a wiring-only pin. It bends a wire around the graph without
+changing what flows through it: no shader, no parameters, no processing.
+Downstream consumers, including export and Trim Sheet slot resolution, look
+straight through it to the real source. Its single input accepts any type, so
+it passes textures, materials and anything else unchanged, and its output is
+exactly what came in.
+
+Insert one by double-tapping a wire, which splits the connection at that point:
+the upstream half becomes the reroute's input and the downstream half becomes
+its output, all as a single undo step. On desktop you can also hover a wire and
+press the <kbd>.</kbd> key. It draws as a small circle rather than a node card.
+
+:::caution[missing screenshot]
+A wire bent through two Reroute pins around a group of nodes.
+:::
+
+The Reroute also appears in the node gallery under the Canvas category. Its
+reference entry is in the [Node Reference](/docs/nodes/overview/).

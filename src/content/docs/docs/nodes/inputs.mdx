@@ -1,0 +1,146 @@
+---
+title: Input Nodes
+description: The nodes that bring outside material into a graph, from imported bitmaps to hand-painted strokes and typeset text.
+---
+
+Input nodes bring outside material into the graph: a bitmap file, a
+hand-painted drawing, or typeset text. Everything they need travels inside the
+project file, so a material stays self-contained.
+
+### Image
+
+Type id: `image`
+
+Brings an external bitmap into the graph. The file is copied into the project
+on import, so the material stays self-contained and no longer depends on the
+original file staying where it was.
+
+**Inputs:** None.
+
+**Outputs:**
+
+- Output (any texture): the decoded bitmap.
+
+This node has no parameters. Instead, Properties shows the current source file
+name and a Browse… button. Before a file is chosen the label reads "No image
+selected".
+
+Choosing a file copies its bytes into the project immediately, and they are
+written into the project archive the next time you save. The node stores a
+reference to that internal copy, never an absolute path, so moving, renaming
+or deleting the original afterwards does not affect the graph. Importing a
+file whose name is already in use stores it under a numbered variant rather
+than overwriting; characters outside plain English letters, digits, `.`, `_`
+and `-` are replaced with `_` in the stored name, so the name shown in
+Properties can differ from the original.
+
+The node decodes the bitmap at the file's own pixel dimensions and has no
+resolution control of its own; downstream nodes resample it to whatever they
+render at. Projects made before embedding existed may hold an Image node still
+pointing at an absolute path on disk; re-import through Browse… to convert it
+to an embedded copy.
+
+:::caution[missing screenshot]
+An Image node with a photo imported, and its Properties showing the source
+file name and the Browse… button.
+:::
+
+### Draw
+
+Type id: `draw`
+
+Paint strokes straight onto the tile with mouse, pen or touch, and optionally
+over a connected image as a backdrop. Built for the cases procedural
+generation cannot reach: sculpted detail on top of a scatter, or a
+hand-painted mask that selects exactly the region you mean rather than one a
+threshold happened to find.
+
+**Inputs:**
+
+- Input (any texture, optional): the backdrop. Drawn beneath your strokes and
+  carried through into the output. Grayscale and colour both connect, so
+  "draw on a height map" and "draw on an albedo" need no mode switch. With
+  nothing connected, the area beneath the strokes is transparent.
+- Mask (grayscale texture, optional): masks the node's result.
+
+**Outputs:**
+
+- Output (color texture): the backdrop with the strokes painted over it.
+
+This node has no parameters in Properties. Instead it carries an Edit Drawing…
+button that opens a full-screen drawing canvas with these tools:
+
+| Control | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Pencil / Eraser | tool | Pencil | | The eraser clears back to the layer beneath: your painted marks only, leaving the backdrop intact. |
+| Size | float | 0.03 | 0.002 to 0.2 | Brush width as a fraction of the drawing's smaller dimension, not a pixel count, so a stroke keeps its proportions at every bake resolution. |
+| Colour | colour | white | | Saturation/brightness square, hue slider and hex field. Hidden while the eraser is active. |
+| Undo | action | | | Removes the most recently finished stroke. No redo. |
+| Clear | action | | | Removes every stroke. Not reversible by Undo; use Cancel to abandon the session instead. |
+
+These tool settings are session-only; they reset each time the canvas opens
+and are not stored with the drawing.
+
+Strokes, not pixels, are the source of truth. Every coordinate is stored
+relative to the drawing area, so the same drawing rasterizes crisply at 512
+pixels and at 4096 rather than being scaled up from a fixed bitmap. Each
+sample point records stylus pressure and tilt, and brush width follows them
+along the stroke; a mouse, trackpad or finger reports neither, so those
+strokes paint at full width throughout. A stroke that cannot be read when a
+project loads is skipped rather than blocking the rest of the drawing.
+
+:::caution[missing screenshot]
+The full-screen drawing canvas with a few pen strokes over a connected
+backdrop, showing the tool bar and colour picker.
+:::
+
+### Text
+
+Type id: `text`
+
+Typesets a string into a grayscale mask, white glyphs on a black ground, using
+an imported or device font. Reach for it for stamped lettering, signage,
+engraving masks, and anything that starts as type. The laid-out text is
+stamped across the tile edges, so glyphs that cross an edge continue on the
+opposite side and the output tiles like everything else.
+
+**Inputs:** None.
+
+**Outputs:**
+
+- Output (grayscale texture): the typeset string as a mask.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Size | float | 0.25 | 0.02 to 1.0 | Glyph size as a fraction of the tile's height, so the layout is identical at every resolution. |
+| Tracking | float | 0.0 | -0.2 to 1.0 | Extra letter spacing, in em units; it scales with Size. |
+| Line Height | float | 1.2 | 0.5 to 3.0 | Line spacing multiplier. |
+| Align H | enum | Center | Left · Center · Right | |
+| Align V | enum | Middle | Top · Middle · Bottom | |
+
+Beyond the sliders, Properties carries two more controls:
+
+- **Content**: the text itself. Multiple lines are accepted and line breaks
+  are preserved. Edits commit after a short pause rather than on every
+  keystroke, so typing does not re-typeset the tile at full resolution on
+  each character. A brand-new Text node starts out reading "Text" so it shows
+  something immediately; explicitly clearing the field leaves it empty.
+- **Font**: a searchable picker listing Default (the built-in face), the
+  fonts already embedded in this project, and the fonts found on this device,
+  plus an Import Font… entry for picking a .ttf or .otf file.
+
+Fonts belong to the project, not the machine. Choosing a device font or
+importing a file copies the font's bytes into the project on the spot, and the
+node references that embedded copy, never a device path; nothing is ever
+installed system-wide. Two nodes using the same face share one embedded copy,
+so picking the same font twice does not grow the file. Embedded fonts are
+written into the project archive and travel with it, which is why a project
+authored with a device font opens with its type intact on a machine that has
+never seen that font. A file that is not a recognizable TrueType/OpenType font
+is rejected with a warning. If a project's font entry goes missing, the node
+falls back to the default face rather than rendering a blank tile.
+
+:::caution[missing screenshot]
+A Text node's output tiling across the canvas, with glyphs wrapping the tile
+edge, and the font picker open in Properties.
+:::

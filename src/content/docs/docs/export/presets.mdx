@@ -1,0 +1,112 @@
+---
+title: Export Presets & Engine Targets
+description: What each engine preset changes, the packed-map layouts, file naming rules, and how normal-map orientation is handled.
+---
+
+The engine preset decides three things: the packed-map layout, the default
+normal-map orientation, and the file-name style.
+
+| Preset | Packed map | Normal default | Name prefix | Channel suffix style |
+| --- | --- | --- | --- | --- |
+| Generic PBR | ORM | OpenGL (Y+) | none | Long (BaseColor, Normal, Roughness…) |
+| Unreal Engine | ORM | DirectX (Y-) | `T_` | Short (D, N, R, M, O, H, A, S, G, CC) |
+| Unity URP | MetallicSmoothness | OpenGL (Y+) | none | Long |
+| Unity HDRP | Mask Map | OpenGL (Y+) | none | Long |
+| Godot | ORM | OpenGL (Y+) | none | Lowercase (albedo, normal, roughness…) |
+| glTF / three.js | ORM | OpenGL (Y+) | none | Long |
+
+## Packed-map layouts
+
+| Layout | R | G | B | A | Used by |
+| --- | --- | --- | --- | --- | --- |
+| ORM (`_ORM`) | AO | Roughness | Metallic | (no alpha) | Generic, Unreal, Godot, glTF |
+| MetallicSmoothness (`_MetallicSmoothness`) | Metallic | AO | 0 | Smoothness (1 - Roughness) | Unity URP |
+| Mask Map (`_MaskMap`) | Metallic | AO | 0 (detail slot, unused) | Smoothness (1 - Roughness) | Unity HDRP |
+
+Notes on packing:
+
+- The packed map is built from the brightness of each source channel, so
+  colour information in a source is discarded.
+- A channel that has no image fills with its engine-neutral value: AO is
+  white, Metallic is black, Roughness is mid grey. Smoothness slots invert
+  whatever roughness resolved to.
+- The packed image is square. Its side is taken from the widest real
+  (non-constant) contributor; if every contributor is a flat constant, the
+  export resolution is used. Narrower sources are resized to match.
+- The packed map is written only when at least one of its source channels
+  resolves to something.
+- Unity URP's MetallicSmoothness file is meant to be assigned to both the
+  Metallic and Occlusion material slots; the dialog's toggle label says so.
+
+## Individual (split) maps and the packed map together
+
+- With both toggles on, you get one file per channel plus the packed file,
+  including separate AO, Roughness and Metallic files that duplicate what is
+  inside the packed map.
+- With **Individual maps** off and the packed map on, the channels folded into
+  the packed layout are dropped from the individual set; channels the packed
+  layout does not carry (Base Color, Normal, Height, Opacity, Clearcoat) are
+  also not written, because turning off individual maps turns off all
+  individual files.
+- With both off, nothing is written and the Export button is disabled.
+
+## File naming
+
+Names are built as:
+
+```
+[engine prefix] + <your prefix> + "_" + <suffix> + "." + <extension>
+```
+
+Examples, with the prefix `rusty_plate`:
+
+| Preset | Base Color | Normal | Packed map |
+| --- | --- | --- | --- |
+| Generic / glTF / Unity | `rusty_plate_BaseColor.png` | `rusty_plate_Normal.png` | `rusty_plate_ORM.png` / `_MetallicSmoothness` / `_MaskMap` |
+| Unreal | `T_rusty_plate_D.png` | `T_rusty_plate_N.png` | `T_rusty_plate_ORM.png` |
+| Godot | `rusty_plate_albedo.png` | `rusty_plate_normal.png` | `rusty_plate_ORM.png` |
+
+Per-channel suffixes:
+
+| Channel | Long (default) | Unreal | Godot |
+| --- | --- | --- | --- |
+| Base Color | BaseColor | D | albedo |
+| Normal | Normal | N | normal |
+| Roughness | Roughness | R | roughness |
+| Metallic | Metallic | M | metallic |
+| AO | AO | O | ao |
+| Height | Height | H | height |
+| Opacity | Opacity | A | opacity |
+| Specular | Specular | S | specular |
+| Glossiness | Glossiness | G | glossiness |
+| Clearcoat | Clearcoat | CC | clearcoat |
+
+A Custom Output ignores all of this and writes
+`<prefix>_<node-label-slug>.<ext>`. The slug is the node's label, lowercased,
+with runs of non-alphanumeric characters replaced by underscores and
+leading/trailing underscores trimmed; a label with no letters or digits falls
+back to `output`. Rename the node in the Properties panel to control the name.
+
+:::note
+There is no editable naming template and no naming tokens. The only
+user-controlled part of a name is the prefix (and, for Custom Output, the node
+label). The engine prefix (`T_` for Unreal) and the per-channel suffixes are
+fixed by the preset.
+:::
+
+## Normal maps and the Y flip
+
+Surface Labs renders normal maps internally in DirectX (Y-) orientation. At
+export time the green channel is inverted whenever the target orientation
+differs, so OpenGL (Y+) targets get a flipped green channel and DirectX (Y-)
+targets are written as rendered. In practice that means Unreal exports
+untouched, and Generic / Unity URP / Unity HDRP / Godot / glTF exports
+flipped.
+
+The **Normal format** control in the [Export dialog](/docs/export/exporting/)
+overrides this per export: pick *Engine default* (the table above),
+*OpenGL (Y+)*, or *DirectX (Y-)* explicitly. The override is saved with the
+project's export settings.
+
+The flip applies only to the Normal map file. Packed maps are never
+green-flipped.

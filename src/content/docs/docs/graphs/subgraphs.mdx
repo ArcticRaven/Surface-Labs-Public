@@ -1,0 +1,39 @@
+---
+title: Subgraphs
+description: Collapsing a selection into a reusable node, instancing it, and editing the definition in place.
+---
+
+A subgraph packages a group of nodes into a single reusable node.
+
+## Creating one
+
+Select the nodes, open the context menu, and choose **Collapse to Subgraph**.
+Connections that crossed the selection boundary become the new node's input and
+output ports. **Expand Subgraph** is the reverse, from a subgraph instance's
+context menu. **Rename** is also in the context menu.
+
+:::caution[missing screenshot]
+A selection of nodes before and after Collapse to Subgraph, showing boundary connections becoming ports.
+:::
+
+## Instancing
+
+One definition can be instanced many times. Instances live in a **Subgraphs**
+category in the node library, and definitions are saved inside the project
+archive. To share a node between projects instead, export it as a
+`.surfacenode` package; see [Sharing nodes](/docs/help/sharing-nodes/).
+
+## Editing
+
+Double-click (or double-tap) a subgraph node to enter it. A breadcrumb trail
+appears; use it to exit. Committing the edit refreshes every instance of that
+definition.
+
+:::caution[missing screenshot]
+The canvas inside a subgraph, with the breadcrumb trail showing the path back to the material.
+:::
+
+Saving, autosaving, and switching material all automatically commit an
+in-progress subgraph edit first. Autosave ticks are skipped while you are
+inside a subgraph, because the live graph at that moment is the inner
+definition, not the material.

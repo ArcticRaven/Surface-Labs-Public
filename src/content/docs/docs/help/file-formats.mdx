@@ -1,0 +1,101 @@
+---
+title: Project & File Formats
+description: What is inside a .surfacelabs project archive, how multi-material projects are stored, and the .surfacenode and .surfacetheme formats.
+---
+
+Surface Labs reads and writes four file formats of its own:
+
+| Extension | What it is |
+| --- | --- |
+| `.surfacelabs` | The project archive: all materials, subgraphs, embedded images, export settings and cached thumbnails in one portable file |
+| `.surfacenode` | A single node or subgraph packaged for sharing, with embedded media and a preview thumbnail |
+| `.surfacetheme` | An exported colour theme |
+| `.mcpb` | A one-click Claude Desktop extension bundle exported by the [MCP server](/docs/mcp-server/) settings page |
+
+## .surfacelabs, the project
+
+A project is a single ZIP archive. Its internal structure:
+
+| Entry | Contents |
+| --- | --- |
+| `manifest.xml` | Format version (currently 1.0), app version stamp, project name, created and last-modified dates, and the project's tags written in full (id, label, colour) so tags survive moving between users |
+| `graph/material.xml` | The **active** material: every node with parameters, seed, resolution mode and override, bit-depth mode and override, ports and port defaults, plus all connections |
+| `graph/m<n>.xml` | One file per **inactive** material in the project |
+| `materials.xml` | The material list: each material's name, and which index is active |
+| `export_presets.xml` | The project's saved export settings (format, quality, prefix, engine, workflow, packed/individual toggles, normal override, disabled channels) |
+| `exposed_params.xml` | The project's exposed-parameter list |
+| `view_state.json` | Canvas pan/zoom plus the 3D preview's camera and render settings |
+| `subgraphs/<id>.xml` | One file per subgraph definition |
+| `thumbnails/<node id>.png` | Cached node preview images |
+| `thumbnails/…` (project entry) | The rendered material image used as the project's Hub card, written when the graph has a PBR Output |
+| `media/<name>` | Imported bitmaps used by Image nodes, referenced as `media:<name>` |
+| `fonts/<name>` | Imported fonts used by Text nodes, referenced as `font:<name>` |
+
+The graph XML also carries canvas furniture: Jump Nodes, comment boxes
+(position, size, background colour and opacity, text) and freehand annotation
+strokes.
+
+The archive is zipped on a background thread, so autosaving a project with tens
+of megabytes of thumbnails and media does not freeze the editor.
+
+### Loading
+
+A missing `manifest.xml` or `graph/material.xml` is a hard error. Unknown node
+types are skipped with a warning rather than aborting the load. Missing optional
+entries degrade gracefully: no `materials.xml` resets to a single material, no
+`view_state.json` clears the pending view state, no `export_presets.xml`
+restores export defaults. A corrupt `view_state.json` is ignored rather than
+failing the load. A project that fails to open is copied into the crash
+directory automatically so it can be attached to a bug report.
+
+### Where projects live
+
+New projects from the [Project Hub](/docs/editor/project-hub/) go into a
+**Surface Labs** folder inside your Documents folder, created on first use. (On
+systems where a Documents folder cannot be resolved, the app falls back to
+`$HOME/Documents`, then the app-support directory, then the home directory.)
+Projects can be moved and opened from anywhere afterwards.
+
+## Multi-material projects
+
+A project can hold several materials. The **Material Library** panel lists
+them: tap one to switch (the live graph is snapshotted into the outgoing entry
+first), **Add Material** creates an empty one, and **✕** deletes an inactive
+one. The active material and the last remaining material cannot be deleted.
+
+:::caution[missing screenshot]
+The Material Library panel with several materials, showing the Add Material button and the delete control on an inactive entry.
+:::
+
+Only the **active** material is live in the editor, and the in-app export
+dialog only ever exports a node from the active material. Exporting every
+material in one pass, with each non-active material's files suffixed by its
+name, exists only through the [MCP](/docs/mcp-server/) and
+[command-line](/docs/headless-cli/) surface, not in the app UI. See
+[Multi-Material Projects](/docs/graphs/multi-material/) for working with
+materials in the editor.
+
+## .surfacenode, a single node
+
+A small ZIP holding one node:
+
+| Entry | Contents |
+| --- | --- |
+| `node.xml` | The node's type, label, all parameter values, seed, resolution mode and override, bit-depth mode and override, and its ports including values set directly on unconnected inputs |
+| `thumbnail.png` | The node's last rendered output, written only when the node has already been evaluated |
+
+Connections are not part of the package: it describes one node in isolation. A
+missing thumbnail is not an error; previews regenerate. See
+[Sharing Nodes](/docs/help/sharing-nodes/) for how to export and import these
+packages.
+
+## .surfacetheme, an interface theme
+
+A plain, indented **JSON** file (not a ZIP) holding one interface theme: its
+id, name, light/dark brightness, and one hex colour per interface token,
+covering surfaces, text, borders, accent, status colours, overlay scrim, and
+the per-type node-connection colours. Exported and imported from
+[Settings → Appearance](/docs/help/settings/). Themes exported by older builds
+are still readable: tokens added later fall back to their defaults instead of
+failing the import. A file that cannot be read or does not match the expected
+shape fails the import rather than partially applying.

@@ -1,0 +1,93 @@
+---
+title: Resolution & Bit Depth
+description: Project and per-node resolution, 8/16/32-bit depth resolution rules, when the graph re-evaluates, and how texture memory is governed.
+---
+
+Resolution and bit depth are set once for the project and can be overridden
+per node. Together with the dirty-driven evaluation pass, they decide how much
+work a change costs and how much memory a graph holds.
+
+## Project resolution
+
+Set in the Properties panel with no node selected. The choices are square:
+**256 × 256, 512 × 512, 1024 × 1024, 2048 × 2048, 4096 × 4096**.
+
+:::caution[missing screenshot]
+The Properties panel with no node selected, showing the project resolution
+dropdown open.
+:::
+
+## Per-node resolution
+
+Select a node and use its **Resolution** dropdown:
+
+- **Inherit (N × N)**: follows the project resolution. This is the default,
+  and the label shows the current project value.
+- A fixed square size from the same list: 256, 512, 1024, 2048 or 4096.
+
+A "match input" resolution mode exists in the file format and is honoured
+during evaluation (it takes the largest upstream resolution, falling back to
+the project default for nodes with no inputs), but the Properties dropdown
+does not offer it. It can only be reached through a file authored elsewhere or
+through the MCP interface.
+
+## Bit depth
+
+Depth choices are **8-bit**, **16-bit** and **32-bit float**, both
+project-wide and per node. The per-node dropdown offers:
+
+- **Absorb inputs (…)**: the default. Takes the *deepest* depth found
+  upstream, so raising depth anywhere travels downstream automatically. A node
+  with no inputs falls back to the project default, which makes this behave
+  identically to "inherit project" until an override appears somewhere
+  upstream.
+- **Inherit project (…)**: always the project default.
+- **8-bit** / **16-bit** / **32-bit float**: pinned.
+
+Both dropdown labels show what the node currently resolves to, so you can see
+the effect without doing the arithmetic. Export validates against the authored
+depth and warns you when the chosen file container would write shallower than
+what you authored. See [Bit Depth & EXR](/docs/export/bit-depth-and-exr/) for
+the export side.
+
+## When the graph re-evaluates
+
+Evaluation is dirty-driven and debounced. Changing a parameter, rewiring,
+adding or deleting a node marks the affected node and everything downstream of
+it dirty; a pass runs shortly afterwards.
+
+- **Normal debounce: about 150 ms** after the last change.
+- **While you are actively dragging a control**, the engine switches into an
+  interactive mode: the debounce drops to about **24 ms** and every node
+  renders at a **draft cap of 256 pixels**. This keeps the whole downstream
+  chain and both previews moving live while you drag.
+- **About 220 ms after your last edit**, interactive mode ends and everything
+  still showing a draft is re-rendered at full resolution.
+
+Nodes are cached by content signature: a node's type, target resolution,
+parameter values and the signatures of everything feeding it. A node marked
+dirty whose signature has not actually changed is served straight from cache
+instead of re-rendering, so an edit on an unrelated branch costs nothing.
+
+Automatic texture readbacks are capped at 256² previews; full-resolution data
+is materialised only when something actually needs it (the 2D preview, an
+export, a 3D upload, a fallback render, or a memory eviction rescue).
+
+## The memory governor
+
+Every rendered node can hold up to two full RGBA textures: its current output
+and the previous clean frame. On a large graph at high resolution the total
+can exceed what the device allows, so after each evaluation pass the app
+trims:
+
+1. **Drop stale previous-frame copies**, least-recently-rendered first.
+2. **If still over budget, drop cached outputs on sink nodes only** (nodes
+   nothing downstream reads), oldest first.
+
+A cached output that feeds another node is **never** evicted, because that
+would break downstream re-renders. Every node keeps its small (up to 256²)
+thumbnail regardless, so node bodies stay visible on the canvas even after
+their full texture has been evicted.
+
+The budgets are deliberately conservative and may change; the current numbers
+are listed in [Performance & Memory](/docs/help/performance-and-memory/).

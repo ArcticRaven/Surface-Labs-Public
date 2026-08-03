@@ -1,0 +1,59 @@
+---
+title: 2D Preview
+description: The flat preview panel, its tiling and channel-isolation controls, pan and zoom, and what it does and does not do.
+---
+
+The 2D Preview panel shows the rendered output of the selected node at full
+size.
+
+:::caution[missing screenshot]
+The 2D Preview panel showing a node's texture, with the header readout and the
+3×3 and channel-isolation controls visible.
+:::
+
+## What is previewed
+
+- The panel follows the canvas selection and shows exactly one node.
+- Nothing selected, or more than one node selected: "Select a node to preview
+  its output".
+- Selected node with no image yet: "`<node name>` has no rendered output yet".
+- Nodes that do not render a texture of their own (reroutes, output nodes)
+  follow their incoming connection upstream and show the first rendered output
+  found. Only one incoming connection is followed, so on an output node with
+  several channels wired you see one of them; select the upstream node to
+  inspect a specific channel.
+- The panel automatically promotes the displayed texture to full resolution in
+  the background and refreshes when the sharper version lands.
+
+## Header readout
+
+Top-left shows the node's name and the pixel size of the displayed image, e.g.
+"Node name - 1024×1024". When the image was resolved from upstream, the size
+is the upstream texture's.
+
+## Controls
+
+- **3×3** repeats the texture in a seamless three-by-three grid so tiling
+  seams are obvious across the joins. Off by default. Drawn edge-to-edge with
+  no gutters, at the same crispness as the untiled view.
+- **RGB / R / G / B / A** is channel isolation. RGB (default) shows the image
+  unmodified; the others copy that one channel into all three colour channels
+  and force alpha fully opaque, so a mask, a height map, or a packed channel
+  reads as a solid grayscale image.
+
+## Pan and zoom
+
+The image is fitted to the panel and pan/zoom applies on top of that fit.
+Scale ranges from 0.1× to 16×. Drag to pan; scroll (desktop) or pinch (touch)
+to zoom. Magnification uses no smoothing, so individual pixels stay
+sharp-edged for inspecting noise, dithering, and single-pixel artefacts.
+
+## Live updates and limits
+
+The preview repaints when a render completes anywhere the preview depends on,
+and on any graph change. There is no manual refresh, no reset-view or fit
+button, no zoom readout and no pixel-value/colour picker. Zoom, pan, tiling,
+and the isolated channel carry over when you select a different node, and none
+of them are saved with the project.
+
+Nothing in this panel affects the graph or what is exported.

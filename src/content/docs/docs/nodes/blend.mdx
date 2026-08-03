@@ -1,0 +1,79 @@
+---
+title: Blend Nodes
+description: Composite two textures with Blend, merge height maps by height, and combine normal maps as directions.
+---
+
+Three compositing nodes. Blend is the general one; Height Blend and Normal Blend exist because a plain crossfade is the wrong answer for height fields and for normal maps respectively. All three carry an optional Mask.
+
+### Blend
+
+Type id: `blend`
+
+Composites two inputs through a blend mode, an opacity and an optional mask. The main compositing node, and the one you chain to stack material layers.
+
+**Inputs**
+
+- Base (any texture, optional): the background layer. Unconnected it resolves to fully transparent, which turns Blend into a cut-out rather than a layer stack.
+- Blend (any texture, required): the foreground layer.
+- Mask (grayscale, optional): where dark, the Base shows through (or transparency, if Base is unconnected).
+
+**Outputs**
+
+- Output (any texture): the composited result. The output's advertised subtype follows the inputs: two height maps in gives a grayscale out, anything color gives a color out.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Normal | Normal, Multiply, Screen, Overlay, Add, Subtract, Lighten (Max), Darken (Min), Difference | Nine modes, in this order. Add clamps at white and Subtract at black. **Lighten (Max)** is the height-field workhorse: it unions two shapes without Add's blow-out, since overlaps keep the taller value. **Darken (Min)** is the intersection. **Difference** extracts discrepancies between two maps. |
+| Opacity | Float | 1.0 | 0.0 to 1.0 | How strongly the blend layer is applied. At 0 the output matches the Base. |
+| Alpha Mode | Choice | Composite | Base Alpha, Composite, Blend Luminance | **Base Alpha** blends color only and inherits the Base's alpha. With nothing connected to Base the whole result is transparent, which is why it is not the default. **Composite** is proper source-over: the two alphas combine. **Blend Luminance** uses the blend layer's brightness as its alpha, so a grayscale layer becomes its own cutout. |
+
+:::caution[missing screenshot]
+Before/after: two height maps side by side, then the Blend result in Lighten (Max) mode showing the two shapes unioned along the taller value.
+:::
+
+### Height Blend
+
+Type id: `height_blend`
+
+Merges two height maps by their heights instead of by opacity, so the taller surface punches through with a natural interlocking edge. This is how gravel sits *in* mud rather than fading into it. Purely per-pixel, so it stays seamless wherever its inputs do.
+
+**Inputs**
+
+- A (base) (grayscale, required): the lower surface.
+- B (raised) (grayscale, required): the surface that emerges.
+- Mask (grayscale, optional): where dark, A passes through unchanged.
+
+**Outputs**
+
+- Output (grayscale): the blended height, or the blend mask, depending on the Output parameter.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Balance | Float | 0.5 | 0.0 to 1.0 | Bias toward B. At 0 you see only A, at 1 only B; at 0.5 the two heights decide the boundary between them. |
+| Transition | Float | 0.3 | 0.0 to 1.0 | Width of the blending band. At 0 the seam is a crisp height-sorted boundary; at 1 it softens into a crossfade. |
+| Output | Choice | Height | Height, Mask | **Height** gives the merged height field. **Mask** gives B's share of the blend, the height-sorted boundary itself, so you can feed it to an ordinary Blend and composite the matching albedo, roughness and normal layers along exactly the same interlocking seam. Re-deriving that boundary with a Threshold would not line up. |
+
+Both inputs are read as brightness.
+
+### Normal Blend
+
+Type id: `normal_blend`
+
+Combines two tangent-space normal maps as directions rather than as pixel values, so both sets of detail survive instead of one flattening the other. Use it any time you layer fine detail over a shaped base. A plain Blend averages the encodings, not the directions, and the result lights flat.
+
+**Inputs**
+
+- Base (color, required): the underlying normal map.
+- Detail (color, required): the normal map layered on top.
+- Mask (grayscale, optional): where dark, the Base passes through unchanged.
+
+**Outputs**
+
+- Output (color): a re-normalized tangent-space normal map. The Base's alpha is carried through.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Whiteout | Linear, Whiteout, Reoriented, Detail | **Linear** is the cheapest and loses detail on steep bases. **Whiteout** is the usual default and holds detail on slopes far better. **Reoriented** rotates the detail into the base's frame, so detail follows the shaped surface instead of the flat plane it was authored against; the correct choice for detail layered onto a strongly shaped base. **Detail** is intended as Whiteout with the detail's slope pre-scaled. |
+| Intensity | Float | 1.0 | 0.0 to 4.0 | Weight of the Detail input. At 0 only the Base survives. |
+
+This node is orientation-agnostic: both inputs must already agree on their green-channel convention. Convert an imported map with Normal Adjust before blending. A flat mid-gray texel is treated as pointing straight out rather than producing an invalid direction.

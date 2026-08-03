@@ -1,0 +1,77 @@
+---
+title: Autosave & Recovery
+description: How the 60-second autosave works, how the recovery shelf offers a backup after a crash, and the crash report prompt.
+---
+
+While a project is open, the editor keeps a backup beside it on disk. If a
+session ends badly, the Project Hub offers that backup back to you.
+
+## How autosave works
+
+While a project is open, the editor writes a backup **every 60 seconds** to a
+companion file beside the project: the full project path with `.autosave`
+appended, so `stone_wall.surfacelabs` produces
+`stone_wall.surfacelabs.autosave` in the same folder.
+
+The backup is written in exactly the same archive format as a manual save, so
+it contains the full working state: graph, parameters, embedded media and
+fonts, comments, annotations, Jump Nodes, subgraph definitions, exposed
+parameters, view state, export settings, and every material in the project.
+
+Autosave never touches the project file itself. A backup is also written when
+the app is sent to the background.
+
+A tick is **skipped** when there are no unsaved changes since the last save,
+and while a subgraph is open for editing (the live graph is then the subgraph
+definition, not the material). Each backup that does happen shows an
+**"Autosaved"** notification. Only one backup file is kept per project; each
+write replaces the previous one.
+
+A successful manual save deletes that project's backup. The timer stops when
+the editor closes; any existing backup file is left in place.
+
+## The recovery shelf
+
+At startup the app checks the **most recently opened project** for a backup
+companion. The prompt appears when the backup is **newer than the project
+file**, or when the project file no longer exists (a crash before the first
+save). This is a timestamp comparison, not crash detection, so the prompt can
+also appear after a clean exit that left unsaved changes captured in a backup.
+
+When a backup qualifies, a strip slides in above the project list in the
+Project Hub, showing the project name and *"Autosaved `<relative time>`,
+recover unsaved changes?"*. Three controls:
+
+- **Restore** copies the backup over the project file, adds it to the recent
+  list, and opens it. This replaces the project file's contents and cannot be
+  undone.
+- **Discard** deletes the backup file and closes the shelf; the project file is
+  untouched.
+- **▴** collapses the shelf without deciding. The backup stays on disk and the
+  prompt reappears next time.
+
+:::caution[missing screenshot]
+The recovery shelf above the Project Hub's project list, showing the project name, the "Autosaved … recover unsaved changes?" text, and the Restore, Discard and collapse controls.
+:::
+
+After a restore, the project file becomes the newer of the pair, so the prompt
+does not return for it.
+
+:::caution[Deleting deletes the backup too]
+Deleting a project from the Hub removes both the `.surfacelabs` file and its
+`.autosave` companion, permanently.
+:::
+
+## Crash report prompt
+
+Separately from the recovery shelf, if the app finds a crash report from the
+last day it offers, on the Hub: *"Surface Labs recovered from a crash. A recent
+session ended unexpectedly. You can export a report (logs + diagnostics) as a
+single zip to send to support so the issue can be fixed."* with
+**Export report…** and **Not now** buttons. Exporting writes a zip to a folder
+you pick and reports *"Crash report saved to `<path>`"*, or *"No crash report
+to export."* if there was nothing to collect.
+
+:::caution[missing screenshot]
+The crash notice on the Project Hub with the Export report… and Not now buttons.
+:::

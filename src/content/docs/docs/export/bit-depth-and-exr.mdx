@@ -1,0 +1,76 @@
+---
+title: Bit Depth & EXR
+description: The output formats and the depths they carry, how authoring bit depth resolves at export, and what happens when a deep encoder is unavailable.
+---
+
+Surface Labs writes 8-bit, 16-bit, and float output depending on the format
+you pick and the depth your material resolves to. For how bit depth works
+while authoring, see
+[Resolution and Bit Depth](/docs/concepts/resolution-and-bit-depth/).
+
+## Output formats
+
+| Format | Extension | Depths it can carry | Encoder |
+| --- | --- | --- | --- |
+| PNG | `.png` | 8-bit, 16-bit | 8-bit in-app; 16-bit needs the native renderer |
+| JPEG | `.jpg` | 8-bit only | In-app |
+| TGA | `.tga` | 8-bit only | In-app |
+| BMP | `.bmp` | 8-bit only | In-app |
+| EXR | `.exr` | 16-bit half float, 32-bit float | Native renderer only |
+
+## Authoring bit depth
+
+A project carries an authoring bit depth of 8-bit, 16-bit, or 32-bit float,
+set in the Properties panel with nothing selected ("Project Bit Depth"). Each
+node can then choose, in its own **Bit Depth** section:
+
+- **Absorb inputs** (the default): take the depth arriving from upstream, so
+  raising the depth anywhere upstream travels downstream to the outputs it
+  feeds. A node with no inputs resolves to the project default.
+- **Inherit project**: always the project default.
+- **8-bit / 16-bit / 32-bit float**: pin a depth explicitly.
+
+The dropdown labels show what the node currently resolves to. Bit depth never
+changes how a node renders in the editor (the renderer works in float
+internally); it is the authoring intent the exporter resolves per channel.
+
+## How depth is resolved at export
+
+- For an individual map, the depth is whatever the chain feeding that channel
+  resolves to.
+- For a packed map, the depth is that of its deepest contributing channel.
+- Constant-backed channels and Trim Sheet channels resolve to the project
+  default (Trim Sheet strips compose through an 8-bit pass regardless).
+- The resolved depth is then clamped to the format's ceiling; EXR is floored
+  at 16-bit, since half float is its smallest sample type.
+
+## Warnings in the dialog
+
+A warning line appears under the Format chips when:
+
+- The material resolves deeper than the format can carry: "This material
+  resolves to 16-bit; JPEG writes 8-bit - banding or quantization the editor
+  never showed may become visible. Consider PNG or EXR." (the suggestion
+  becomes "Consider EXR" for 32-bit material).
+- The material resolves above 8-bit but the native encoder is not available
+  this session: "This material resolves to 16-bit, but the native encoder is
+  unavailable this session - PNG will be written 8-bit."
+
+## When deep formats fall back
+
+- A 16-bit PNG that cannot be encoded natively falls back to an honest 8-bit
+  PNG rather than failing.
+- An EXR that cannot be encoded is not written at all. The file is counted in
+  the "(N not ready)" number in the success toast, or produces the "Nothing
+  exported - connected textures are still rendering" warning if nothing else
+  was written. There is no EXR-specific error message.
+- 16-bit and EXR exports source the full-float render data for individual
+  maps. Packed maps are composed on the CPU in 8-bit first and then lifted,
+  so a packed map does not gain real precision from a deep format.
+- When the deep path has to resample a map to the export size, it resamples
+  slightly smoother than the standard 8-bit path.
+
+:::note
+TIFF is not offered in the app. The underlying native encoder supports TIFF at
+8-bit and 16-bit, but the format is not exposed in the export dialog.
+:::

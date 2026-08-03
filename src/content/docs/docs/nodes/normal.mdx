@@ -1,0 +1,145 @@
+---
+title: Normal & Surface Nodes
+description: Turn a height map into normals, curvature, occlusion, thickness, flow direction and roughness.
+---
+
+The Normal category turns a height map into the surface data a renderer needs: slope, curvature, occlusion, flow direction and roughness. Every node here reads brightness as height, and every one wraps its sampling at the texture border, so a tiling input produces a tiling result.
+
+### Normal from Height
+
+Type id: `normal_from_height`
+
+Converts a grayscale height map into a tangent-space normal map, encoding surface direction into the red, green and blue channels. This is the node you reach for whenever a height chain needs to drive lighting rather than displacement.
+
+**Inputs**
+
+- Height (grayscale, required): the height field to read slopes from.
+
+**Outputs**
+
+- Output (color): a tangent-space normal map.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Strength | Float | 4.0 | 0.0 to 32.0 | Slope multiplier. At 0 the map is dead flat; higher values exaggerate relief. Calibrated against a 1024 px result, so the same value reads the same at any output size. |
+
+There is no Mask input, and no green-channel flip here. Use Normal Adjust for that.
+
+:::caution[missing screenshot]
+Before/after pair: a grayscale height map on the left, the tangent-space normal map produced at the default Strength on the right.
+:::
+
+### Curvature / Cavity
+
+Type id: `curvature`
+
+Reads a height (or normal) map and reports where the surface bulges out and where it cuts in. It is the source of most edge-wear and grime masks: wear rides the convex peaks, dirt pools in the concave cavities.
+
+**Inputs**
+
+- Height (any texture, required): the surface to measure. Color inputs are reduced to brightness first.
+
+**Outputs**
+
+- Output (grayscale): the curvature response for the selected mode.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Strength | Float | 8.0 | 0.0 to 64.0 | Scales the response. Low values isolate only the sharpest transitions; high values pick up gentle undulation too. Resolution-independent. |
+| Mode | Choice | Curvature | Curvature, Cavity, Convexity | **Curvature** is signed, with mid-gray meaning flat. **Cavity** keeps only the concave half, rescaled to fill the full black-to-white range so it drops straight into a multiply. **Convexity** is the mirror: ridges and edges only. |
+
+No Mask input.
+
+### Surface Detail
+
+Type id: `ao_from_height`
+
+One sampling walk over a height map that produces ambient occlusion, thickness and a bent normal on three separate output ports. Pick the one you need straight off the node. Because all three come from the same walk they can never disagree about radius, which is the usual cause of a bent normal that lights wrong against its own AO.
+
+**Inputs**
+
+- Height (any texture, required): the height field to sample.
+
+**Outputs**
+
+- Occlusion (grayscale): classic ambient occlusion, dark where the neighbourhood stands above the point.
+- Thickness (grayscale): how enclosed the point is, sampled at double the radius. Bright in troughs with material all around, dark on exposed ridges; drives subsurface and translucency masks.
+- Bent Normal (color): the average unoccluded direction encoded as a normal map, so cavities self-shadow correctly when lit along it.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Float | 0.05 | 0.001 to 0.25 | Sampling distance as a fraction of the texture. Small values give tight contact shadows; large values give broad soft shading. Thickness reaches twice as far for the same setting. |
+| Strength | Float | 1.0 | 0.0 to 4.0 | How deep the occlusion goes, how bright thickness reads, and how far the bent normal tilts. At 0 the result is unoccluded / flat. |
+| Angle | Float | 270.0 | 0.0 to 360.0 | Incoming direction, in degrees. Has no effect on any of this node's three outputs. |
+| Spread | Float | 60.0 | 1.0 to 180.0 | Cone half-width, in degrees. Has no effect on any of this node's three outputs. |
+
+No Mask input. Sampling density follows Radius (up to 6 rings of 24 taps), and the pattern is rotated per pixel so the residual error reads as fine grain rather than directional banding.
+
+### Directional Occlusion
+
+Type id: `pocketing`
+
+Occlusion restricted to a single incoming direction: where light pools from a chosen angle, where rain would fall, where dirt would settle on upward faces. Sweeping the Angle is also how you extract multi-angle lighting information from one height map.
+
+**Inputs**
+
+- Height (any texture, required): the height field to sample.
+
+**Outputs**
+
+- Output (grayscale): occlusion seen only from the chosen cone; bright where that direction is open.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Float | 0.05 | 0.001 to 0.25 | Sampling distance as a fraction of the texture. |
+| Strength | Float | 1.0 | 0.0 to 4.0 | How dark the occluded areas become. At 0 the output is uniformly open. |
+| Angle | Float | 270.0 | 0.0 to 360.0 | The direction occlusion is measured from, in degrees. |
+| Spread | Float | 60.0 | 1.0 to 180.0 | Half-width of the cone around Angle. Narrow gives sharp shafts, wide gives soft pooling. |
+
+No Mask input. Directions outside the cone are ignored entirely rather than counted as open, so widening the cone shifts the result instead of uniformly darkening it.
+
+### Flow Map
+
+Type id: `flow_map`
+
+Turns a height map or mask into a direction field, encoded in red and green with mid-gray meaning "no flow". Reach for it when something needs to know which way a surface runs: water and lava scrolling, brushed-metal anisotropy, wood grain, fur and hair. The encoding matches what Warp and Vector Morph expect, so it feeds them directly.
+
+**Inputs**
+
+- Input (any texture, required): the height or mask the direction is derived from.
+- Mask (grayscale, optional): where dark, the node's input passes through unchanged.
+
+**Outputs**
+
+- Output (color): a direction field in the red and green channels; blue is unused.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | Choice | Downhill | Downhill, Along Contours | **Downhill** points the way water would run off the surface. **Along Contours** rotates the field a quarter turn so it follows contours instead of crossing them. |
+| Scale | Float | 4.0 | 1.0 to 64.0 | How far apart the samples that measure direction sit, in pixels. Raise it on smooth inputs; too small a spacing quantises the field into a handful of angles and facets it. |
+| Curl | Float | 0.0 | 0.0 to 1.0 | Mixes in a swirling component, so flow curls around features rather than piling up against them. At 0 the field is pure gradient. |
+| Intensity | Float | 1.0 | 0.0 to 1.0 | Length of the output vectors. At 0 the map flattens to no flow. |
+
+### Roughness from Height
+
+Type id: `roughness_from_height`
+
+Derives a plausible roughness map from how busy the height is locally, not from how high it is. A flat plateau and a flat valley floor read equally smooth, which no amount of Levels on the height map can express. A fast, physically sensible starting point you then tune.
+
+**Inputs**
+
+- Input (any texture, required): the height field to measure.
+- Mask (grayscale, optional): where dark, the node's input passes through unchanged.
+
+**Outputs**
+
+- Output (grayscale): a roughness map.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Radius | Float | 0.02 | 0.001 to 0.25 | Detail scale, as a fraction of the shorter image edge. Small counts only fine grain; large also counts broad undulation as roughness. |
+| Smooth | Float | 0.2 | 0.0 to 1.0 | The roughness value assigned to perfectly flat areas. |
+| Rough | Float | 0.9 | 0.0 to 1.0 | The roughness value assigned to the busiest areas. Set it below Smooth to invert the mapping. |
+| Contrast | Float | 1.0 | 0.1 to 4.0 | Response curve. Above 1, only the busiest areas reach the rough end. |
+
+The measurement weights occasional sharp steps well above uniform fine grain, matching how a chipped edge reads as rougher than an evenly grained surface.

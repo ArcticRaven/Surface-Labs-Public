@@ -1,0 +1,91 @@
+---
+title: Troubleshooting
+description: Every user-facing toast, dialog and error message, what each one means, and what to do about it.
+---
+
+Messages appear as toasts in the corner (colour-coded info, success, warning or
+error) or as centred dialogs. This is the current user-facing set.
+
+## Project and file messages
+
+| Message | Meaning |
+| --- | --- |
+| `Project saved` | A manual save succeeded. |
+| `Save failed - your work is not saved` | The write to disk failed. Your work is still in memory: try Save again, or use Export Diagnostics… and save elsewhere. Back to Hub aborts rather than navigating away when this happens. |
+| `Autosaved` | The 60-second autosave timer fired and wrote the `.autosave` companion. See [Autosave & Recovery](/docs/help/autosave-and-recovery/). |
+| `Failed to load project: …` | The archive could not be read: wrong format version, corruption, or a missing internal file. |
+| `Project not found - it may have been moved or deleted.` | A recent-projects entry or an opened file no longer exists on disk. The entry is removed from the list. |
+| `Could not create the project. Please try again.` | Writing the new blank project archive failed. |
+| `Could not delete "<name>" - make sure it isn't open elsewhere.` | The OS refused to delete the file, usually because another program has it open. |
+| `Deleted "<name>".` | The project file was permanently deleted. |
+| `Saved preferences could not be read - using defaults.` | Your settings file was unreadable. Everything reverts to defaults; your projects are unaffected. |
+
+## Asset, node and export messages
+
+| Message | Meaning |
+| --- | --- |
+| `Open a project first.` | You tried to import an asset with no project open. |
+| `Asset imported.` | The file was embedded into the project. |
+| `Failed to import asset: …` | The file could not be read or embedded. |
+| `Add a PBR Output, Trim Sheet, or Custom Output node to export textures` | The export shortcut found no output node in the graph. See [Exporting](/docs/export/exporting/). |
+| `Exported N textures`, optionally `(N not ready)` | Export finished. "Not ready" channels are ones whose textures had not finished evaluating. |
+| `Export failed - no files were written` | Nothing could be written to the chosen folder. |
+| `Exported <node> as .surfacenode` / `Export failed - no file was written` | Single-node package export. See [Sharing Nodes](/docs/help/sharing-nodes/). |
+| `Could not import .surfacenode - file is invalid` | The package could not be read. |
+| `Unknown node type "…" - cannot place` | The package references a node type this build does not have. |
+| `N connections dropped - the port it was wired to no longer exists` | Editing a custom shader's inputs removed a port that had a wire attached. |
+| `Not a TrueType/OpenType font` / `Could not read the font file` | The file chosen in the Text node's font picker is not a usable font. |
+| `Could not load HDRI - is it a Radiance .hdr?` / `Environment loaded` | 3D preview environment import. See [3D Preview](/docs/export/preview-3d/). |
+| `Exported 4K preview to …` / `4K preview export failed` | 3D preview beauty-shot export. |
+| `Added N tags from this project: …` | Opening someone else's project added tags you did not have to your local vocabulary. |
+
+## Settings and diagnostics messages
+
+| Message | Meaning |
+| --- | --- |
+| `Diagnostics exported` / `Diagnostics export failed: …` | Settings → General → Export Diagnostics… |
+| `Crash report saved to …` / `No crash report to export.` | The hub's crash notice and the debug page's export button. |
+| `Theme exported.` / `Custom theme saved and applied.` | Appearance page. |
+| `Fill in all color fields before saving.` | A theme token's hex field is empty or invalid. |
+| `Could not import theme - the file may be invalid.` | The `.surfacetheme` could not be read. |
+| `"<name>" matches a built-in theme name - saving anyway.` | A naming collision warning, not an error. |
+| `GPU selection is unavailable on this device.` | Adapters could not be enumerated, usually no native library present. |
+| `Token copied` / `Claude Code command copied` / `Client configuration copied` | [MCP Server](/docs/mcp-server/) page clipboard actions. |
+| `Extension saved. Drag it into Claude Desktop → Settings → Extensions, then paste the token.` | The `.mcpb` bundle was written. |
+| `Could not save the extension: …` | Writing the `.mcpb` failed. |
+
+## Confirmation dialogs
+
+| Dialog | When |
+| --- | --- |
+| **Delete project?** *"This permanently deletes … This action cannot be undone."* | Deleting a project file from the hub. |
+| **Delete shelf?** | Deleting a project shelf. |
+| **Remove from shelf?** | Removing a project from a user shelf. |
+| **Reset all shortcuts?** *"This restores every keyboard shortcut to its default binding. This action cannot be undone."* | Reset All Shortcuts in [Settings](/docs/help/settings/). |
+| **Close Minimap** *"Hide the canvas minimap? You can show it again from the toolbar or with Ctrl+M."* | Long-pressing the minimap title bar. |
+| **Surface Labs recovered from a crash** | Crash artifacts found at hub launch. See [Autosave & Recovery](/docs/help/autosave-and-recovery/). |
+
+## Editor state messages
+
+| Message | Meaning |
+| --- | --- |
+| `Expand to full screen to start editing.` | iPad only. The app window is not full screen. Editing is blocked until it is. |
+| `No Jump Nodes on canvas.` | The Jump Node list is empty. |
+| `No matching articles.` | Documentation search found nothing. |
+| `Select a node to edit its parameters` | The Properties panel with nothing selected. |
+
+## Custom shader quarantine
+
+A shader whose loop never exits stalls the GPU until the operating system
+resets the driver. Every new shader source is therefore trial-run at a small
+size first. A source that fails the trial, or that takes the app down with it,
+is **quarantined**: it stops rendering, and the editor shows a banner with a
+**Run anyway** button. Editing the source in any way starts a fresh trial. Use
+Run anyway only when you know the loop bounds are sound.
+
+:::caution[missing screenshot]
+The quarantine banner on a Custom Shader node's editor, with the Run anyway button.
+:::
+
+See [Shader Editor & Diagnostics](/docs/shaders/editor-and-diagnostics/) for
+the full diagnostics workflow.

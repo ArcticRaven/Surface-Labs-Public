@@ -1,0 +1,173 @@
+---
+title: 3D Material Preview
+description: The lit 3D viewport, which channels it reads, camera navigation, the 4K preview export, and every options section.
+---
+
+The 3D Material Preview renders your material on a lit model through the
+native (Rust/wgpu) renderer, with image-based lighting, an analytic
+three-light rig, 4× MSAA, and an ACES filmic tonemap.
+
+:::caution[missing screenshot]
+The 3D Material Preview viewport showing a material on the default sphere,
+with the Reset Camera and Turntable controls visible.
+:::
+
+While the renderer is starting the panel reads "Starting native renderer…".
+If the native renderer stops, the panel shows "3D renderer stopped" with the
+failure text and a restart control.
+
+## What the preview reads
+
+The preview reads the first PBR Output node in the graph. It consumes exactly
+six channels: **Base Color, Normal, Roughness, Metallic, AO, Height**.
+
+- In the Specular / Glossiness workflow, the *Roughness* slot reads the
+  Glossiness input and the *Metallic* slot reads the Specular input. The
+  panel's labels do not change.
+- Opacity and Clearcoat inputs are not read from the graph. The Shading
+  section's Opacity, Clearcoat and Coat Roughness sliders are preview-only
+  scalars.
+- An unwired channel falls back to the constant on the PBR Output node (base
+  colour, roughness/glossiness, metallic/specular, AO, height values). An
+  unwired Normal always falls back to a flat surface normal; it has no
+  constant value.
+- A map only contributes when both the panel's per-map toggle and the matching
+  channel enable on the PBR Output node are on.
+- With no PBR Output node in the graph at all, the viewport still renders
+  using every fallback constant.
+
+## Navigating the viewport
+
+| Action | Desktop | Touch |
+| --- | --- | --- |
+| Orbit | Drag | One-finger drag |
+| Zoom | Scroll wheel | Pinch |
+| Pan | <kbd>Shift</kbd>+drag or middle-mouse drag | Two-finger drag |
+
+Vertical orbit is clamped so the camera cannot pass over the poles. Camera
+distance ranges 0.5 to 7.0 and starts at 3.0; the pan target is clamped to
+±2.5 on each axis. At the closest zoom you can push the camera through a
+volumetric shape, which is intentional.
+
+- **Reset Camera** restores the default orbit angles, zoom, and pan target.
+- **Turntable ▶ / ■** slowly rotates the environment and the key light
+  together (about 0.35 rad/s, one lap in roughly 18 seconds) so reflections
+  sweep across the material. The model itself does not spin.
+
+## Export 4K Preview
+
+**Export 4K Preview** renders the current view at 4096 px through the native
+renderer and writes it as a PNG to a folder you pick. The button reads
+"Rendering 4K…" and is disabled while the render is in flight.
+
+- The file is always named `material_preview_4k.png`, so repeated exports to
+  the same folder overwrite each other.
+- Success: "Exported 4K preview to `<path>`". Failure: "4K preview export
+  failed". Cancelling the folder picker exits silently.
+
+## Options sections
+
+All sections are collapsible; every setting persists across launches.
+
+:::caution[missing screenshot]
+The 3D preview options panels: Model, View, Environment, Mapping, Lighting,
+and Shading sections expanded.
+:::
+
+### Model
+
+- **Shape**: Sphere, Cube, Rounded, Plane, Cylinder. Default Sphere. These are
+  real tessellated meshes, not shader tricks.
+- **Subdivisions**: 8 to 256, default 96. Segments along the primary axis;
+  each shape maps it to its own topology (a cube at 256 is roughly 786k
+  triangles per the internal clamp). Higher values give displacement more
+  geometry to work with, at a render-time cost.
+- **Displacement**: 0.00 to 0.30, default 0.08. Vertex-stage displacement
+  driven by the Height channel, following the active projection.
+
+### View
+
+One row per channel: the wide button on the left isolates that map in the
+viewport, and the switch on the right hides that map from shading (the
+material falls back to that channel's neutral). Rows: **Final, Albedo,
+Normal, Rough, Metal, AO, Height**. *Final* has no hide switch. Isolated
+channel views bypass exposure and tonemapping entirely, so you see raw map
+values.
+
+Below the rows: **Use as canvas background** draws a dedicated high-resolution
+material still (2048 px, matched to the canvas aspect, transparent backdrop,
+model centred) behind the node canvas. While it is on, the live viewport in
+the panel unmounts to avoid rendering the material twice, and a notice with a
+**Show viewport here** button takes its place. Turning it off clears the
+canvas background immediately.
+
+### Environment
+
+- **Backdrop**: **Environment** (the lit environment itself, default) or
+  **Flat** (the interface's surface colour). A transparent backdrop also
+  exists but is not a user option: it is used internally for the
+  canvas-background still.
+- **Exposure**: 0.25 to 4.00, default 1.00. Feeds the ACES filmic tonemap.
+- **Rotation**: environment yaw, 0.00 to 6.28, default 0.00.
+- **Environment Light**: image-based lighting intensity and the brightness of
+  the environment backdrop, 0.00 to 3.00, default 1.00.
+- **Import HDRI…** loads a Radiance `.hdr` equirectangular file (the picker is
+  filtered to `.hdr`; the dialog is titled *Import HDRI Environment*). The
+  environment is baked into a prefiltered specular cubemap, a diffuse
+  irradiance cubemap, and a lookup table on the GPU. Success: "Environment
+  loaded". Failure: "Could not load HDRI - is it a Radiance .hdr?". The chosen
+  file's path is remembered and reloaded on the next launch; the file name is
+  shown under the buttons.
+- **Studio** returns to the built-in procedural studio environment. Disabled
+  when no HDRI is loaded; the readout then reads "Built-in studio
+  environment".
+
+### Mapping
+
+- **Projection**: Triplanar (default), Spherical, or UV.
+- **UV Scale**: 0.25 to 16.00, default 2.00.
+- **Triplanar Sharpness**: 1.0 to 16.0, default 4.0.
+
+### Lighting
+
+A three-light analytic rig. You control the key light; fill and rim are
+derived from it.
+
+- **Light direction pad**: drag to set the key light's angle and elevation
+  together.
+- **White / Warm / Cool** preset chips, plus a **Light Colour** picker
+  (saturation/value square, hue bar, hex field). Default key colour is a
+  slightly warm white.
+- **Strength**: 0.00 to 10.00, default 2.50.
+- **Rotation**: 0.00 to 6.28, default 0.60.
+- **Elevation**: -1.40 to 1.40, default 0.70.
+- **Softness**: key-light angular radius, 0.00 (pin sharp) to 0.50 (soft
+  box), default 0.10.
+- **Fill Light**: 0.00 to 2.00, default 0.60. The fill sits at the key's
+  angle plus about 2.4 radians, low, at roughly a third of the key's
+  intensity scaled by this value.
+- **Rim Light**: 0.00 to 2.00, default 0.80. The rim sits opposite the key,
+  higher, at roughly 0.6 of the key's intensity scaled by this value.
+
+### Shading
+
+Preview-only material scalars, not graph inputs.
+
+- **Specular**: 0.00 to 1.00, default 0.50 (dielectric reflectance).
+- **Clearcoat**: 0.00 to 1.00, default 0.00.
+- **Coat Roughness**: 0.05 to 1.00, default 0.10.
+- **Opacity**: 0.00 to 1.00, default 1.00.
+- **Thin Wall**: toggle, off by default; shades back faces sensibly on planes
+  and thin shapes.
+
+Every numeric setting has both a slider and a directly typeable value field.
+
+## Persistence
+
+All 3D preview settings (camera orbit, zoom, pan target, shape, subdivisions,
+displacement, channel and per-map toggles, mapping, lighting, shading,
+environment, exposure, turntable state, and the imported HDRI's path) are
+saved globally, debounced so orbiting does not thrash the disk, and restored
+on the next launch. They are also saved inside each project file, and a
+project's saved camera and render settings are applied when that project is
+opened.

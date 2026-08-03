@@ -1,0 +1,85 @@
+---
+title: Node Reference Overview
+description: What the node reference covers, how it is organized, and the conventions shared by every node page.
+---
+
+The node reference documents all 70 node types, grouped by the same categories
+the Node Library uses. Each entry follows one structure: the node's label, its
+type id, a short statement of purpose, its input and output ports, and a table
+of every parameter with type, default, range and notes.
+
+## Categories
+
+- [Generator Nodes](/docs/nodes/generators/)
+- [Input Nodes](/docs/nodes/inputs/)
+- [Transform Nodes](/docs/nodes/transform/)
+- [Filter Nodes](/docs/nodes/filters/)
+- [Simulation & Compute Nodes](/docs/nodes/simulation/)
+- [Normal & Surface Nodes](/docs/nodes/normal/)
+- [Blend Nodes](/docs/nodes/blend/)
+- [Math Nodes](/docs/nodes/math/)
+- [Channel Nodes](/docs/nodes/channels/)
+- [Histogram Nodes](/docs/nodes/histogram/)
+- [Flood Fill Nodes](/docs/nodes/flood-fill/)
+- [Output Nodes](/docs/nodes/outputs/)
+
+Beyond these categories, the Custom Shader node (`custom_shader`) lets you
+write a node of your own in shader code. It has its own section of the
+documentation: see [Custom Shader Node](/docs/shaders/custom-shader-node/).
+
+## Shared conventions
+
+A few behaviours repeat across the whole library, so they are stated once here
+rather than on every entry.
+
+- **Mask input.** Where a node has a Mask input, it composites the node's
+  result back over what the node would otherwise have shown. On a generator
+  there is no upstream image to fall back to, so a masked-out area resolves to
+  black. On a transform or filter, masked-out areas keep the node's own
+  unmodified input.
+- **Seeds.** A **Seed** control is a whole number with no slider. Type a value
+  or press the randomize button beside it. Changing the seed reshuffles the
+  pattern without changing any other characteristic.
+- **Per-node resolution.** Every node renders at the project resolution by
+  default. Select a node and use its **Resolution** dropdown to override that
+  with a fixed square size instead: **Inherit** follows the project setting,
+  or pick 256, 512, 1024, 2048 or 4096. See
+  [Resolution and Bit Depth](/docs/concepts/resolution-and-bit-depth/).
+- **Deprecated nodes.** A handful of node types are deprecated. They are
+  hidden from the Node Library but still open in existing projects, and each
+  entry names the node that supersedes it.
+
+## Routing
+
+The Routing category holds a single node.
+
+### Reroute
+
+Type id: `reroute`
+
+A wiring-only pin. It bends a wire around the graph without changing what
+flows through it. It carries no shader, no parameters and no processing, and
+downstream consumers, including export and Trim Sheet slot resolution, look
+straight through it to the real source.
+
+**Inputs:**
+
+- In (any, required): bypasses type checking, so it passes textures, materials
+  and anything else unchanged.
+
+**Outputs:**
+
+- Out (any): exactly what came in.
+
+This node has no parameters.
+
+Insert one by double-tapping a wire, which splits the connection at that
+point: the upstream half becomes the reroute's input and the downstream half
+becomes its output, all as a single undo step. On desktop you can also hover a
+wire and press the <kbd>.</kbd> key. It draws as a small circle rather than a
+node card.
+
+:::caution[missing screenshot]
+A wire routed around a node card through a Reroute pin, showing the small
+circle it draws as instead of a full node card.
+:::

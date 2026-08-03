@@ -1,0 +1,56 @@
+---
+title: Histogram Nodes
+description: Inspect a texture's tonal distribution and remap or threshold it with a draggable histogram window.
+---
+
+Tonal analysis. Both nodes show a live histogram of their input in the Properties panel, with draggable window bars that edit their parameters directly.
+
+### Histogram
+
+Type id: `histogram`
+
+Shows the tonal distribution of its input and lets you remap a slice of it in the same node. Read it to see where your values actually sit; drag its window bars to compress them into a band. Left at defaults it is a pure analyser and passes the image through unchanged.
+
+**Inputs**
+
+- Input (any texture, required): the texture to analyse and remap.
+
+**Outputs**
+
+- Output (any texture): the remapped image. The remap runs per channel, so a color input stays in color, and the input's alpha is preserved.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Position | Float | 0.5 | 0.0 to 1.0 | Centre of the output band. Edited by dragging the histogram window rather than by a slider; no slider row is shown. |
+| Range | Float | 1.0 | 0.0 to 1.0 | Width of the output band. Also edited by dragging the histogram window. At 1.0 with Position 0.5 the remap is an identity passthrough. |
+| Midpoint | Float | 0.5 | 0.05 to 0.95 | A levels-style midtone control applied before the band compression. 0.5 is neutral; lower brightens midtones, higher darkens them. Shown as a normal slider. |
+| Mode | Choice | Luminance | Luminance, RGB, Red, Green, Blue | Which distribution the Properties histogram plots. Display only; it does not change the output. |
+| Log Scale | Toggle | Off | On / Off | Plots the histogram on a logarithmic vertical scale, so sparse tones stay visible next to a tall spike. Display only. |
+| Clip Warnings | Toggle | On | On / Off | Highlights values crushed to black or blown to white in the histogram display. Display only. |
+
+No Mask input.
+
+:::caution[missing screenshot]
+The Properties panel showing the live histogram with its draggable window bars, next to a before/after of an image remapped into a narrower tonal band.
+:::
+
+### Histogram Scan
+
+Type id: `histogram_scan`
+
+Sweeps a soft threshold window across the tonal range, a contrast-aware alternative to a hard Threshold. Tones below the window go black, tones above go white, and tones inside ramp between the two, which makes it the better tool when you want to slide a mask through a gradient and watch it grow.
+
+**Inputs**
+
+- Input (any texture, required): the texture to scan.
+- Mask (grayscale, optional): where dark, the input passes through unchanged.
+
+**Outputs**
+
+- Output (grayscale): the resulting mask. The input's alpha is preserved.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Position | Float | 0.5 | 0.0 to 1.0 | Centre of the scanned band. Edited by dragging the histogram window; no slider row is shown. |
+| Contrast | Float | 0.5 | 0.0 to 1.0 | Width of the band, inverted: at 0 the ramp spans the whole tonal range, at 1 it collapses to a hard binary cut. Also edited by dragging the histogram window. |
+

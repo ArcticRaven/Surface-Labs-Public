@@ -1,0 +1,54 @@
+---
+title: Sharing Nodes
+description: Export a single node or subgraph as a .surfacenode package, what the package contains, and how to import one.
+---
+
+A `.surfacenode` file packages one node, or one subgraph, so it can be handed
+to another person or another project. It is a small ZIP; see
+[Project & File Formats](/docs/help/file-formats/) for the format details.
+
+## Exporting
+
+Choose **Export .surfacenode…** from the node's context menu. The entry
+appears only when exactly one library or subgraph node is selected. It writes
+a self-contained package through a save dialog; cancelling the dialog does
+nothing silently.
+
+Success reads *"Exported `<node name>` as .surfacenode"*; failure reads
+*"Export failed - no file was written"*.
+
+:::caution[missing screenshot]
+A node's context menu with the Export .surfacenode… entry highlighted.
+:::
+
+## What is in the package
+
+| Entry | Contents |
+| --- | --- |
+| `node.xml` | The node's type, label, all parameter values, seed, resolution mode and override, bit-depth mode and override, and its ports including values set directly on unconnected inputs |
+| `thumbnail.png` | The node's last rendered output, written only when the node has already been evaluated |
+
+Connections are not part of the package: it describes one node in isolation. A
+missing thumbnail is not an error; previews regenerate.
+
+:::caution[Embedded media is not bundled]
+Imported bitmaps are not packaged into a `.surfacenode`. A node that depends on
+an imported bitmap will not carry that bitmap with it.
+:::
+
+## Importing
+
+Use the **Import .surfacenode…** button at the bottom of the Node Library
+panel. The imported node is placed at the viewport centre with a fresh
+identity.
+
+:::caution[missing screenshot]
+The Node Library panel with the Import .surfacenode… button at the bottom.
+:::
+
+If the import goes wrong:
+
+- A package referencing an unknown node type reports
+  `Unknown node type "…" - cannot place`.
+- A corrupt file reports `Could not import .surfacenode - file is invalid`.
+- Non-fatal issues surface as individual warning toasts.

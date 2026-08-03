@@ -1,0 +1,47 @@
+---
+title: Comments & Annotations
+description: Comment boxes drawn behind the graph and freehand annotation strokes drawn above it.
+---
+
+Both are canvas furniture: they never affect what the graph renders.
+
+## Comment boxes
+
+Comment boxes are resizable, recolourable labelled boxes drawn *behind* the
+nodes.
+
+- Press <kbd>C</kbd> to place one at the centre of the viewport; it opens
+  straight into inline text editing with the default text selected.
+- Press <kbd>F</kbd> to create an empty comment box automatically sized around
+  the current selection ("frame selection").
+- They are also in the node gallery under the **Canvas** category, and in the
+  node context menu as **Insert Comment Box**.
+- Body text is rendered as Markdown.
+- Eight resize handles (four corners, four edges). Drag-to-move and the handles
+  are disabled while the inline text editor is open, so text selection works
+  normally.
+- A recolour dialog gives an HSV colour wheel, a `#rrggbb` field and an opacity
+  slider, all applying live. There is no confirm step.
+
+:::caution[missing screenshot]
+A coloured comment box framing a group of nodes, with its Markdown body text visible.
+:::
+
+:::caution[missing screenshot]
+The comment box recolour dialog with the HSV wheel, hex field and opacity slider.
+:::
+
+## Annotations
+
+Annotations are freehand strokes drawn above everything else on the canvas.
+
+- Toggle annotation mode with the ✎ toolbar button (present on every platform),
+  or bind the Toggle Annotation Mode action to a key; it ships unbound.
+- While annotation mode is on, any primary drag (one finger, Apple Pencil, or a
+  mouse left-drag) draws a stroke. **Hold <kbd>Alt</kbd> to pan instead.**
+  Middle-drag and trackpad gestures still pan normally.
+- Strokes are stored in world space and saved with the project.
+
+:::caution[missing screenshot]
+Freehand annotation strokes drawn over a graph, with the annotation mode toolbar button active.
+:::

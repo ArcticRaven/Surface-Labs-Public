@@ -1,0 +1,148 @@
+---
+title: Input Devices
+description: Mouse, trackpad, touch, stylus and game controller behaviour, and how ports and wires respond to each.
+---
+
+Surface Labs accepts mouse, trackpad, touch, stylus, keyboard and game
+controller input. A press followed by at least 4 points of movement counts as a
+drag; anything shorter counts as a tap, for every device.
+
+## Mouse
+
+| Input | Result |
+| --- | --- |
+| Left-drag on empty canvas | Pan |
+| Left-drag on a node / wire / handle | Move that thing |
+| Middle-drag | Pan (always; a held middle button is only ever a pan grip) |
+| Scroll wheel | Zoom, no modifier needed. Never pans |
+| Right-click on a node or comment | Context menu |
+| Right-click on empty canvas | Nothing |
+| Right-drag | Marquee selection |
+| Hold the left button in place for 500 ms | Context menu (so a stylus without a barrel button still gets one) |
+| Double-click empty canvas | Node picker at that point |
+| Double-click just off a wire | Insert a Reroute node, splitting the connection |
+| Double-click a wire | Disconnect it |
+| Double-click a subgraph node | Enter it for editing |
+| <kbd>Shift</kbd>+click a node | Toggle it in or out of the selection |
+
+Two taps only count as a double-click when they land within 350 ms and roughly
+12 points of each other.
+
+## Trackpad
+
+Two-finger scroll pans. <kbd>Ctrl</kbd>+two-finger scroll zooms. Trackpad pinch
+zooms. This matches browser and Figma conventions.
+
+## Touch
+
+| Input | Result |
+| --- | --- |
+| One-finger drag | Pan |
+| Two-finger pinch | Zoom. A two-finger drag does not pan |
+| Two-finger tap on a node or comment | Context menu. On empty canvas, nothing |
+| One-finger hold 400 ms on empty canvas | Begin a marquee (haptic tick on iPad); keep dragging to size it |
+| One-finger hold on a node or comment | Nothing, so drag-to-move stays available |
+
+The moment a second finger touches down, any in-progress one-finger pan, tap or
+long press is abandoned for the rest of the gesture. A third finger cancels the
+two-finger tap.
+
+## Stylus / Apple Pencil
+
+The Pencil behaves as a pan device on the canvas and as a drawing tool in
+annotation mode. Press-and-hold with a Pencil uses the 500 ms context-menu
+threshold, not the 400 ms marquee threshold, so holding the Pencil on a node
+opens its context menu, and holding it on empty canvas does nothing.
+
+## Ports and wires
+
+Drag from a port socket to another socket to connect. Connections can be drawn
+in either direction. Dragging from an already-connected input grabs the existing
+wire and re-anchors the drag to the upstream output. While dragging, the nearest
+valid socket within 24 screen points is snapped to; illegal targets are skipped,
+and an exact type match beats a convertible one at the same distance. Socket hit
+targets are 30 points on desktop and 45 points on tablet, where they clear the
+44-point minimum touch target.
+
+See [Connections](/docs/graphs/connections/) for what makes a target legal and
+how type conversion works.
+
+:::caution[missing screenshot]
+A wire drag in progress with the nearest valid socket highlighted for snapping.
+:::
+
+## Game controllers
+
+Game controller support was built accessibility-first: a controller is a full
+alternative to mouse and touch for people for whom sustained precise pointer
+targeting is painful or impossible. Because the Xbox Adaptive Controller,
+one-handed grips and foot pedals all present to the OS as standard gamepads, one
+integration covers the whole assistive-hardware ecosystem.
+
+### Turning it on
+
+Settings → Shortcuts → **Controller** → Enable Controller Input. It is off by
+default; nothing is initialised, and no input is read, until you turn it on. A
+live status line tells you whether a controller is detected:
+
+- Off: a note that a game controller can drive the full editor, as an
+  accessibility alternative to mouse and touch.
+- On, none found: *No controller detected. Connect a controller and press any
+  button.*
+- On, connected: *Controller connected*, with a prompt to move the right stick
+  to show the cursor.
+
+Supported hardware: on Windows through the GameInput API, and on macOS and
+iPadOS through GameController, covering MFi, Xbox, PlayStation and Switch Pro
+pads, and the Xbox Adaptive Controller. Enumeration and input stay entirely
+on-device.
+
+:::caution[missing screenshot]
+The Controller section of Settings → Shortcuts with the enable toggle, status
+line and tuning sliders.
+:::
+
+### How it works
+
+The right stick drives an app-drawn virtual cursor that feeds the app's normal
+pointer pipeline, so every existing pointer interaction (selecting, dragging
+nodes, dragging wires, marquees, context menus, panel buttons) works by
+controller with no separate implementation. The d-pad complements the stick with
+discrete focus jumps for people who cannot hold a stick steady.
+
+| Input | Action |
+| --- | --- |
+| **Right stick** | Move the virtual cursor. Pushing it against a viewport edge pans the canvas |
+| **Left stick up/down** | Zoom in/out around the cursor |
+| **A** | Click at the cursor. Hold and move for press-drag-release: moves a node, drags a wire, or marquees from empty canvas |
+| **X** | Secondary click at the cursor: the context menu, and right-drag marquee |
+| **Y** | Open the node picker |
+| **B** | Close / back. Dismisses the active dialog, then the command palette, then pops the current screen (this closes Settings), and with nothing left to close, clears the canvas selection |
+| **D-pad** | Snap the cursor to the nearest node in that direction |
+| **LB (held) + D-pad ←/→/↓** | Toggle the left / right / bottom panel |
+| **LB (held) + D-pad ↑** | Toggle focus mode |
+| **Start** | Open Settings |
+| **Select / View (tap)** | Toggle the minimap |
+| **Select / View (hold 400 ms)** | Open the command palette |
+| **L3** (left-stick click) | Zoom to selection |
+| **R3** (right-stick click) | Zoom to fit |
+
+:::note[Not yet implemented]
+The bumpers do nothing; port cycling and wire mode are a later phase. Controller
+buttons cannot be remapped yet.
+:::
+
+### Tuning
+
+Settings → Shortcuts → Controller:
+
+| Setting | Range | Default |
+| --- | --- | --- |
+| Stick Dead-Zone | 0.05 to 0.40 | 0.15 |
+| Cursor Speed | 0.25 to 3.0 | 1.0 |
+| Zoom Speed | 0.25 to 3.0 | 1.0 |
+
+Stick deflection beyond the dead-zone is squared, giving fine control near the
+centre and fast travel at the rim. The controller ticker only runs while a stick
+is actually deflected, so an idle controller costs nothing. Connection is
+re-polled every three seconds and flips to "connected" immediately on any event.

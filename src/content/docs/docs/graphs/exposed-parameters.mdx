@@ -1,0 +1,33 @@
+---
+title: Exposed Parameters & Globals
+description: Promoting node parameters to project level with the expose toggle, and editing them in the Global Variables panel.
+---
+
+An exposed parameter is a node parameter promoted to project level, so it can
+be driven from one place without hunting down the node that owns it.
+
+## The expose toggle
+
+Next to every parameter name in the Properties panel is a small diamond:
+
+- Hollow ◇: not exposed. Click to expose.
+- Filled ◆: exposed. Click to unexpose.
+
+:::caution[missing screenshot]
+A parameter row in the Properties panel with the hollow and filled diamond states side by side.
+:::
+
+## The Global Variables panel
+
+Exposed parameters appear in the **Global Variables** panel (Globals tab) with
+exactly the same live controls, so key values from anywhere in the graph can be
+edited from one place. Each entry can be removed from the panel directly. The
+diamond does not appear inside the Global Variables panel itself.
+
+:::caution[missing screenshot]
+The Global Variables panel listing exposed parameters from several different nodes, each with its live control.
+:::
+
+Exposures are saved into the project archive, so they travel with the project.
+Exposures whose node has since been deleted are pruned automatically, so the
+panel never shows dead entries.

@@ -1,0 +1,32 @@
+---
+title: Selection & Undo
+description: Selecting nodes with click, shift-click and marquee, and how parameter edits group into undo steps.
+---
+
+## Selection
+
+- Click a node to select it and clear everything else.
+- Click empty canvas to clear the selection.
+- <kbd>Shift</kbd>+click toggles a single node in or out of the selection.
+- Selected nodes are outlined and glow.
+- **Marquee:** right-click and drag on desktop. On touch, press and hold one
+  finger on empty canvas for 400 ms (confirmed by a haptic tick on iPad) and
+  keep dragging. Every node whose bounds overlap the rectangle is selected on
+  release; holding <kbd>Shift</kbd> on release adds to the existing selection
+  instead of replacing it. The marquee stays pinned to the canvas while edge
+  auto-pan moves the view underneath it. A touch long-press that lands on a
+  node or comment does nothing, so drag-to-move stays available, and the
+  long-press marquee is disabled while annotation mode is on.
+- <kbd>Escape</kbd> cancels an in-progress node drag.
+
+:::caution[missing screenshot]
+A marquee rectangle mid-drag over several nodes, with already-selected nodes outlined and glowing.
+:::
+
+## Undo behaviour
+
+Every parameter edit gesture pushes exactly one undo step. Consecutive edits to
+the *same* parameter within a short window, such as the ticks of a slider drag,
+share one snapshot, so undoing a drag undoes the whole drag rather than one
+pixel of it. Editors with a batch action (Levels' Auto and Reset) push a single
+snapshot for the whole set of changes.

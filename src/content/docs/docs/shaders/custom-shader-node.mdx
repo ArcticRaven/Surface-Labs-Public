@@ -1,0 +1,108 @@
+---
+title: The Custom Shader Node
+description: A node whose program you write yourself, where one source text defines the ports, the Properties controls, and the pixels.
+---
+
+Custom Shader is a node whose program you write yourself. It appears in the
+Node Library under the Custom category, and it runs your code once per output
+pixel.
+
+The central idea is that the source text is the node definition. Declarations
+at the top of the source become the node's input ports and its Properties
+controls; the code below them computes the colour. One text buffer defines the
+whole node: ports, controls, and pixels.
+
+A new node arrives with a complete working source rather than an empty buffer,
+so it renders the moment it lands on the canvas:
+
+```glsl
+// Surface Shading Language. Declarations become ports and controls.
+in sampler2D source;               // @optional
+
+param vec3 tint = vec3(1.0, 0.6, 0.2);  // @color
+param float amount = 1.0;               // @range(0, 2)
+
+vec4 shade(vec2 uv) {
+    vec4 base = texture(source, uv);
+    vec3 rgb = mix(vec3(uv.x, uv.y, 0.5), base.rgb, base.a);
+    return vec4(rgb * tint * amount, 1.0);
+}
+```
+
+:::caution[missing screenshot]
+A freshly placed Custom Shader node on the canvas, showing the ports and
+Properties controls derived from the default source above.
+:::
+
+## Two authoring paths, one file
+
+Every source has the same two-part shape: a declaration header in SL (Surface
+Shading Language), then a body.
+
+The header is always SL. `in sampler2D …` and `param … // @…` lines are the
+node contract, and they carry UI metadata (ranges, enum labels, colour flags)
+that plain GLSL has no way to express. The header is sliced out of the source
+textually and parsed by SL's own parser. See
+[Declaring Ports & Parameters](/docs/shaders/ports-and-parameters/).
+
+The body is where the two paths diverge:
+
+- **Write GLSL directly (the normal path).** On the native GPU renderer the
+  body is passed through to the shader compiler (naga) essentially verbatim.
+  Loops, helper functions, arrays, matrices, `%`, the full built-in library,
+  anything naga accepts. See [Writing GLSL Directly](/docs/shaders/glsl/).
+- **Stay inside the SL subset (the portable path).** A body that also parses
+  as the original SL subset (no loops, no helper functions, at most 2 inputs,
+  within a 96-instruction budget) additionally compiles to bytecode for a
+  fallback interpreter that runs without the native renderer. This is a bonus
+  tier, not a requirement. See the
+  [SL Language Reference](/docs/shaders/sl-reference/).
+
+The editor's status line tells you which tier the current source landed in.
+Both tiers are meant to produce the same image; the native tier is the one
+that actually renders when the native core is available. See
+[The Shader Editor & Diagnostics](/docs/shaders/editor-and-diagnostics/).
+
+## One source, one pipeline
+
+On the native path the source compiles to a GPU pipeline, and every scalar
+channel a parameter needs is bound as its own live uniform. The compiled
+pipeline depends only on the source text, never on parameter values, so
+dragging a slider re-renders without recompiling the shader. One source is
+one pipeline.
+
+## Ports every Custom Shader node has
+
+Whatever you declare, the node always has:
+
+- a Mask input (grayscale), which you do not declare;
+- a single Output port (colour texture), which you do not declare.
+
+The Mask input blends the node's result back toward its first declared texture
+input. If your shader declares no `in sampler2D` at all, there is nothing to
+blend back toward and the mask input is ignored entirely.
+
+## Platform differences
+
+The native renderer is a dynamic library loaded per platform:
+`surface_gpu.dll` on Windows, `libsurface_gpu.so` on Linux and Android, and a
+statically linked symbol table on Apple platforms. If it does not load or does
+not initialise, the session falls back to the interpreter for everything.
+
+- **Windows / Linux.** The native path is the validated one. Full-GLSL bodies
+  work; the quarantine breaker is live.
+- **Apple platforms (macOS / iPadOS).** The loading path is present but not
+  yet validated. Treat full-GLSL bodies on Apple platforms as unverified.
+- **Anywhere the native core is unavailable.** Only SL-subset sources render.
+  A full-GLSL source produces no output, and shows nothing on the canvas.
+
+This also matters for sharing nodes: a subset source renders on any
+installation, a full-GLSL source requires the native renderer at the other
+end. See [Sharing Nodes](/docs/help/sharing-nodes/).
+
+## Performance
+
+Cost is pixels times work per pixel. An 8-tap loop at 2048 × 2048 is 33
+million texture reads. Prefer `for` loops with small constant bounds;
+unbounded or data-dependent loop counts are exactly what the
+[quarantine breaker](/docs/shaders/editor-and-diagnostics/) exists to catch.

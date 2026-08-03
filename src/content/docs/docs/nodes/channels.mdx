@@ -1,0 +1,50 @@
+---
+title: Channels Nodes
+description: Pull a single channel out of a texture as grayscale, or pack three grayscale maps into one RGBA texture.
+---
+
+Two nodes for taking a texture apart into single channels and putting channels back together. Neither has a Mask input.
+
+### Channel Extract
+
+Type id: `channel_extract`
+
+Pulls a single red, green, blue or alpha channel out of the input as a grayscale map. The first half of any channel-packing workflow, and the way to unpack an imported packed texture.
+
+**Inputs**
+
+- Input (any texture, required): the texture to read a channel from.
+
+**Outputs**
+
+- Output (grayscale): the selected channel, copied to all three color channels. The output is always fully opaque.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Channel | Choice | R | R, G, B, A | Four options, in this order. Most generated textures are fully opaque, so extracting A from them yields uniform white; alpha is only meaningful from an imported bitmap that carries one. |
+
+### Channel Combine
+
+Type id: `channel_combine`
+
+Packs three grayscale inputs into one RGBA texture, with alpha supplied as a constant. The node to use when building a channel-packed export, for instance roughness, metallic and occlusion in one image.
+
+**Inputs**
+
+- R (grayscale, required): contributes its red channel to the output's red channel.
+- G (grayscale, required): contributes its red channel to the output's green channel.
+- B (grayscale, required): contributes its red channel to the output's blue channel.
+
+All three must be connected.
+
+**Outputs**
+
+- Output (color): the packed RGBA texture.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Alpha | Float | 1.0 | 0.0 to 1.0 | A constant alpha for the whole output. There is no alpha input port. |
+
+:::caution[missing screenshot]
+Before/after: three grayscale maps (roughness, metallic, occlusion) feeding Channel Combine, beside the single packed RGBA result.
+:::

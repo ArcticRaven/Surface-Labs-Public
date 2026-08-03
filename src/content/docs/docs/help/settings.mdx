@@ -1,0 +1,142 @@
+---
+title: Settings
+description: Every page of the Settings window, from General and Appearance through Library, MCP Server, Shortcuts, Documentation and Debug.
+---
+
+Settings is a window that opens over whichever screen you are on, the hub or
+the editor. Open it from the hub's left rail, the editor's ⚙ toolbar button,
+or <kbd>F1</kbd>. It is a centred card with a vertical tab list on the left and
+the selected page on the right. Close it with the × in the top-right or with
+<kbd>Escape</kbd>. General is selected when it opens.
+
+Settings values apply application-wide and persist between sessions. They are
+**not** stored inside project files.
+
+:::caution[missing screenshot]
+The Settings window open over the editor, showing the tab list on the left and the General page on the right.
+:::
+
+## General
+
+| Control | Behaviour |
+| --- | --- |
+| **Version** | The running application version, read-only |
+| **Check for Updates** | **Disabled placeholder.** No release feed exists yet and nothing is contacted |
+| **Language** | Fixed to English, non-interactive |
+| **Export Diagnostics…** | Bundles crash dumps, session logs, captured failed-load projects, the open project and its autosave into one ZIP and hands it to a native save dialog. This is the way to get diagnostics off an iPad. Reports `Diagnostics exported` or `Diagnostics export failed: …` |
+| **Canvas Grid** | Shows/hides the canvas dot grid. On by default |
+| **Perf Overlay** | Shows the canvas FPS counter and per-node compute times. Off by default |
+| **3D Preview GPU** | Picks the graphics adapter the native renderer uses. Lists Automatic (High Performance) plus every adapter the system reports. **Takes effect after restarting the app**: the native core is created once per launch. If adapters cannot be enumerated the page reads `GPU selection is unavailable on this device.` |
+
+## Appearance
+
+A fixed-width theme list on the left, and on the right either a read-only
+preview of the selected theme's colour tokens or the Customize form.
+
+**Built-in themes:** Dark (the first-launch default), Light, High Contrast,
+Soft Dark. Any saved custom theme appears as an extra row. Selecting a theme
+applies it immediately.
+
+**Customize** opens a form with:
+
+- **Import from File…** loads a `.surfacetheme` and fills every field.
+- **Theme Name**
+- **Brightness**: Dark or Light.
+- **Colors**: one row per token: label, a live swatch that updates as you
+  type, and a `#RRGGBB` hex field (six hex characters, no alpha). There are
+  **19** tokens: Surface Base, Surface Raised, Surface Modal, Text Primary,
+  Text Secondary, Text Disabled, Border, Accent, Accent Deep, Status Error,
+  Status Warning, Status Success, Overlay Scrim, and six code-editor tokens
+  (Code Keyword, Code Type, Code Builtin, Code Literal, Code Comment, Code
+  Annotation).
+- **Save Theme** validates, applies and persists. This is the only setting in
+  the whole window that needs an explicit confirm.
+
+**Export Current Theme…** writes the active theme to a `.surfacetheme` file.
+See [Project & File Formats](/docs/help/file-formats/) for the file format.
+
+Messages you may see: `Theme exported.` · `Custom theme saved and applied.` ·
+`Fill in all color fields before saving.` · `Could not import theme - the file
+may be invalid.` · `"<name>" matches a built-in theme name - saving anyway.`
+
+:::caution[missing screenshot]
+The Appearance page with the theme list on the left and the Customize form's colour token rows on the right.
+:::
+
+## Accessibility
+
+| Control | Behaviour |
+| --- | --- |
+| **Reduce Motion** | Real and saved. Disables non-essential animation; most visibly, dragging a wire uses a static curve instead of the animated "dangly" physics |
+| **High Contrast Mode** | Switches the active theme to the High Contrast preset. Turning it **off returns to Dark**, not to whatever theme was active before |
+| **Large Text** | **Inert.** The toggle moves but nothing changes, it is not saved, and it returns to off whenever you leave the page |
+| **Canvas Zoom Sensitivity** | Multiplier on every pinch and scroll zoom step. Range 0.1 to 2.0, default 1.0 |
+
+## Library
+
+- A read-only box showing the full path where imported nodes and subgraphs are
+  stored: your Documents folder. It briefly reads `Resolving…` first. The
+  location cannot be changed from this page.
+- **Open in File Manager**: desktop only. Opens that folder in the system file
+  browser. Not present on iPad.
+- **Project Tags**: the tag vocabulary for projects in the hub. Tags are saved
+  into each `.surfacelabs` file, so they travel with a project you share, and
+  tags on projects you open are added here automatically.
+- **Node Tags**: extra labels for nodes in the Node Library, on top of the
+  built-in ones. Filter by them in the library panel; right-click any node to
+  tag it.
+
+Both tag managers work the same way: built-in tags are listed read-only at the
+top (so you extend the vocabulary rather than duplicating it with
+near-synonyms), followed by your own tags. Each of yours shows its name (tap to
+rename inline), a row of preset colour swatches plus a "no colour" option, a
+usage count, and a delete control. You can create new tags here.
+
+:::caution[missing screenshot]
+The Library page showing the storage path box and the two tag managers with built-in and user tags.
+:::
+
+## MCP Server
+
+Lets an AI assistant read and edit the project you have open. It sees the same
+graph you do, and its changes appear on the canvas as it makes them. The page
+holds the server start/stop control, auto-start and read-only toggles, the
+loopback port (default 4319) and bearer token, ready-to-paste client
+configuration (including a Claude Desktop `.mcpb` extension export), a summary
+of what a connected assistant can do, and a live activity list.
+
+Desktop only. On iPad the page explains that the in-app server runs on
+Windows, Linux and macOS, and that on that device Surface Labs can still open
+projects an agent authored elsewhere.
+
+See [MCP Server](/docs/mcp-server/) for the full page reference and the tools
+the server exposes.
+
+## Shortcuts
+
+The full keyboard shortcut list, grouped into File, Editor, Graph and Canvas.
+Preset chips switch between Surface Labs, Substance Designer, Blender, Houdini
+and Nuke binding sets; a Custom chip appears as a status label once you have
+diverged from a preset. Each row can be rebound, a per-row × restores that
+row's default, and **Reset All Shortcuts to Defaults** restores everything
+after a confirmation. A **Controller** section covers game controller input;
+see [Input Devices](/docs/editor/input-devices/).
+
+See [Shortcuts](/docs/editor/shortcuts/) for the full binding tables.
+
+## Documentation
+
+The in-app manual. Articles are bundled with the application, preprocessed for
+the platform you are on so one body of prose reads correctly on both Windows
+and iPad. A Search documentation field sits above the article list and searches
+full article text. When the page is wide enough the list and the article sit
+side by side; narrower than that, the list fills the page and choosing an
+article drills down to it, with All Topics to go back. A search matching
+nothing reports `No matching articles.`
+
+## Debug
+
+Only present in development builds; it never appears in a release build. It
+contains toast-testing buttons for each severity, an Open Native Preview screen
+for the native GPU core, Export Crash Report…, and a read-out of the active
+theme's id and brightness.

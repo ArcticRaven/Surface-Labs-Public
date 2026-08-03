@@ -1,0 +1,175 @@
+---
+title: SL Language Reference
+description: The Surface Shading Language header dialect and the body subset that keeps a shader runnable on the fallback interpreter.
+---
+
+This page documents SL proper: the header dialect, plus the body subset that
+keeps a source runnable on the fallback interpreter. If you are writing a
+full-GLSL body (loops, functions, matrices), see
+[Writing GLSL Directly](/docs/shaders/glsl/); the subset limits below do not
+apply to you, only the header rules do.
+
+## Program shape
+
+```
+program     := declaration* entryPoint
+
+declaration := "in" "sampler2D" IDENT ";" annotation?
+             | "param" type IDENT ("=" constant)? ";" annotation?
+
+entryPoint  := "vec4" "shade" "(" "vec2" IDENT ")" block
+             | "void" "main" "(" ")" block
+
+statement   := varDecl | assignment | if | return
+```
+
+## Types
+
+| Type | Size | Notes |
+| --- | --- | --- |
+| `float` | 1 | The only scalar the value model really has |
+| `int` | 1 | An alias for `float` inside SL. There is no integer arithmetic in the subset |
+| `bool` | 1 | Stored as 1.0 / 0.0, but tracked separately so `if` and `!` can be type-checked |
+| `vec2` | 2 | |
+| `vec3` | 3 | |
+| `vec4` | 4 | The type `shade` must return |
+| `seed` | n/a | Header-only pseudo-type for `param`. Reads as `float` in the body |
+| `sampler2D` | n/a | Header-only, for `in` declarations. Cannot be a variable or a function argument |
+
+There are no matrices, arrays, structs, or unsigned/integer vector types in
+the SL subset. All of those are available if you
+[write GLSL directly](/docs/shaders/glsl/).
+
+A scalar broadcasts into any size, exactly as in GLSL: `vec3 * float` is a
+component-wise multiply.
+
+## Literals and comments
+
+| Form | Example | Accepted |
+| --- | --- | --- |
+| Decimal | `1.0`, `42`, `.5` | Yes |
+| Float suffix | `1.0f`, `2F` | Yes; the suffix is consumed and dropped |
+| Booleans | `true`, `false` | Yes |
+| Scientific notation | `1e-3` | No in SL. Yes in a GLSL body |
+| Hexadecimal | `0x1F` | No in SL. Yes in a GLSL body |
+| Line comment | `// …` | Yes; discarded |
+| Annotation comment | `// @range(0, 1)` | Yes; kept as declaration metadata |
+| Block comment | `/* … */` | Yes; discarded, never an annotation |
+
+There are no string literals in SL or GLSL.
+
+## Operators, highest precedence first
+
+| Level | Operators | Associativity / notes |
+| --- | --- | --- |
+| 1 | `(…)`, literals, identifiers, calls `f(…)` | Primary |
+| 2 | `.` swizzle | Postfix, left to right; chained swizzles allowed |
+| 3 | `-` (negate), `!` (logical not) | Prefix, right to left |
+| 4 | `*`, `/` | Left to right |
+| 5 | `+`, `-` | Left to right |
+| 6 | `<`, `>`, `<=`, `>=` | Left to right; scalars only |
+| 7 | `==`, `!=` | Left to right; scalars only, compared with a 1e-6 tolerance |
+| 8 | `&&`, `\|\|` | Left to right; no short-circuit, both sides always evaluate |
+| 9 | `? :` | Ternary; both branches always evaluate |
+| statement | `=`, `+=`, `-=`, `*=`, `/=` | Statement-level assignment only, not an expression |
+
+Not in SL: `%`, `++`/`--`, bitwise operators, the comma operator, array
+indexing. `%` and bitwise operators are available in a GLSL body.
+
+Arithmetic requires matching sizes unless one side is a scalar. Comparisons
+require scalars on both sides.
+
+## Swizzles
+
+`.xyzw`, `.rgba`, and `.stpq` all work, 1 to 4 components, but you may not
+mix sets: `.xg` is an error. Reading a component past the value's size is an
+error. A one-component swizzle produces a scalar.
+
+```glsl
+vec3 colour = base.rgb;
+float height = base.r;
+vec2 flipped = uv.yx;
+```
+
+## Built-in functions
+
+The complete SL subset function table. Anything not listed here is an
+"unknown function" error in the subset, but is likely available if you write
+a GLSL body, where the full GLSL built-in library is in scope.
+
+| Function | Arguments | Returns |
+| --- | --- | --- |
+| `abs(x)` | 1 | same size as x |
+| `floor(x)` | 1 | same size |
+| `fract(x)` | 1 | same size |
+| `sqrt(x)` | 1 | same size |
+| `sin(x)` | 1 | same size |
+| `cos(x)` | 1 | same size |
+| `min(a, b)` | 2 | larger size |
+| `max(a, b)` | 2 | larger size |
+| `pow(a, b)` | 2 | larger size |
+| `step(edge, x)` | 2 | larger size |
+| `mix(a, b, t)` | 3 | largest size |
+| `clamp(x, lo, hi)` | 3 | largest size |
+| `smoothstep(e0, e1, x)` | 3 | largest size |
+| `dot(a, b)` | 2 | `float` |
+| `length(v)` | 1 | `float` |
+| `distance(a, b)` | 2 | `float` |
+| `normalize(v)` | 1 | same size as v |
+| `texture(sampler, uv)` | 2 | `vec4`; the first argument must be a declared `in sampler2D` name |
+| `float(x)` `vec2(…)` `vec3(…)` `vec4(…)` `int(x)` `bool(x)` | constructors | the named type |
+
+Constructors broadcast a single argument (`vec3(0.5)`) and compose from parts
+(`vec4(rgb, 1.0)`). Supplying too few components is an error.
+
+Notably absent from the subset: `tan`, `atan`, `exp`, `log`, `mod`, `sign`,
+`ceil`, `round`, `cross`, `reflect`, `inversesqrt`, `dFdx`/`dFdy`/`fwidth`.
+Use a full-GLSL body if you need them.
+
+## Built-in variables
+
+| Name | Where | Meaning |
+| --- | --- | --- |
+| `uv` (or whatever you named the `shade` parameter) | Both tiers | Normalised output coordinate, 0.0 to 1.0 across the image. Origin is the framebuffer's top-left |
+| `fragColor` | Both tiers | The output colour. In `void main()` form, assign to it. In `shade` form, return instead |
+| `uWidth`, `uHeight` | GLSL body only | Output width and height in pixels, as floats. Using them makes the source native-only |
+| `FlutterFragCoord()`, `gl_FragCoord` | GLSL body only | Pixel coordinates, origin top-left. Native-only |
+
+There is no time, no `random()`, and no frame counter; node evaluation is not
+animated. Use a hash function seeded from `uv` (and optionally a
+`param seed`) for pseudo-randomness.
+
+## Control flow in the SL subset
+
+- `if` / `else` / `else if` are supported. Both arms are evaluated and
+  merged, because the interpreter has no branch instruction; an `if` costs
+  the sum of its arms, not the taken one.
+- `return` may appear only as the final statement of the body. An early
+  `return`, or a `return` nested inside an `if`, is rejected with an
+  explanation. Assign to a variable in each branch and return it at the end.
+- Alternatively, assign to `fragColor` instead of returning.
+- Variable declarations must initialise: `vec3 c = …;`. There is no
+  uninitialised declaration.
+- There are no loops and no user-defined functions in the subset. Both are
+  fine in a GLSL body.
+
+A subset shader that never produces a colour (no trailing `return` and no
+`fragColor` assignment) is a compile error.
+
+## SL subset limits
+
+These limits apply to the portable fallback tier only.
+
+| Limit | Value |
+| --- | --- |
+| Instructions | 96 |
+| Variables / registers | 16 total, shared between named variables and expression temporaries |
+| Texture samplers | 2 |
+| Loops | Not supported |
+| User-defined functions | Not supported |
+| `return` | Final statement only; never inside a branch |
+| Arrays, structs, matrices, `%`, bitwise ops | Not supported |
+
+Exceeding any of these is not an error in itself; it simply makes the source
+native-only. The only hard errors are within a source you are asking the
+interpreter to run, for example an early `return` or too many live variables.

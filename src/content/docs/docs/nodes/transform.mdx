@@ -1,0 +1,127 @@
+---
+title: Transform Nodes
+description: The nodes that reproject an image, covering tiling and offset, seamless rotation, and warping by a second image.
+---
+
+Transform nodes reproject an image rather than altering its values. All four
+take an optional Mask input; where a Transform node is masked, the result
+blends back toward its own unmodified input.
+
+### Transform
+
+Type id: `transform`
+
+Scales, offsets and tiles the input while keeping the result seamless. The
+workhorse for repeating a pattern or nudging it into place.
+
+**Inputs:**
+
+- Input (any texture, required): the image to reproject.
+- Mask (grayscale texture, optional): masked areas keep the untransformed
+  input.
+
+**Outputs:**
+
+- Output (any texture): the reprojected image.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Tiles X | float | 1.0 | 0.1 to 16.0 | Repeat count on X. Above 1 repeats the image; below 1 enlarges it. |
+| Tiles Y | float | 1.0 | 0.1 to 16.0 | Repeat count on Y. |
+| Offset X | float | 0.0 | 0.0 to 1.0 | Shift as a fraction of the width; 1.0 wraps once. |
+| Offset Y | float | 0.0 | 0.0 to 1.0 | Shift as a fraction of the height. |
+
+There is no rotation, shear or mirror here; use [Rotate](#rotate) for
+rotation.
+
+:::caution[missing screenshot]
+A pattern shown at Tiles 1.0 and Tiles 4.0 side by side, with the wrap staying
+seamless.
+:::
+
+### Rotate
+
+Type id: `rotate`
+
+Spins the input about the tile centre. Two independent choices: whether pixel
+values are passed through as-is or re-oriented as vectors, and whether the
+result must keep tiling.
+
+**Inputs:**
+
+- Input (any texture, required): the image to rotate.
+- Mask (grayscale texture, optional): masked areas keep the unrotated input.
+
+**Outputs:**
+
+- Output (any texture): the rotated image.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Mode | enum | Image (degrees) | Image (degrees) · Vector (R,G) | Image passes the rotated pixels through unchanged, right for height, masks and colour. Vector also rotates the direction encoded in the red and green channels by the same angle, so a rotated normal or flow map still lights correctly; blue and alpha pass through. |
+| Angle | float | 0.0 | -180.0 to 180.0 degrees | |
+| Seamless | enum | Seamless (snaps angle) | Exact angle (seams) · Seamless (snaps angle) | Seamless snaps the angle to the nearest tiling-safe rotation, roughly every 3 to 10 degrees, and the result tiles perfectly at every snap point; the trade is that the content repeats proportionally more often. Exact rotates at the precise angle, but only quarter turns tile. |
+
+:::caution[missing screenshot]
+The same input rotated in Seamless mode and in Exact mode, showing the seam
+the exact angle introduces at the tile edge.
+:::
+
+### Warp
+
+Type id: `warp`
+
+Pushes pixels around using a second image as a displacement field; the fastest
+way to make a regular pattern look natural.
+
+**Inputs:**
+
+- Input (any texture, required): the image to displace.
+- Warp (any texture, required): the displacement field. Its red and green
+  channels drive movement on X and Y, centred on mid-grey, so mid-grey means
+  no movement. This port has no fallback: with nothing connected the node
+  produces no output.
+- Mask (grayscale texture, optional): masked areas keep the undisplaced
+  input.
+
+**Outputs:**
+
+- Output (any texture): the displaced image.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Intensity | float | 0.1 | 0.0 to 1.0 | Maximum displacement, as a fraction of the image. |
+
+:::caution[missing screenshot]
+A regular grid pattern before and after being warped by a noise field.
+:::
+
+### Directional Warp
+
+Type id: `directional_warp`
+
+Displaces along a single fixed direction, by an amount read from a driver
+image. Good for wind-blown, combed or brushed looks.
+
+**Inputs:**
+
+- Input (any texture, required): the image to displace.
+- Warp (any texture, required): the driver. Its brightness sets how far each
+  pixel moves along the angle, centred on mid-grey, so brighter pushes one
+  way and darker the other. This port has no fallback: with nothing connected
+  the node produces no output.
+- Mask (grayscale texture, optional): masked areas keep the undisplaced
+  input.
+
+**Outputs:**
+
+- Output (any texture): the displaced image.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Angle | float | 0.0 | 0.0 to 360.0 degrees | The single direction everything moves along. |
+| Intensity | float | 0.1 | 0.0 to 1.0 | Maximum displacement, as a fraction of the image. |
+
+:::caution[missing screenshot]
+Vertical stripes combed sideways by a Directional Warp driven by noise.
+:::

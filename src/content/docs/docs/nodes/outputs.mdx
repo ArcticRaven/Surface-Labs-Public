@@ -1,0 +1,89 @@
+---
+title: Output Nodes
+description: The endpoints of a graph, PBR Output, Custom Output and Trim Sheet, and how they feed the 3D preview and the exporter.
+---
+
+Output nodes are the endpoints of a graph. They decide which textures leave the project, which material channel each texture fills, and what the 3D material preview shows. The category contains three nodes: PBR Output, Custom Output and Trim Sheet. Exporting is per node: you pick an output node and export that one. See [Exporting](/docs/export/exporting/) for how output nodes drive the export dialog and file naming.
+
+### PBR Output
+
+Type id: `pbr_output`
+
+The material endpoint. Wire base colour, roughness, metallic, normal and height here to drive the 3D preview and the exporter. Every channel has an on/off toggle and, in most cases, a constant fallback, so a material looks sensible long before all its maps are wired.
+
+**Inputs:** Base Color (colour map, optional), albedo. Normal (colour map, optional), tangent-space normal. Roughness (grayscale map, optional). Metallic (grayscale map, optional). Specular (colour map, optional), for the Specular/Glossiness workflow. Glossiness (grayscale map, optional). AO (grayscale map, optional), ambient occlusion. Height (grayscale map, optional). Opacity (grayscale map, optional). Clearcoat (grayscale map, optional). No input is required; a graph renders and exports with any subset connected.
+
+**Outputs:** Material (material), the whole map set as a single wire. It carries no texture of its own; whatever consumes it (a Trim Sheet slot) resolves each individual channel back through this node's inputs at render and export time. A material wire only connects to another material-aware socket.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Workflow | Choice | Metallic / Roughness | Metallic / Roughness, Specular / Glossiness | Picks which channel pair describes reflectance. The preview reads Metallic + Roughness in the first mode and Specular + Glossiness in the second. The export dialog opens pre-set to whichever workflow this node is on. |
+| Use Base Color | Toggle | On | On / Off | Enables the Base Color channel. |
+| Base (colour) | Colour | 0.8, 0.8, 0.8 | each 0.0 to 1.0 | Constant fallback when Base Color is enabled but nothing is wired. Edited as one colour swatch. |
+| Use Normal | Toggle | On | On / Off | Enables the Normal channel. Normal is the one channel with no constant of its own; when it is off or unwired the preview uses a flat normal. |
+| Use Roughness | Toggle | On | On / Off | Enables the Roughness channel. |
+| Roughness Value | Slider | 0.5 | 0.0 to 1.0 | Constant fallback for Roughness. |
+| Use Metallic | Toggle | On | On / Off | Enables the Metallic channel. |
+| Metallic Value | Slider | 0.0 | 0.0 to 1.0 | Constant fallback for Metallic. |
+| Use Specular | Toggle | Off | On / Off | Enables the Specular channel. |
+| Specular (colour) | Colour | 0.04, 0.04, 0.04 | each 0.0 to 1.0 | Constant fallback for Specular. Edited as one colour swatch. |
+| Use Glossiness | Toggle | Off | On / Off | Enables the Glossiness channel. |
+| Glossiness Value | Slider | 0.5 | 0.0 to 1.0 | Constant fallback for Glossiness. |
+| Use AO | Toggle | On | On / Off | Enables the AO channel. |
+| Ao Value | Slider | 1.0 | 0.0 to 1.0 | Constant fallback for AO. |
+| Use Height | Toggle | On | On / Off | Enables the Height channel. |
+| Height Value | Slider | 0.5 | 0.0 to 1.0 | Constant fallback for Height. |
+| Use Opacity | Toggle | Off | On / Off | Enables the Opacity channel. |
+| Opacity Value | Slider | 1.0 | 0.0 to 1.0 | Constant fallback for Opacity. |
+| Use Clearcoat | Toggle | Off | On / Off | Enables the Clearcoat channel. |
+| Clearcoat Value | Slider | 0.0 | 0.0 to 1.0 | Constant fallback for Clearcoat. |
+| Clearcoat Roughness Value | Slider | 0.1 | 0.0 to 1.0 | A second clearcoat constant. Nothing reads it today. |
+
+A channel with a texture wired in always uses that texture. A channel with nothing wired but its toggle on falls back to its constant, and that constant is a real, exportable flat map, not preview-only. A channel with its toggle off falls back to an engine-neutral value (flat normal, white AO, mid grey, black metallic) and is not exported.
+
+:::caution[missing screenshot]
+A PBR Output node with several maps wired and the Properties panel showing the per-channel toggles and constant fallbacks.
+:::
+
+### Custom Output
+
+Type id: `custom_output`
+
+A free-form export endpoint. Name the channel yourself for pipelines that expect something other than the standard PBR set. One input, no parameters, no outputs.
+
+**Inputs:** Input (texture, optional), any map you want written out under your own name.
+
+**Outputs:** none.
+
+This node has no parameters.
+
+The exported filename is built from the export prefix plus a slug of the node's own label: `<prefix>_<label-slug>.<extension>`. The slug is the label lowercased, with every run of non-alphanumeric characters replaced by a single underscore, leading and trailing underscores stripped; a label containing no letters or digits falls back to `output`. The stock label "Custom Output" therefore writes `<prefix>_custom_output`.
+
+### Trim Sheet
+
+Type id: `trim_sheet`
+
+Stacks up to four materials into horizontal strips on one sheet, for the trim-sheet workflow where a single texture set covers many meshes through UV placement. Strip heights come from a layout preset or from per-strip fill weights you set yourself.
+
+**Inputs:** Strip 1 (top) (map or material, optional), Strip 2 (map or material, optional), Strip 3 (map or material, optional), Strip 4 (map or material, optional). Each slot accepts either a plain map, used as that strip's Base Color with engine-neutral values in every other channel, or a whole material wired from a PBR Output's Material port, in which case every channel of that strip resolves from that material. Slots also see through Reroute nodes.
+
+**Outputs:** Output (colour map), the composited sheet for the channel chosen by Preview Channel. Export walks all six channels through the same compositor.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Layout | Choice | Equal strips | Custom, Equal strips, Feature top (½ then equal), Cascade (½ ¼ ⅛ ⅛) | Equal strips divides the sheet evenly. Feature top gives the first strip half the sheet and splits the rest evenly. Cascade halves successively, with the last two equal. Custom uses the Strip fill sliders below. |
+| Preview Channel | Choice | Base Color | Base Color, Normal, Roughness, Metallic, AO, Height | Which material channel the node's own output shows. It does not affect what gets exported; export writes all of them. |
+| Fit Mode | Choice | Stretch to strip | Stretch to strip, Preserve aspect (tile across) | How each source fills its strip. Preserve aspect tiles the source horizontally instead of squashing it. |
+| Strip fill | Sliders (one per strip) | 1.00 each | 0.02 to 1.00 each | Only shown when Layout is Custom. Weights are relative; each slider's percentage readout is its share of the sheet among the strips currently in use. A Reset button returns all four to equal. |
+
+Only connected slots become strips, and they close up in order: if you connect slots 2, 3 and 4 you get a three-strip sheet, not a blank top strip. A slot whose upstream has not produced anything yet is skipped rather than rendered as a placeholder. Channel neutrals for a strip with no data are a flat normal, white AO, black metallic and mid grey for everything else.
+
+Vertical seams between neighbouring strips are inherent to trim sheets; each strip is its own material band. Within one strip the content still wraps cleanly against itself, and each strip tiles horizontally wherever its source does.
+
+:::note[Trim Sheet does not render headlessly]
+Trim Sheet compositing needs the application's own rasterizer. In a headless run, whether through the [Command Line](/docs/headless-cli/) exporter or the standalone [MCP Server](/docs/mcp-server/), the node is reported as skipped and any map fed by it is missing from the output. Open the project in Surface Labs to export a trim sheet.
+:::
+
+:::caution[missing screenshot]
+A Trim Sheet with three materials wired, showing the composited strips in the node preview and the Layout controls in the Properties panel.
+:::

@@ -1,0 +1,78 @@
+---
+title: Glossary
+description: Short definitions of every recurring Surface Labs term, from graphs and ports to seeds, subgraphs and the port data types.
+---
+
+The terms below recur throughout the documentation. Each links to the page
+that covers it in depth where one exists. Ports are typed: textures and values
+are not interchangeable, and a mismatched connection is not blocked but drawn
+in red to flag it for review.
+
+**[Bit depth](/docs/concepts/resolution-and-bit-depth/)**: the precision
+textures are authored and exported at: 8, 16 or 32 bits per channel.
+
+**[Boolean (data type)](/docs/concepts/data-types/)**: an on/off value;
+connects only to boolean ports.
+
+**[Custom (data type)](/docs/concepts/data-types/)**: an unchecked type used by
+the Reroute node; connects to anything and bypasses type validation.
+
+**[Exposed parameter](/docs/graphs/exposed-parameters/)**: a node parameter
+promoted to project level so it can be driven from one place in the Global
+Variables panel.
+
+**[Graph](/docs/concepts/evaluation/)**: the network of nodes and connections
+that produces a material.
+
+**[Mask input](/docs/nodes/overview/)**: an optional input carried by many
+nodes across most categories. Where the mask is dark, the node's effect is
+removed and the result falls back to the node's primary input, or to a
+constant for nodes that have no input.
+
+**[Material](/docs/graphs/multi-material/)**: one node graph within a project.
+A project may hold several; you switch between them in the Material Library
+panel.
+
+**[Material (data type)](/docs/concepts/data-types/)**: a whole map-set carried
+on a single wire, used by the PBR Output and Trim Sheet nodes.
+
+**[Multi-output node](/docs/graphs/multi-output/)**: a node exposing more than
+one output port, each carrying different data derived from the same
+computation. Six node types do this; see the
+[Node Reference](/docs/nodes/overview/).
+
+**[Node](/docs/nodes/overview/)**: one operation. Every node is created from a
+*node type* that fixes its label, category, ports and parameter list. A placed
+node stores only its own parameter values and connections.
+
+**[Parameter](/docs/editor/properties/)**: a value stored on a node and edited
+in the Properties panel rather than supplied through a connection. Parameters
+come in float, integer, boolean, seed, enum (choice) and colour kinds.
+
+**[Port](/docs/graphs/connections/)**: a connection point. Input ports receive
+data; output ports supply it. An input may be *required* (the node produces
+nothing until it is connected) or *optional*.
+
+**[Resolution](/docs/concepts/resolution-and-bit-depth/)**: the pixel size a
+node renders at. Set project-wide, with an optional per-node override.
+
+**[Seed](/docs/editor/properties/)**: a whole number with no slider and a
+randomise button. Changing it reshuffles a pattern without changing any other
+characteristic.
+
+**[Subgraph](/docs/graphs/subgraphs/)**: a selection of nodes collapsed into a
+single reusable node, stored with the project and evaluated wherever it is
+instanced.
+
+**[Tag](/docs/help/settings/)**: a label applied to nodes and projects, used to
+organise and filter the node library.
+
+**[Texture (data type)](/docs/concepts/data-types/)**: image data. Three
+variants exist: a generic type used by filters that preserve whatever they are
+given, a **grayscale texture** for single-channel data such as height,
+roughness and masks, and a **colour texture** for three-channel data such as
+base colour and normals. The three are freely interchangeable; the distinction
+drives wire and port colour only.
+
+**[Value (data type)](/docs/concepts/data-types/)**: a number or a 2-, 3- or
+4-component vector. All value types interconnect.

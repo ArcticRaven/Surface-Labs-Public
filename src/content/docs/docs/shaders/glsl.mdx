@@ -1,0 +1,145 @@
+---
+title: Writing GLSL Directly
+description: The full-GLSL body path, what the wrapper provides, what is rejected, and the sampling and tiling rules that keep it working.
+---
+
+On the native renderer, the body below the header is real GLSL. The
+application wraps it, so you write the interesting part and nothing else. The
+header rules from
+[Declaring Ports & Parameters](/docs/shaders/ports-and-parameters/) still
+apply; the SL subset limits do not.
+
+## Entry points
+
+Exactly one of these must be present in the body:
+
+```glsl
+vec4 shade(vec2 uv) {
+    return vec4(uv.x, uv.y, 0.0, 1.0);
+}
+```
+
+```glsl
+void main() {
+    fragColor = vec4(uv.x, uv.y, 0.0, 1.0);
+}
+```
+
+`shade` is the documented form; the coordinate parameter may have any name.
+The `void main()` form exists so an existing pasted shader works. In that
+form the coordinate is always provided as a global named `uv`, and your
+`main` is renamed internally so the wrapper can call it. If both spellings
+appear, `shade` wins.
+
+## What the wrapper provides for you
+
+- `#version` and the whole preamble.
+- `out vec4 fragColor;`.
+- `uniform float uWidth;` and `uniform float uHeight;`, readable from your
+  body.
+- One `uniform sampler2D` per declared input, in declaration order.
+- One live float uniform per parameter channel, copied into a global carrying
+  your declared name before the body runs.
+- The `main()` that computes `uv` as
+  `FlutterFragCoord().xy / vec2(uWidth, uHeight)` and calls your entry point.
+
+## What is rejected
+
+These produce a compile error with a line and column:
+
+| Rejected | Why / what to do instead |
+| --- | --- |
+| `uniform …` declarations anywhere in the body | Declare textures with `in sampler2D <name>;` and values with `param <type> <name> = <default>;` in the header |
+| Any preprocessor line (`#version`, `#include`, `#define`, `#ifdef`) | The wrapper adds its own `#version`; there is no preprocessor available to you |
+| A declaration placed after the body starts | The header ends at the first non-declaration line |
+| A 5th `in sampler2D` | The maximum is 4 |
+| A missing entry point | Neither `vec4 shade(` nor `void main(` was found in the body |
+
+Two lines are tolerated and blanked rather than rejected, so pasted sources
+work unedited: `out vec4 fragColor;` and any `precision …` line.
+
+## Sampling rules
+
+Read a declared input with `texture(<name>, <coord>)`. Two hard constraints
+follow from how the sampler is rewritten for the native backend:
+
+- **Keep each `texture(...)` call on one line.** A call split across lines
+  fails to compile. Whitespace and tabs within the line are fine
+  (`texture ( source , uv)` is normalised), but a newline between `texture(`
+  and the input's name is not.
+- **`texture()` is the only sampling form that works on a declared input.**
+  `textureLod`, `texelFetch`, `textureGrad` and `textureSize` applied to a
+  declared input name will fail with an unknown-identifier error, because
+  only the `texture(name,` spelling is rewritten.
+- For the same reason, **you cannot pass a declared input to a helper
+  function** as a `sampler2D` argument. Sample it in the entry point and pass
+  the resulting `vec4`, or pass the coordinate down and sample at the top
+  level.
+
+## Ordering
+
+GLSL reads top to bottom: a helper function must be defined above its first
+use, so the entry point goes last.
+
+```glsl
+in sampler2D source;
+
+param float scale = 8.0;   // @range(1, 32)
+param seed variation;
+
+float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7)) + variation) * 43758.5453);
+}
+
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(mod(i, scale));
+    float b = hash(mod(i + vec2(1.0, 0.0), scale));
+    float c = hash(mod(i + vec2(0.0, 1.0), scale));
+    float d = hash(mod(i + vec2(1.0, 1.0), scale));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+vec4 shade(vec2 uv) {
+    float n = 0.0;
+    float amp = 0.5;
+    vec2 p = uv * scale;
+    for (int i = 0; i < 5; i++) {
+        n += amp * noise(p);
+        p *= 2.0;
+        amp *= 0.5;
+    }
+    float base = texture(source, uv).r;
+    return vec4(vec3(mix(base, n, 0.5)), 1.0);
+}
+```
+
+## Tiling
+
+Every texture the application produces is expected to tile seamlessly on both
+axes. Two rules cover nearly everything:
+
+- **Generators.** Wrap every per-cell index with `mod(cell, count)`, so cell
+  `count` is cell 0 again.
+- **Neighbour taps** (blur, edge detect, warp). Wrap every offset coordinate
+  with `fract(uv + offset)`, so a tap past the right edge reads from the
+  left.
+
+Repeat addressing on the sampler means `fract()` is harmless when the
+coordinate is already in range.
+
+## Native path limits
+
+| Limit | Value |
+| --- | --- |
+| Source size | Rejected above 1,000,000 bytes |
+| Compiled pipeline cache | 32 distinct generated shaders, least-recently-used evicted |
+| Output render target | 16-bit float per channel |
+| Input sampling | Repeat addressing, linear filtering, LOD 0 |
+| Body language | Whatever naga's GLSL frontend and validator accept for a fragment stage. Compute, geometry, tessellation and vertex constructs are out of scope |
+
+The body is compiled as desktop-style GLSL (the wrapper supplies
+`#version 450`), not GLSL ES, so ES-only idioms may be rejected, and
+`precision` qualifiers are ignored rather than honoured.

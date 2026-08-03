@@ -1,0 +1,107 @@
+---
+title: Simulation & Compute Nodes
+description: Distance Field and Erosion, the two iterative GPU compute nodes, which require the native render core.
+---
+
+Both nodes on this page run an iterative pass that reads its own previous
+output. That cannot be expressed as an ordinary filter, so they run on the GPU
+compute path and require the native render core. On a build without it they
+produce no output rather than a substitute.
+
+They are listed under the **Filters** category in the Node Library and follow
+the same conventions as the other [filter nodes](/docs/nodes/filters/):
+**Input** is required, and the optional grayscale **Mask** input restricts the
+effect where the mask is dark.
+
+## Distance Field
+
+Type id: `distance_field`
+
+:::note[Requires the native render core]
+This node runs as a GPU compute pass and produces nothing without the native render core.
+:::
+
+Computes the distance from every pixel to the nearest bright pixel using a
+jump flood, giving exact, resolution-independent falloffs for glows, bevels,
+gradients around shapes, and any mask that needs to fade outward from a
+silhouette.
+
+:::caution[missing screenshot]
+A shape mask next to its Signed, Inside and Outside distance fields at the same Spread.
+:::
+
+**Inputs**
+
+- **Input** (any texture, required): the shape to measure from; it is thresholded into "inside" and "outside" first.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (grayscale): the normalised distance field.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Threshold | Decimal | 0.5 | 0.0 to 1.0 | Luminance cutoff that decides what counts as inside the shape. |
+| Spread | Decimal | 0.25 | 0.001 to 2.0 | The distance the gradient covers before it clips, as a fraction of the *shorter* image edge, so the same value produces the same visual band at any resolution. |
+| Mode | Choice | Signed | Signed, Inside, Outside | Signed puts the boundary at mid-gray, going darker outward and brighter inward. Inside reads 0 at the silhouette and rises inward, staying black outside the shape. Outside reads 0 at the silhouette and rises outward. |
+
+Shapes crossing the tile seam are treated as one shape, so the field has no
+discontinuity at the image edges. The cost scales with resolution rather than
+with Spread: the node runs roughly log2 of the longest edge passes, plus a
+seeding and a resolving pass, about 12 passes at 1024 and 13 at 2048.
+
+## Erosion
+
+Type id: `erosion`
+
+:::note[Requires the native render core]
+This node runs as a GPU compute pass and produces nothing without the native render core.
+:::
+
+Simulates weathering on a height map by actually moving material, so what a
+channel loses turns up downstream. Unlike Slope Blur, which only smears pixels
+along a gradient, this conserves what it transports. That is what makes silt
+fans and scree slopes appear where they should.
+
+:::caution[missing screenshot]
+A terrain height map before and after Hydraulic and Thermal erosion, plus the Flow, Deposit and Wear outputs of the hydraulic run.
+:::
+
+**Inputs**
+
+- **Height** (grayscale, required): the terrain to weather.
+- **Mask** (grayscale, optional): restricts the effect.
+
+**Outputs**
+
+- **Output** (grayscale): the map selected by the Output parameter.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Type | Choice | Hydraulic | Hydraulic, Thermal | Hydraulic: water lands, runs downhill, dissolves material into suspension, carries it, and drops it where the flow slows; cuts channels and builds silt fans. Thermal: material on slopes steeper than its angle of repose slides to lower neighbours; rounds ridges and piles scree at the foot of cliffs. |
+| Iterations | Whole number | 24 | 1 to 128 | How long the simulation runs, and the node's main cost. Material travels about one pixel per iteration at a 1024-pixel reference size. |
+| Strength | Decimal | 0.5 | 0.0 to 1.0 | How much material moves per step. |
+| Talus | Decimal | 0.35 | 0.0 to 1.0 | *Thermal only.* The angle of repose: how steep a slope has to be before material slides. Lower values let material slide off gentler slopes, so more of the terrain flattens. |
+| Rain | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How much water arrives per step. |
+| Evaporation | Decimal | 0.3 | 0.0 to 1.0 | *Hydraulic only.* How fast water leaves, which decides how far it carries its load before dropping it. |
+| Capacity | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How much sediment moving water can hold: the balance between cutting deep channels and silting everything up. More capacity cuts deeper. |
+| Deposition | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How readily suspended material is dropped. More deposition silts up the low ground. |
+| Output | Choice | Height | Height, Flow, Deposit, Wear | Which map the run returns. Height is the eroded terrain. Flow is where water ran, a wetness or moss mask, averaged over the run so raising Iterations does not just brighten it. Deposit is where material landed: silt and sand masks. Wear is where material was stripped: exposed-rock masks. |
+
+Talus is hidden while Type is Hydraulic, and Rain, Evaporation, Capacity and
+Deposition are hidden while Type is Thermal.
+
+Reading a second map means adding a second Erosion node with identical
+settings, which runs the whole simulation again.
+
+**Cost scales with resolution on purpose.** Material moves one pixel per step,
+so at twice the resolution the same iteration count would carry silt half as
+far across the image, and a graph tuned at 512 would come out of a 2048 export
+visibly less eroded. The node therefore scales the real pass count with the
+image (Iterations × shorter edge ÷ 1024, capped at 512, plus a seeding and a
+resolving pass) and shrinks the per-step time slice to match, so the same
+settings give the same picture at every size. The honest consequence is that a
+4K render really does run about four times the passes of a 1K one.
+
+A common pairing is to erode the height first, then use the same node's Flow
+output as a mask for dirt in the base colour.

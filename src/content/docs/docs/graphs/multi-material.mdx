@@ -1,0 +1,23 @@
+---
+title: Multi-Material Projects
+description: Holding several materials in one project, switching between them, and where they are stored.
+---
+
+A material is one node graph within a project, and one `.surfacelabs` project
+can hold several. The **Materials** panel lists them.
+
+:::caution[missing screenshot]
+The Materials panel listing several materials, with the active one highlighted and the Add and delete controls visible.
+:::
+
+- Tap a material to switch to it. The live graph is snapshotted into the
+  material you are leaving, so nothing is lost.
+- **Add** creates an empty material.
+- **✕** deletes a material. The control is disabled for the currently active
+  material and when only one material remains.
+
+## Storage
+
+The active material's graph and the inactive materials are all stored inside
+the same project archive. See [File formats](/docs/help/file-formats/) for how
+the archive is laid out.
