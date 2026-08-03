@@ -512,24 +512,31 @@ a.site-nav__link:hover {
 	width: 100%;
 }
 
-/* Hero visual: a material authored in the app, clipped to its sphere so it
-   floats on the node-grid dots like a rendered preview rather than sitting in
-   a chrome box. The clip circle bites ~1% into the sphere's dark limb, which
-   removes the square black render background invisibly. */
-.hero-planet {
-	text-align: center;
+/* Hero download card wrapping the itch.io embed */
+.hero-cta-card {
+	background: var(--panel);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius);
+	padding: 24px;
+	box-shadow: 0 24px 60px -34px var(--shadow);
 }
 
-.hero-planet img {
-	width: min(100%, 470px);
-	aspect-ratio: 1 / 1;
-	margin-inline: auto;
-	clip-path: circle(40% at 50% 50%);
-	filter: drop-shadow(0 26px 48px var(--shadow));
+.hero-cta-card__title {
+	font-size: 1.15rem;
+	font-weight: 640;
+	letter-spacing: -0.01em;
+	margin-bottom: 16px;
 }
 
-.hero-planet figcaption {
-	margin-top: 2px;
+.hero-cta-card__note {
+	margin-top: 16px;
+	font-size: 0.9rem;
+	color: var(--text-muted);
+}
+
+.hero-cta-card__note strong {
+	color: var(--text);
+	font-weight: 600;
 }
 
 /* itch.io embed widget */

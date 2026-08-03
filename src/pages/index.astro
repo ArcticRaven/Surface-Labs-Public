@@ -1,11 +1,9 @@
 ---
-import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Gallery from '../components/Gallery.astro';
 import Contact from '../components/Contact.astro';
-import heroMaterial from '../assets/screenshots/06-galaxy-material.webp';
 import {
 	SITE_TITLE,
 	SITE_DESCRIPTION,
@@ -168,7 +166,6 @@ const compareRows = [
 						engine at its core.
 					</p>
 					<div class="hero__actions">
-						<a class="btn btn--primary" href={ITCH_URL}>Download on itch.io</a>
 						<a class="btn btn--secondary" href={WHATS_NEW_URL}>What's new in 1.2</a>
 						<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
 							<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -177,19 +174,26 @@ const compareRows = [
 							Join the Discord
 						</a>
 					</div>
-					<p class="hero__terms">Free while in early access.</p>
 				</div>
 
-				<figure class="hero__figure hero-planet">
-					<Image
-						src={heroMaterial}
-						alt="The Deep Space Nebula material rendered on a sphere: wisps of blue gas and pinpoint stars."
-						widths={[480, 720, 960]}
-						sizes="(max-width: 1000px) 78vw, 470px"
-						loading="eager"
-					/>
-					<figcaption>Deep Space Nebula · authored in Surface Labs</figcaption>
-				</figure>
+				<div class="hero__figure">
+					<div class="hero-cta-card">
+						<p class="hero-cta-card__title">Get Surface Labs</p>
+						<div class="itch-embed">
+							<!-- Official itch.io store embed. -->
+							<iframe
+								title="Surface Labs on itch.io"
+								src={`https://itch.io/embed/${ITCH_EMBED_ID}?dark=true`}
+								loading="lazy"
+							>
+								<a href={ITCH_URL}>Surface Labs by Arctic Dev</a>
+							</iframe>
+						</div>
+						<p class="hero-cta-card__note">
+							Windows, macOS, Linux, Android and iPad. Free while in early access.
+						</p>
+					</div>
+				</div>
 			</div>
 		</section>
 
