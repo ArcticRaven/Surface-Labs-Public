@@ -138,12 +138,18 @@ const count = slides.length;
 		);
 		const count = slides.length;
 
-		const indexFromScroll = () =>
-			Math.round(track.scrollLeft / track.clientWidth);
+		// One scroll step is the distance between slide starts (width + gap),
+		// measured from the DOM so the CSS gap stays the single source of truth.
+		const step = () =>
+			count > 1
+				? slides[1].offsetLeft - slides[0].offsetLeft
+				: track.clientWidth;
+
+		const indexFromScroll = () => Math.round(track.scrollLeft / step());
 
 		const goTo = (i: number) => {
 			const clamped = Math.max(0, Math.min(count - 1, i));
-			track.scrollTo({ left: clamped * track.clientWidth, behavior: 'smooth' });
+			track.scrollTo({ left: clamped * step(), behavior: 'smooth' });
 		};
 
 		const sync = () => {

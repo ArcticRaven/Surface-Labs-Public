@@ -559,7 +559,10 @@ a.site-nav__link:hover {
 
 .carousel__track {
 	display: flex;
-	gap: 0;
+	/* Breathing room between slides so adjacent renders never touch while
+	   swiping. The nav JS derives its scroll step from real slide offsets,
+	   so this value is free to change. */
+	gap: 32px;
 	overflow-x: auto;
 	scroll-snap-type: x mandatory;
 	scroll-behavior: smooth;
