@@ -1,10 +1,12 @@
 ---
 /**
- * Screenshot gallery carousel.
+ * Material gallery carousel.
  *
- * Auto-loads every image in src/assets/screenshots/ (sorted by filename, so a
- * numeric prefix controls order) and renders an accessible, scroll-snap
- * carousel. To add a screenshot, drop a file in that folder — optionally add a
+ * Shows square renders of materials authored in Surface Labs — no UI
+ * screenshots (those belong to the docs, in src/assets/docs/). Auto-loads
+ * every image in src/assets/screenshots/ (sorted by filename, so a numeric
+ * prefix controls order) and renders an accessible, scroll-snap carousel. To
+ * add a material, drop a square render in that folder — optionally add a
  * caption/alt entry below keyed by the filename (without extension).
  *
  * Interactivity is a small amount of vanilla JS (no framework): the track is a
@@ -19,28 +21,12 @@ const modules = import.meta.glob('../assets/screenshots/*.{png,jpg,jpeg,webp}', 
 
 /** Optional captions/alt text keyed by filename without extension. */
 const META: Record<string, { caption: string; alt: string }> = {
-	'01-app-overview': {
-		caption: 'Node graph and live 3D preview',
-		alt: 'Surface Labs with a full procedural node graph on the right and a live 3D preview of the material on a cube on the left.',
-	},
-	'02-graph-editor': {
-		caption: 'The graph editor',
-		alt: 'The Surface Labs graph editor: a procedural material built from many connected shader nodes on an infinite canvas.',
-	},
 	'03-material': {
-		caption: 'A material authored in Surface Labs',
+		caption: 'Tiled ceramic',
 		alt: 'A tiled ceramic PBR material authored in Surface Labs, rendered on a rounded cube.',
 	},
-	'04-custom-shader': {
-		caption: 'Custom shader nodes',
-		alt: 'Surface Labs with a custom shader open in the Properties panel: the shader source and its parameter annotations on the left, the node graph in the middle, and the finished nebula material on a sphere in the 3D preview.',
-	},
-	'05-hub-library': {
-		caption: 'Project hub & library',
-		alt: 'The Surface Labs project hub showing recent projects and materials organised on custom shelves.',
-	},
 	'06-galaxy-material': {
-		caption: 'Deep Space Nebula, authored in Surface Labs',
+		caption: 'Deep Space Nebula',
 		alt: 'A deep space nebula material authored in Surface Labs, rendered on a sphere: wisps of blue gas and pinpoint stars against near-black space.',
 	},
 };
@@ -61,7 +47,7 @@ const slides: Slide[] = Object.entries(modules)
 		return {
 			src: (mod as { default: ImageMetadata }).default,
 			caption,
-			alt: meta?.alt ?? `Surface Labs screenshot: ${caption}.`,
+			alt: meta?.alt ?? `A material authored in Surface Labs: ${caption}.`,
 		};
 	});
 
@@ -73,12 +59,12 @@ const count = slides.length;
 		<div
 			class="carousel"
 			aria-roledescription="carousel"
-			aria-label="Surface Labs screenshots"
+			aria-label="Materials authored in Surface Labs"
 		>
 			<button
 				type="button"
 				class="carousel__nav carousel__nav--prev"
-				aria-label="Previous screenshot"
+				aria-label="Previous material"
 			>
 				<span aria-hidden="true">&#8249;</span>
 			</button>
@@ -108,18 +94,18 @@ const count = slides.length;
 			<button
 				type="button"
 				class="carousel__nav carousel__nav--next"
-				aria-label="Next screenshot"
+				aria-label="Next material"
 			>
 				<span aria-hidden="true">&#8250;</span>
 			</button>
 
-			<div class="carousel__dots" role="tablist" aria-label="Choose screenshot">
+			<div class="carousel__dots" role="tablist" aria-label="Choose material">
 				{slides.map((slide, i) => (
 					<button
 						type="button"
 						class="carousel__dot"
 						role="tab"
-						aria-label={`Show screenshot ${i + 1}: ${slide.caption}`}
+						aria-label={`Show material ${i + 1}: ${slide.caption}`}
 						aria-selected={i === 0 ? 'true' : 'false'}
 						data-index={i}
 					/>

@@ -570,14 +570,17 @@ a.site-nav__link:hover {
 	box-shadow: 0 24px 60px -34px var(--shadow);
 }
 
-/* A single fixed frame ratio with object-fit: cover keeps every slide the same
-   shape, so the carousel no longer jitters between letterboxed source ratios
-   (1.85:1, 1:1, 1.21:1 …). Once final, consistently-cropped media lands this can
-   move back to `contain` without the jitter. */
+/* Every slide is a square material render shown whole: a 1:1 frame with
+   object-fit: contain guarantees no cropping, and the shared ratio keeps the
+   carousel height stable between slides. Capped and centred so the square
+   doesn't fill the whole container width. */
 .carousel__figure img {
+	display: block;
 	width: 100%;
-	aspect-ratio: 16 / 10;
-	object-fit: cover;
+	max-width: 640px;
+	margin-inline: auto;
+	aspect-ratio: 1 / 1;
+	object-fit: contain;
 	object-position: center;
 	background: var(--shot-bg);
 	border-radius: 6px;
