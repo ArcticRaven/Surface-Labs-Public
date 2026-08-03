@@ -207,26 +207,14 @@ img {
 	text-align: center;
 }
 
-/* The one full-bleed dark band on the page: the colour of the app's own
-   canvas, holding the material renders that are lit against near-black. The
-   values are fixed (not light-dark()) because the band is dark in both
-   themes; local token overrides keep the eyebrow, heading and carousel
-   controls legible without band-specific selectors everywhere. */
+/* The one full-bleed band on the page, holding the material renders. It uses
+   the app-canvas tint for the active theme (--shot-bg: deep tan in light,
+   near-black in dark), so it respects the theme toggle while still reading
+   as "the canvas" against the page background. Text and controls inherit the
+   normal theme tokens, which are legible on both tints. */
 .section--band {
-	--text: #eae5d3;
-	--text-muted: #cec8ae;
-	--text-dim: #9a927e;
-	--accent-strong: #d4b585;
-	--border: #2a2820;
-	--border-strong: #4a4636;
-	--header-bg: rgba(25, 24, 22, 0.82);
-	background: #14130f;
-	border-block: 1px solid #35322a;
-	color: var(--text);
-}
-
-.section--band .section__head h2 {
-	color: var(--text);
+	background: var(--shot-bg);
+	border-block: 1px solid var(--border);
 }
 
 /* The band draws its own bottom edge; the next stripe must not double it. */
