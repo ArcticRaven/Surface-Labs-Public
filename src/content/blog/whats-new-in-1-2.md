@@ -2,7 +2,7 @@
 title: "What's new in 1.2"
 description: "A native Rust engine, a built-in MCP server, GPU-compute erosion, a full GLSL editor, and authoring up to 8192²."
 date: 2026-07-31
-author: Arctic
+author: ArcticDev
 tags: [release, devlog]
 ---
 
