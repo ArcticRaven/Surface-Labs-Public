@@ -53,3 +53,11 @@
 	font-weight: 650;
 	letter-spacing: -0.01em;
 }
+
+/* Wide markdown tables scroll inside the docs column instead of widening the
+   page on phones. */
+.sl-markdown-content table {
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
+}
