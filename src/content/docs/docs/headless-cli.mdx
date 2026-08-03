@@ -1,0 +1,124 @@
+---
+title: Command Line
+description: The two command-line programs, their flags and exit codes, and what batch processing can and cannot do today.
+---
+
+Two command-line programs ship alongside the application. Both use the same core,
+the same node library and the same export path as the app, so a headless run
+reproduces what the Export dialog would have written.
+
+:::caution[Neither is packaged yet]
+There is no distributable build for either program. The installers package the
+application only. Running either one means a Surface Labs source checkout and the
+Dart SDK:
+
+```
+dart run surface_lab_headless <project.surfacelabs> --out <dir>
+```
+
+Packaging is planned but not scheduled.
+:::
+
+## surface_lab_headless
+
+Opens a project, evaluates it, writes its textures and exits. No window, no
+Flutter engine.
+
+```
+surface_lab_headless <project.surfacelabs> --out <dir>
+    [--native-lib <path to surface_gpu>]
+    [--format png|jpg|tga|bmp|exr]
+    [--prefix <name>]
+    [--material <index>|all]
+    [--verbose]
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--out`, `-o` | Output directory. **Required.** |
+| `--native-lib` | Path to the `surface_gpu` library. Auto-detected from a source checkout; `SURFACE_GPU_LIB` also works. |
+| `--format`, `-f` | Output format. Defaults to the project's saved export preset. |
+| `--prefix`, `-p` | File-name prefix. Defaults to the saved preset, otherwise a slug of the project name. |
+| `--material`, `-m` | A material index, or `all`. Defaults to the active material. |
+| `--verbose`, `-v` | Print core diagnostics to stderr. |
+| `--help`, `-h` | Usage. |
+
+It prints what it opened, each file it wrote, and a summary. Warnings, meaning
+load warnings and skipped nodes, go to stderr.
+
+**Exit codes:** `0` wrote at least one file, `1` usage or project error, `2` no
+render core, `3` nothing to export.
+
+This is the piece you want in CI. A build step can re-export a committed
+`.surfacelabs` on every change with no GUI, no display and no human.
+
+## surface_lab_mcp
+
+The same nine tools as the in-app server, driving projects on disk instead of the
+open one. `project create` and `project close` both work here. See
+[MCP Server](/docs/mcp-server/) for what the tools do; the flags below are what
+differs.
+
+```
+surface_lab_mcp [--http [port]] [--token <secret>]
+                [--native-lib <path>] [--out <dir>]
+                [--root <dir>] [--read-only] [--log <file>] [--verbose]
+```
+
+| Flag | Meaning |
+| --- | --- |
+| *(none)* | JSON-RPC over standard input and output, the transport most MCP clients launch a server with. This is the default. |
+| `--http [port]` | Serve the same protocol on a loopback port instead, default 4319, like the in-app server. |
+| `--token <secret>` | Bearer token required on HTTP requests. **Without it, `--http` accepts any local caller.** |
+| `--native-lib <path>` | `surface_gpu` library path. Auto-detected in a source checkout; `SURFACE_GPU_LIB` also works. |
+| `--out <dir>` | Default directory for renders and exports when a tool names none. Defaults to `<temp>/surface_lab_mcp`. |
+| `--root <dir>` | Confine every file argument to this directory, rejecting `..` traversal out of it. Repeatable. Without it the server can read and write anywhere you can. |
+| `--read-only` | Refuse mutating tools. See the caveat below. |
+| `--log <file>` | Append diagnostics to a file instead of stderr. |
+| `--verbose` | Include core diagnostics. |
+
+A stdio client config:
+
+```json
+{
+  "mcpServers": {
+    "surface-labs": {
+      "command": "dart",
+      "args": ["run", "surface_lab_mcp", "--out", "C:/textures/out"],
+      "cwd": "C:/…/surface_lab/packages/surface_lab_mcp"
+    }
+  }
+}
+```
+
+On stdio, standard output is the protocol. Every diagnostic goes to stderr or the
+log file so nothing corrupts the stream, and `--http` prints its endpoint to
+stderr for the same reason.
+
+:::caution[--read-only is incomplete]
+It refuses authoring, saving, exporting and material changes, but does not
+currently gate `project open`, `project close`, or `render node`'s `save_to`,
+which writes a PNG to disk. Use `--root` if you need to confine what the process
+can touch.
+:::
+
+## Batch processing
+
+Today the CLI treats the project as a closed box. Every input and every parameter
+is whatever was saved, and the only knobs are output format, file-name prefix and
+which material. Batching means running the CLI once per project in a shell loop,
+or exporting `--material all`.
+
+:::note[Proposed, not shipped]
+A design document sketches a next step: `--set <exposed-param>=<value>`,
+`--list-params`, `--batch-input source=./photos/*.png` with `{input}` and
+`{channel}` naming templates, a `--report out.json` machine-readable result, and
+a `--strict` flag failing the build when any node was skipped. None of it is
+implemented. The flag tables above are the complete current surface.
+:::
+
+## Before you script it
+
+`graph validate` is cheap and needs no GPU, so run it before a long export. See
+[MCP Server](/docs/mcp-server/) for which node types the headless renderer skips
+and what happens when the native core is missing.

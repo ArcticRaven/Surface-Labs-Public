@@ -10,7 +10,7 @@ yet confirmed, it is marked as TODO instead of guessed.
 
 Surface Labs is a node-based procedural texture authoring application. You build
 textures and materials by connecting nodes into a graph and adjusting their
-parameters. See the [Features](/docs/features/) overview for more.
+parameters. See the [Overview](/docs/) for more.
 
 ## Where can I get it?
 
@@ -20,11 +20,9 @@ Surface Labs is available from its store page on itch.io:
 
 ## Which platforms are supported?
 
-<!-- TODO: Confirm supported platforms before listing them here. -->
-
-Supported platforms are not documented here yet. Please check the
-[itch.io page](https://arcticraven.itch.io/surface-labs) for current
-availability.
+Windows, macOS, Linux, Android and iPad. See
+[Install & Platforms](/docs/install-and-platforms/) for downloads and minimum
+requirements.
 
 ## How much does it cost?
 

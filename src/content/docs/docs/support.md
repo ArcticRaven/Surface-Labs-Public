@@ -9,9 +9,8 @@ Need help with Surface Labs? Here is where to look.
 
 Start with the documentation:
 
-- [Getting Started](/docs/getting-started/)
-- [Features](/docs/features/)
-- [Nodes](/docs/nodes/)
+- [Overview](/docs/)
+- [Install & Platforms](/docs/install-and-platforms/)
 - [FAQ](/docs/faq/)
 
 ## Email us

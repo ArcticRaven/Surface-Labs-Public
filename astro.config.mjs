@@ -54,15 +54,23 @@ export default defineConfig({
 			customCss: ['./src/styles/starlight-theme.css'],
 			sidebar: [
 				{
-					label: 'Documentation',
+					label: 'Start Here',
 					items: [
 						{ label: 'Overview', slug: 'docs' },
 						{ label: 'Install & Platforms', slug: 'docs/install-and-platforms' },
-						{ label: 'Getting Started', slug: 'docs/getting-started' },
-						{ label: 'Features', slug: 'docs/features' },
-						{ label: 'Nodes', slug: 'docs/nodes' },
+					],
+				},
+				{
+					label: 'Automation',
+					items: [
+						{ label: 'MCP Server', slug: 'docs/mcp-server' },
+						{ label: 'Command Line', slug: 'docs/headless-cli' },
+					],
+				},
+				{
+					label: 'Help',
+					items: [
 						{ label: 'FAQ', slug: 'docs/faq' },
-						{ label: 'Changelog', slug: 'docs/changelog' },
 						{ label: 'Support', slug: 'docs/support' },
 					],
 				},
