@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/build-app-docs.mjs",
+    "build:app-docs": "node scripts/build-app-docs.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "deploy": "wrangler deploy"

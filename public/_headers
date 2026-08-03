@@ -1,0 +1,13 @@
+# Cache rules for the in-app docs bundle (see scripts/build-app-docs.mjs and
+# the app repo's BUNDLE_CONTRACT.md). Articles and images carry content hashes
+# in their filenames, so they are immutable; the manifest is the only mutable
+# URL and revalidates cheaply via ETag (the app sends If-None-Match on launch).
+
+/docs/app/manifest.json
+  Cache-Control: public, max-age=300, must-revalidate
+
+/docs/app/articles/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/docs/app/img/*
+  Cache-Control: public, max-age=31536000, immutable

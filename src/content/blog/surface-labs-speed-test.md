@@ -54,9 +54,9 @@ intensity 10 in Designer, 32 samples at intensity 0.10 in Surface Labs. The two
 implementations are not 1:1 internally, so read that row as default vs default,
 not as a like-for-like kernel comparison.
 
-![The blur test graph in Surface Labs. The project panel reads 512²/8-bit: those are project defaults. Every node in this graph overrides them to the listed resolution at 16-bit, matched to Designer's L16. The video below steps through each node's settings.](../../assets/screenshots/sl_blur.png)
+![The blur test graph in Surface Labs. The project panel reads 512²/8-bit: those are project defaults. Every node in this graph overrides them to the listed resolution at 16-bit, matched to Designer's L16. The video below steps through each node's settings.](../../assets/screenshots/sl_blur.webp)
 
-![The same graph rebuilt in Substance 3D Designer 13.1.2, L16 at every stage.](../../assets/screenshots/sd_blur.png)
+![The same graph rebuilt in Substance 3D Designer 13.1.2, L16 at every stage.](../../assets/screenshots/sd_blur.webp)
 
 <figure>
   <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sl_blur.mp4" type="video/mp4" /><source src="/video/sl_blur.webm" type="video/webm" /></video>
@@ -113,9 +113,9 @@ and bringing a stronger engine to the field in future updates.
 Four shape generators feeding a **16×16 Tile Sampler**, into a normal map, into
 the material output. Everything at 2048², 16-bit, on both sides.
 
-![The Tile Sampler test in Surface Labs: four Shape nodes into a 16×16 Tile Sampler, Normal from Height, and the PBR Output.](../../assets/screenshots/sl_sampler.png)
+![The Tile Sampler test in Surface Labs: four Shape nodes into a 16×16 Tile Sampler, Normal from Height, and the PBR Output.](../../assets/screenshots/sl_sampler.webp)
 
-![The equivalent graph in Designer, with Shape and Polygon generators into Tile Sampler (X/Y Amount 16), Normal, and Base Material.](../../assets/screenshots/sd_sampler.png)
+![The equivalent graph in Designer, with Shape and Polygon generators into Tile Sampler (X/Y Amount 16), Normal, and Base Material.](../../assets/screenshots/sd_sampler.webp)
 
 <figure>
   <video controls muted loop playsinline preload="metadata" style="width:100%"><source src="/video/sl_sampler.mp4" type="video/mp4" /><source src="/video/sl_sampler.webm" type="video/webm" /></video>
