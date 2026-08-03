@@ -83,8 +83,10 @@ videos plus the still captures.
 | Blur | 4096² | 4.89 – 11.67 | 0.2 – 0.3 | ~22× faster |
 | Slope Blur | 4096² | 21.58 – 31.16 | 34.0 | **Substance wins by ~10–35%** |
 
+:::note
 \* One 9.50 ms sample of Designer's 1024² Blur was excluded as a first-run
 shader compile, not steady state.
+:::
 
 In these samples, I think the results speak for themselves. I'm no stranger to 
 archaic code, project maintenance, and the other onslaught of issues being a 
@@ -96,7 +98,9 @@ an aggressive stance on caching and recalculating shaders depending on various c
 The Rust Engine is fast, and DX12 is a modern graphics API compared to DX11 and 
 whatever else Substance has going on under the hood. 
 
+:::note
 <small>I'm also considering an optional Vulkan/DX12 choice for Windows users in a future update.</small>
+:::
 
 I actually really enjoy that I took a loss on the slope blur. Compute shaders - which we'll
 discuss more in the next section is still fairly new to me as a programmer. My slope blur
