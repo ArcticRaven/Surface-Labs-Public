@@ -23,3 +23,6 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# Full-resolution source screenshots (converted derivatives are committed)
+src/assets/originals/
