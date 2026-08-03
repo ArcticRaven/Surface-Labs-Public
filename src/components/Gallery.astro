@@ -80,12 +80,19 @@ const count = slides.length;
 						<figure class="carousel__figure">
 							<Image
 								src={slide.src}
-								alt={slide.alt}
-								widths={[600, 900, 1280, 1600]}
-								sizes="(max-width: 1120px) 100vw, 1072px"
+								alt=""
+								widths={[600, 900, 1280]}
+								sizes="(max-width: 700px) 94vw, 560px"
 								loading="lazy"
 							/>
-							<figcaption>{slide.caption}</figcaption>
+							{/* The image stands on its own; the description fades in
+							    over it on hover or keyboard focus. The figcaption stays
+							    in the accessibility tree throughout (opacity, not
+							    display), so the empty img alt is not a loss. */}
+							<figcaption class="carousel__overlay">
+								<strong>{slide.caption}</strong>
+								{slide.alt}
+							</figcaption>
 						</figure>
 					</li>
 				))}

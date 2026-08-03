@@ -202,6 +202,38 @@ img {
 	font-size: 1.05rem;
 }
 
+.section__head--center {
+	margin-inline: auto;
+	text-align: center;
+}
+
+/* The one full-bleed dark band on the page: the colour of the app's own
+   canvas, holding the material renders that are lit against near-black. The
+   values are fixed (not light-dark()) because the band is dark in both
+   themes; local token overrides keep the eyebrow, heading and carousel
+   controls legible without band-specific selectors everywhere. */
+.section--band {
+	--text: #eae5d3;
+	--text-muted: #cec8ae;
+	--text-dim: #9a927e;
+	--accent-strong: #d4b585;
+	--border: #2a2820;
+	--border-strong: #4a4636;
+	--header-bg: rgba(25, 24, 22, 0.82);
+	background: #14130f;
+	border-block: 1px solid #35322a;
+	color: var(--text);
+}
+
+.section--band .section__head h2 {
+	color: var(--text);
+}
+
+/* The band draws its own bottom edge; the next stripe must not double it. */
+.section--band + .section {
+	border-top: 0;
+}
+
 /* ------------------------------------------------------------------ *
  * Buttons
  * ------------------------------------------------------------------ */
@@ -480,31 +512,24 @@ a.site-nav__link:hover {
 	width: 100%;
 }
 
-/* Hero download card wrapping the itch.io embed */
-.hero-cta-card {
-	background: var(--panel);
-	border: 1px solid var(--border-strong);
-	border-radius: var(--radius);
-	padding: 24px;
-	box-shadow: 0 24px 60px -34px var(--shadow);
+/* Hero visual: a material authored in the app, clipped to its sphere so it
+   floats on the node-grid dots like a rendered preview rather than sitting in
+   a chrome box. The clip circle bites ~1% into the sphere's dark limb, which
+   removes the square black render background invisibly. */
+.hero-planet {
+	text-align: center;
 }
 
-.hero-cta-card__title {
-	font-size: 1.15rem;
-	font-weight: 640;
-	letter-spacing: -0.01em;
-	margin-bottom: 16px;
+.hero-planet img {
+	width: min(100%, 470px);
+	aspect-ratio: 1 / 1;
+	margin-inline: auto;
+	clip-path: circle(40% at 50% 50%);
+	filter: drop-shadow(0 26px 48px var(--shadow));
 }
 
-.hero-cta-card__note {
-	margin-top: 16px;
-	font-size: 0.9rem;
-	color: var(--text-muted);
-}
-
-.hero-cta-card__note strong {
-	color: var(--text);
-	font-weight: 600;
+.hero-planet figcaption {
+	margin-top: 2px;
 }
 
 /* itch.io embed widget */
@@ -533,6 +558,8 @@ a.site-nav__link:hover {
  * ------------------------------------------------------------------ */
 .carousel {
 	position: relative;
+	max-width: 560px;
+	margin-inline: auto;
 }
 
 .carousel__track {
@@ -558,50 +585,68 @@ a.site-nav__link:hover {
 .carousel__slide {
 	flex: 0 0 100%;
 	scroll-snap-align: center;
-	padding: 2px;
 }
 
+/* Chromeless: each slide is the square render itself, shown whole. On the
+   dark band the near-black backgrounds dissolve into the section, so the
+   materials read as objects rather than screenshots in frames. */
 .carousel__figure {
 	margin: 0;
-	background: var(--panel);
-	border: 1px solid var(--border-strong);
+	position: relative;
+	overflow: hidden;
 	border-radius: var(--radius);
-	padding: 10px;
-	box-shadow: 0 24px 60px -34px var(--shadow);
 }
 
-/* Every slide is a square material render shown whole: a 1:1 frame with
-   object-fit: contain guarantees no cropping, and the shared ratio keeps the
-   carousel height stable between slides. Capped and centred so the square
-   doesn't fill the whole container width. */
 .carousel__figure img {
 	display: block;
 	width: 100%;
-	max-width: 640px;
-	margin-inline: auto;
 	aspect-ratio: 1 / 1;
 	object-fit: contain;
 	object-position: center;
-	background: var(--shot-bg);
-	border-radius: 6px;
 }
 
-/* Single-line caption keeps the figure height deterministic, so the arrow
-   buttons stay vertically centred on the image instead of drifting when a
-   caption wraps on narrow screens. */
-.carousel__figure figcaption {
-	margin-top: 12px;
-	padding-inline: 4px;
-	font-size: 0.95rem;
-	color: var(--text-muted);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+/* The description sits over the render and appears on hover or keyboard
+   focus. Opacity (not display) so it stays in the accessibility tree. */
+.carousel__overlay {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	margin: 0;
+	padding: 56px 20px 18px;
+	background: linear-gradient(to top, rgba(10, 9, 7, 0.88), transparent);
+	color: #eae5d3;
+	font-size: 0.92rem;
+	line-height: 1.5;
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+}
+
+.carousel__overlay strong {
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #d4b585;
+	margin-bottom: 4px;
+}
+
+.carousel__figure:hover .carousel__overlay,
+.carousel__slide:focus-within .carousel__overlay,
+.carousel__track:focus-visible .carousel__overlay {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.carousel__overlay {
+		transition: none;
+	}
 }
 
 .carousel__nav {
 	position: absolute;
-	top: calc(50% - 34px);
+	top: 50%;
 	transform: translateY(-50%);
 	width: 44px;
 	height: 44px;
@@ -633,6 +678,16 @@ a.site-nav__link:hover {
 }
 .carousel__nav--next {
 	right: -6px;
+}
+
+/* Where there's room, the arrows sit fully outside the render. */
+@media (min-width: 760px) {
+	.carousel__nav--prev {
+		left: -68px;
+	}
+	.carousel__nav--next {
+		right: -68px;
+	}
 }
 
 .carousel__dots {
@@ -1214,6 +1269,10 @@ a.card .card__more {
 
 .card--lg p {
 	font-size: 1.02rem;
+}
+
+.card--lg .cmd {
+	margin-top: 18px;
 }
 
 .card__title-row {
