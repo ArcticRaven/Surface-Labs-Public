@@ -1,6 +1,6 @@
 ---
 title: Multi-Output Nodes
-description: The six node types with more than one output port, and what each port carries.
+description: The seven node types with more than one output port, and what each port carries.
 ---
 
 A multi-output node exposes more than one output port, each carrying different
@@ -10,7 +10,7 @@ distance map taken from one Voronoi node describe the same scatter, and an
 ambient occlusion map and a bent normal from one Surface Detail node can never
 disagree about radius.
 
-Six node types do this. Each is listed below with its ports; full parameter
+Seven node types do this. Each is listed below with its ports; full parameter
 tables live on the linked reference pages.
 
 :::caution[missing screenshot]
@@ -25,7 +25,7 @@ Type id: `voronoi_noise`. See [Generators](/docs/nodes/generators/).
 | --- | --- |
 | Cells | Flat random fill per region with dark walls between them; the default output. |
 | F1 Distance | Distance to the nearest seed point, normalized so the ramp spans 0 to 1 whatever the scale. |
-| Edges (F2-F1) | Bright inside regions, black exactly on the boundary; the classic crack and edge mask. |
+| Edge Distance | Distance to the nearest region boundary: black exactly on the boundary, rising into the region. The classic crack and edge mask. It is a true boundary distance, not an F2−F1 approximation, and it is the same distance the Cells port cuts its walls from, so the two round and thicken together. |
 | Cell Color | A random RGB color, flat-filled per region. |
 | Cell Position | The owning seed point's location, flat-filled per region. Feeds per-region gradients and warps. |
 | Cell ID | A stable random gray per region, for driving per-region variation. |
@@ -79,3 +79,19 @@ Type id: `ao_from_height`. See [Normal](/docs/nodes/normal/).
 | Occlusion | Classic ambient occlusion, dark where the neighborhood stands above the point. |
 | Thickness | How enclosed the point is, sampled at double the radius: bright in troughs with material all around, dark on exposed ridges. Drives subsurface and translucency masks. |
 | Bent Normal | The average unoccluded direction encoded as a normal map, so cavities self-shadow correctly when lit along it. |
+
+## Height Blend
+
+Type id: `height_blend`. See [Blend](/docs/nodes/blend/).
+
+| Output | Carries |
+| --- | --- |
+| Height | The two inputs merged by height so the taller surface wins; the default output. |
+| Blend Mask | B's share of the blend, which is the height-sorted boundary itself. Feed it to ordinary Blend nodes so the matching base color, roughness and normal layers composite along the same interlocking seam. Re-deriving that boundary with a Threshold would not line up. |
+
+:::caution[Rewire needed from 1.2.1 and earlier]
+Height Blend used to carry an Output parameter that switched the single port
+between Height and Mask. The parameter is gone. A project that had it set to
+Mask now gets the height on its existing wire, so move that consumer to the
+Blend Mask port.
+:::

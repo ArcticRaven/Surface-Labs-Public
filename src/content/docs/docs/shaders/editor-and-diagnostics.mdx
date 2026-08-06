@@ -59,10 +59,13 @@ Below the code box, one of four messages:
 
 | Condition | Message |
 | --- | --- |
-| Any error | `line <line>:<column> - <message>` |
-| Compiles, and the fallback interpreter can run it | Compiles: SL subset, runs everywhere. Entry point: `vec4 shade(vec2 uv)`. |
-| Compiles, checked by the native validator | Compiles: full GLSL, renders on the native GPU path. |
-| Header is fine but no native validator is present | Header OK. Full-GLSL body, needs the native renderer to verify. |
+| Any error | `line <line>:<column> — <message>` |
+| Compiles, and the fallback interpreter can run it | Compiles — SL subset, runs everywhere. Entry point: `vec4 shade(vec2 uv)`. |
+| Compiles, checked by the native validator | Compiles — full GLSL, renders on the native GPU path. |
+| Header is fine but no native validator is present | Header OK. Full-GLSL body — needs the native renderer to verify. |
+
+The subset verdict wins when both apply: a source the interpreter can run
+reports the SL subset line even after naga has checked it too.
 
 ## How a source is judged
 
@@ -83,12 +86,12 @@ Step 3 is skipped when the native library is not loaded; the status line then
 says the body has not been verified.
 
 Only the first error is reported. Fix it and the next one appears. Verdicts
-are memoised per source, so a parked editor costs nothing.
+are memoized per source, so a parked editor costs nothing.
 
 ## The error format
 
 ```
-line 14:9 - expected ';' but found 'return'
+line 14:9 — expected ';' but found 'return'
 ```
 
 That is `line <line>:<column>`, a dash, then the message, positioned in
@@ -143,10 +146,15 @@ breaker keyed on the content of the generated shader:
    process dies, the evidence survives.
 2. **Trusted.** A trial that completes flips the source to trusted,
    permanently, for that exact content. Nothing runs a trial twice.
-3. **Quarantined.** A trial whose readback fails or times out (a 10-second
-   watchdog), or an application relaunch that finds the marker still pending
-   (meaning that shader took the last process down), flips it to quarantined.
-   That verdict is itself persisted.
+3. **Quarantined.** Two things convict a source: a trial the render core
+   never answered, caught by a 10-second watchdog on the readback, and an
+   application relaunch that finds the marker still pending, meaning that
+   shader took the last process down. That verdict is itself persisted.
+4. **No verdict.** A trial whose submit the queue refused, or whose readback
+   came back empty rather than never arriving, clears the pending marker and
+   records nothing. Those are symptoms of a torn-down render core, not of a
+   shader that will not terminate, so the source is not quarantined for them
+   and the next render runs a fresh trial.
 
 The verdict is stored in `shader_trust.txt` in the application's support
 directory, keyed by a content hash of the generated shader.
@@ -154,7 +162,7 @@ directory, keyed by a content hash of the generated shader.
 **What you see.** A quarantined source shows a warning banner above the code
 box in both editors:
 
-> This shader was disabled after a device reset. It may not terminate. Edit
+> This shader was disabled after a device reset — it may not terminate. Edit
 > the source to retry it, or run it anyway.
 
 with a Run anyway button.
@@ -183,3 +191,22 @@ A full-GLSL quarantined source produces no output at all.
 Headless and MCP hosts keep the trust store in memory only; a batch run's
 protection dies with its process, which is the same guarantee. See
 [Command Line](/docs/headless-cli/).
+
+## Repeated native failures
+
+Quarantine is for a shader that hangs the device. A second, milder guard
+covers a render that merely fails: three failures in a row park a node on the
+fallback, and one successful render clears the count.
+
+The streak is keyed by whatever actually failed. For a built-in node that is
+its type; for a Custom Shader it is a content hash of that node's own source,
+so two Custom Shader nodes fail independently and any edit to either one
+starts a fresh count. A single bad frame therefore costs one shader a few
+retries rather than taking every Custom Shader in the project off the native
+path.
+
+Parking a full-GLSL shader on the fallback means it stops producing anything,
+since that interpreter has no loops and a 96-instruction budget. When a node
+has no output for this reason, the message says so — that it is on the
+fallback, and whether the fallback can run the source at all — rather than
+pointing you at the wiring.

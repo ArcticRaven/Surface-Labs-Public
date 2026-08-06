@@ -1,6 +1,6 @@
 ---
 title: Autosave & Recovery
-description: How the 60-second autosave works, how the recovery shelf offers a backup after a crash, and the crash report prompt.
+description: How the five-minute autosave works, how the recovery shelf offers a backup after a crash, and the crash notice.
 ---
 
 While a project is open, the editor keeps a backup beside it on disk. If a
@@ -8,7 +8,7 @@ session ends badly, the Project Hub offers that backup back to you.
 
 ## How autosave works
 
-While a project is open, the editor writes a backup **every 60 seconds** to a
+While a project is open, the editor writes a backup **every five minutes** to a
 companion file beside the project: the full project path with `.autosave`
 appended, so `stone_wall.surfacelabs` produces
 `stone_wall.surfacelabs.autosave` in the same folder.
@@ -19,13 +19,18 @@ fonts, comments, annotations, Jump Nodes, subgraph definitions, exposed
 parameters, view state, export settings, and every material in the project.
 
 Autosave never touches the project file itself. A backup is also written when
-the app is sent to the background.
+the app is sent to the background, and when you open a different project while
+one is already open - that one fires immediately and silently, with no
+confirmation.
 
 A tick is **skipped** when there are no unsaved changes since the last save,
 and while a subgraph is open for editing (the live graph is then the subgraph
 definition, not the material). Each backup that does happen shows an
 **"Autosaved"** notification. Only one backup file is kept per project; each
 write replaces the previous one.
+
+The archive is compressed and written on a background isolate, so autosaving a
+large graph does not freeze the editor.
 
 A successful manual save deletes that project's backup. The timer stops when
 the editor closes; any existing backup file is left in place.
@@ -39,14 +44,14 @@ save). This is a timestamp comparison, not crash detection, so the prompt can
 also appear after a clean exit that left unsaved changes captured in a backup.
 
 When a backup qualifies, a strip slides in above the project list in the
-Project Hub, showing the project name and *"Autosaved `<relative time>`,
-recover unsaved changes?"*. Three controls:
+Project Hub, showing the project name and *"Autosaved `<relative time>` -
+recover unsaved changes?"*. Three controls, in this order:
 
+- **Discard** deletes the backup file and closes the shelf; the project file is
+  untouched.
 - **Restore** copies the backup over the project file, adds it to the recent
   list, and opens it. This replaces the project file's contents and cannot be
   undone.
-- **Discard** deletes the backup file and closes the shelf; the project file is
-  untouched.
 - **▴** collapses the shelf without deciding. The backup stays on disk and the
   prompt reappears next time.
 
@@ -62,16 +67,35 @@ Deleting a project from the Hub removes both the `.surfacelabs` file and its
 `.autosave` companion, permanently.
 :::
 
-## Crash report prompt
+## Crash notice
 
-Separately from the recovery shelf, if the app finds a crash report from the
-last day it offers, on the Hub: *"Surface Labs recovered from a crash. A recent
-session ended unexpectedly. You can export a report (logs + diagnostics) as a
-single zip to send to support so the issue can be fixed."* with
-**Export report…** and **Not now** buttons. Exporting writes a zip to a folder
-you pick and reports *"Crash report saved to `<path>`"*, or *"No crash report
-to export."* if there was nothing to collect.
+Separately from the recovery shelf, if the app finds crash reports on disk it
+has not already told you about, the Hub shows a **toast**, not a dialog:
+recovering from a crash is the moment you want your project back, not a prompt
+in the way. It names which session it was:
+
+- *"The previous session ended unexpectedly. Export a diagnostics report to
+  help get it fixed?"*
+- *"An earlier session ended unexpectedly. Export a diagnostics report to help
+  get it fixed?"*
+
+The toast carries an **Export…** button and expires on its own. Exporting asks
+for a folder, writes a zip into it, reveals the file, and reports *"Crash
+report saved to `<path>`"* - or *"No crash report to export."* if there was
+nothing to collect.
+
+:::caution[A crash is offered exactly once]
+Letting the toast slide by **is** the "not now", and it sticks across launches:
+the notice is marked as seen before it is shown, so that crash is never raised
+again. Reports older than **seven days** are never raised at all - diagnostics
+that stale rarely match the build you are running. The notice appears at most
+once per launch, on the first Hub of the session.
+:::
+
+If you need the diagnostics after dismissing the toast, Settings → General →
+**Export Diagnostics…** bundles the same crash artifacts at any time. See
+[Settings](/docs/help/settings/).
 
 :::caution[missing screenshot]
-The crash notice on the Project Hub with the Export report… and Not now buttons.
+The crash notice toast on the Project Hub with its Export… button.
 :::

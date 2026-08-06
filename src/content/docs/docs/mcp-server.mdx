@@ -24,7 +24,7 @@ There is one implementation but two ways to run it. They are for different jobs.
 | | Live (in-app) | Headless (standalone) |
 | --- | --- | --- |
 | Host | Surface Labs App | CLI process via terminal |
-| Transport | Loopback HTTP  | stdio via HTTP |
+| Transport | Loopback HTTP | stdio, or loopback HTTP with `--http` |
 | Project | Presently open | `.surfacelabs` files from disk |
 | Live View | Realtime on the canvas | No GUI |
 | Rendering | Always in app | Requires `surface_gpu` native core |
@@ -33,9 +33,14 @@ There is one implementation but two ways to run it. They are for different jobs.
 #### Live Mode
 
 When working in live mode, the server allows access directly the currently open
-project and no others. Changes made through the MCP are built into the undo stack and
-can be safely rolled back at any time. Changes to the graph render and evaluate using
-the standard flow.
+project and no others. Changes to the graph render and evaluate using the standard
+flow, and nothing is written to disk until `project save`.
+
+Undo reaches an assistant's edits, but not one at a time. The canvas records an
+undo point before each edit *you* make; an assistant's edits add none of their
+own. Undo therefore rewinds to your last canvas action and takes every
+assistant edit since with it — and does nothing at all if you have not touched
+the canvas since the project opened.
 
 :::caution[Taking turns]
 You and the MCP are not locked out of each other when using live mode, and while uncommon
@@ -51,13 +56,20 @@ explanation while in live mode.
 
 **Creating a project.** Project creation is a dedicated flow within the project hub.
 The server will not create new projects for you - nor will it remove them. For this
-funtionality, it's recommended to use the command line server instead.
+functionality, it's recommended to use the command line server instead.
 
-**Closing the project.** The assistant cannot close projects either - instead using
-`project save` to prevent accidentally losing work. `project open` is allowed in live
-mode, however it switches the whole editor to that file. The outgoing project is saved
-and the server waits for the loading to complete. Users are required to confirm the
-decision to switch.
+**Closing the project.** The assistant cannot close projects either - it is told to
+use `project save` instead, so work is not lost by accident. `project open` is
+allowed in live mode, however it switches the whole editor to that file. The
+outgoing project is autosaved to its `.autosave` companion, and the server waits
+for the new one to finish loading.
+
+:::caution[project open does not ask you first]
+There is no confirmation dialog. The server's live-mode instructions tell the
+assistant to ask first, but nothing enforces it. And the autosave companion is
+crash recovery, not a save: your unsaved edits are still unsaved in the outgoing
+`.surfacelabs`. Save before you let an assistant open another project.
+:::
 
 :::note[30-second deadline]
 If the editor has not finished loading a file within 30 seconds, the tool fails
@@ -90,15 +102,34 @@ still open normally.
 If the port is unavailable the page says so and names the likely cause, which is
 usually another Surface Labs window or another program already on that port.
 
+Below the connection snippets the page lists what an assistant can currently
+do, names the project it is editing, and keeps a live **Activity** feed: the
+most recent requests, newest first, each with the method, the tool it called
+and how long it took. Errors are marked. It is a status readout rather than a
+log file, so it holds the last thirty and resets when the server restarts.
+
 #### Endpoint and transport
 
 - Endpoint: `http://127.0.0.1:4319/mcp`, or your chosen port.
 - Transport: streamable HTTP, one JSON-RPC message or a batch array per POST.
-  Notifications get `202` with no body. `GET /mcp` answers `405`, since nothing
-  here pushes server-initiated messages. `DELETE /mcp` ends the session.
+  Notifications get `202` with no body. `GET /mcp` opens the specification's
+  optional server-to-client SSE stream, which is how the server's log
+  notifications reach a client; a client that never opens it simply gets none.
+  `DELETE /mcp` ends the session named in the `Mcp-Session-Id` header, and no
+  other.
 - `GET /health` is an unauthenticated liveness probe reporting the server name,
   transport and request count.
-- Authentication is a bearer token: `Authorization: Bearer <token>`.
+- Authentication is a bearer token: `Authorization: Bearer <token>`. A client
+  that can only send a flat header map may use `X-Mcp-Token: <token>` instead.
+
+**Each client gets its own session.** One id is minted per `initialize`, so
+several clients can be connected at once and one shutting down no longer
+disconnects the rest. They still share the one open project. Sixteen ids are
+remembered; the oldest is dropped past that, which at worst asks a
+long-abandoned client to reinitialize. A request carrying a session id the
+server does not know gets `404`, the streamable-HTTP cue to send a fresh
+`initialize` — which is how a connected client recovers by itself after the app
+restarts underneath it, instead of wedging until you restart the client.
 
 #### Connecting a client
 
@@ -192,11 +223,20 @@ closed or the server is stopped. Open the app and press **Start**.
 
 ## The tools
 
-The server exposes nine capability tools. Eight take an `action` argument
-selecting what to do; `import_image` takes none. Every tool returns both
-human-readable content and machine-readable structured JSON, and failures carry a
-stable code (`node_not_found`, `no_project_open`, `gpu_unavailable`, `read_only`,
-`path_not_allowed`) alongside the message.
+The server exposes nine capability tools. Seven take an `action` argument
+selecting what to do; `edit_graph` takes an ordered `operations` list and
+`import_image` takes a `path`. Every tool returns both human-readable content
+and machine-readable structured JSON, and failures carry a stable code
+alongside the message, so a client can branch on the code rather than the
+prose. The full set:
+
+```
+no_project_open      not_found            node_not_found
+unknown_node_type    wrong_node_type      no_output_node
+not_an_output_node   unknown_action       unknown_operation
+invalid_argument     invalid_operation    shader_does_not_compile
+gpu_unavailable      io_error             read_only
+```
 
 A typical loop the server suggests to clients:
 
@@ -242,12 +282,22 @@ needs no open project and no GPU.
 
 | Action | Parameters | What it does |
 | --- | --- | --- |
-| `list` | `category?`, `tag?`, `search?`, `include_deprecated?`, `include_subgraphs?` | Browse or search. Returns id, label, category, tags and port ids. `search` matches label, type id, description and tags. Deprecated types are excluded by default; subgraphs included. |
-| `describe` | `type_id` | One type in full: every parameter with kind, default, range and enum options, plus input and output port ids. |
+| `list` | `category?`, `tag?`, `search?`, `include_deprecated?`, `include_subgraphs?` | Browse or search. Returns id, label, category, tags and port ids. `search` matches label, type id, category, description and tags. Deprecated types are excluded by default; subgraphs included. |
+| `describe` | `type_id` | One type in full: every parameter with kind, default, range and enum options, plus input and output port ids. Some types add `authored_params` and a usage note. |
 | `tags` | | The built-in job tags (noise, erosion, mask, height) with per-tag counts, usable as `list`'s `tag` filter. |
 
 Read `describe` before adding or configuring a node. Parameter names and enum
 values are validated against it.
+
+`authored_params` are the node-shaped values that are not ordinary parameters
+and so never appear in `params`: a Gradient Map's color `stops`, a Curves
+node's `points`, a Trim Sheet's `strips`, an Image node's `path`, a Text
+node's `text` and `font`, a Custom Shader's `source`, a Draw node's `strokes`.
+Each entry carries the format it accepts and, for the structured ones, an
+example. Most are written with `edit_graph set_params`; a few name the tool
+that owns them instead, so an image goes through `import_image` and a shader
+source through `custom_shader`. The usage note is longer how-to guidance,
+present on the types that are easiest to misuse.
 
 Category examples: `Generators`, `Filters`, `Blend`, `Normal`, `Transform`,
 `Output`. Type id examples: `noise`, `blend`, `pbr_output`, or `subgraph:<id>`.
@@ -258,9 +308,10 @@ Read-only views of the active material's node graph.
 
 | Action | Parameters | What it does |
 | --- | --- | --- |
-| `describe` | `detailed?` | The whole graph: every node with id, type, label, position and parameter values, plus every connection. `detailed` adds per-port wiring, parameter definitions and resolved resolution and bit depth, and is much larger. |
+| `describe` | `detailed?` | The whole graph: every node with id, type, label, position and parameter values, plus every connection, every comment box (geometry, text, and the node ids it encloses) and every jump marker. `detailed` adds per-port wiring, parameter definitions and resolved resolution and bit depth, and is much larger. |
 | `node` | `node_id` | One node in full: values alongside their definitions, what feeds each input, what each output feeds, resolved resolution and bit depth, evaluation state. |
 | `find` | `type_id?`, `label?`, `tag?`, `unconnected_inputs_only?` | Locate nodes without reading the whole graph. `label` is a case-insensitive substring. |
+| `bounds` | `node_ids?` | The world-space box enclosing those nodes, or every node when omitted, as `x`, `y`, `width`, `height` over their real canvas footprints. Feed it to `edit_graph add_comment` to frame a section with padding you choose. |
 | `validate` | | Structural check before render or export: required inputs left unconnected, unknown or deprecated types, types the headless renderer cannot evaluate, missing output node. Cheap, needs no GPU, returns an `ok` flag and per-issue severity. |
 | `subgraphs` | | The project's reusable subgraph definitions, each placeable via `edit_graph add_node` with type id `subgraph:<definition id>`. |
 
@@ -268,21 +319,41 @@ Read-only views of the active material's node graph.
 
 Applies an ordered list of edits in one call. Operations run in order and stop at
 the first failure. The result reports every operation that was applied plus the
-failure, so the state is never a mystery. In live mode the edits land in the
-app's undo history.
+failure, so the state is never a mystery. In live mode the edits land on the
+canvas as they are made, and the canvas's Undo rolls them back.
 
 A node created earlier in the same call can be referenced by `$N`, where N is the
-zero-based index of the `add_node` operation that created it.
+zero-based index of the operation that created it. For a `duplicate_nodes`
+operation that is the first copy it made.
 
 | Operation | Fields | What it does |
 | --- | --- | --- |
 | `add_node` | `type_id`, `label?`, `x?`, `y?`, `params?` | Places a node with the definition's ports and defaults, exactly as a canvas drop does. Returns the generated node id. |
 | `delete_nodes` | `node_ids` | Removes nodes and every wire touching them. **Destructive.** |
+| `duplicate_nodes` | `node_ids`, `offset_x?`, `offset_y?`, `connect_inputs?` | Copies nodes with their parameter values, seeds and per-node overrides. A wire whose two ends were both copied is recreated between the copies; wires from outside are recreated onto the copies unless `connect_inputs` is false. Returns `id_map`, original to copy. |
 | `update_node` | `node_id`, `label?`, `x?`, `y?`, `seed?`, `resolution?`, `resolution_mode?`, `bit_depth?`, `bit_depth_mode?` | Node identity and per-node overrides. Parameter values go through `set_params`. |
-| `connect` | `from_node_id`, `from_port_id?`, `to_node_id`, `to_port_id` | Wires an output into an input, replacing whatever fed it. Inputs take one wire; outputs fan out. Rejects self-connections, wrong directions and cycles. |
+| `connect` | `from_node_id`, `from_port_id?`, `to_node_id`, `to_port_id` | Wires an output into an input, replacing whatever fed it. `from_port_id` defaults to the source's primary output. Inputs take one wire; outputs fan out. Rejects self-connections, wrong directions and cycles. |
 | `disconnect` | `connection_id`, or `to_node_id` + `to_port_id` | Removes a wire. |
-| `set_params` | `node_id`, `params` | Parameter values by name, validated and coerced against the node type. Numbers are range-checked, enums accept the index or the option label case-insensitively, booleans accept 0 and 1. |
+| `set_params` | `node_id`, `params` | Parameter values by name, validated and coerced against the node type. Numbers are range-checked, enums accept the index or the option label case-insensitively, booleans accept 0 and 1. Authored params take either a structured list or their raw encoded string. |
 | `set_exposed` | `node_id`, `param`, `exposed?`, `label?` | Promotes a parameter to a project-level variable in the Global Variables panel, or demotes it. |
+
+Six more operations author the canvas itself, so a graph an assistant builds
+reads the way one a person laid out does:
+
+| Operation | Fields | What it does |
+| --- | --- | --- |
+| `add_comment` | `text?`, `around?`, `padding?`, `x?`, `y?`, `width?`, `height?`, `color?`, `opacity?`, `with_jump?`, `jump_label?` | A comment box. `text` is Markdown. Pass `around` — a list of node ids, `$N` refs allowed — to size it as a frame hugging those nodes with `padding` (32 by default); otherwise it uses `x`/`y`/`width`/`height`. `color` is `#rrggbb`. A frame also gets a jump marker at its top-left unless `with_jump` is false. Returns `comment_id`, the geometry, `encloses` and `jump_id`. |
+| `update_comment` | `comment_id`, `text?`, `x?`, `y?`, `width?`, `height?`, `color?`, `opacity?`, `move_enclosed?` | Changes a comment. Moving it carries the nodes it encloses unless `move_enclosed` is false. |
+| `delete_comment` | `comment_id` | Removes a comment. Its nodes stay. |
+| `add_jump` | `label?`, `x?`, `y?` | A named landmark. |
+| `update_jump` | `jump_id`, `label?`, `x?`, `y?` | Relabels or moves one. |
+| `delete_jump` | `jump_id` | Removes one. |
+
+A node whose top-left sits inside a comment belongs to it and moves with it,
+which is the same containment rule the canvas uses. The server's own
+conventions ask an assistant to frame each logical section and drop a jump
+marker at the frame's corner, so `add_comment` with `around` is the operation
+it reaches for.
 
 Noise blurred into a normal map, in one call:
 
@@ -305,6 +376,21 @@ look, adjust. Requires the render tier.
 | --- | --- | --- |
 | `node` | `node_id`, `port_id?`, `max_size?`, `save_to?`, `full_resolution?`, `include_image?` | Renders one node and returns its output as an inline PNG, downscaled to `max_size` (default 512 px, minimum 16, hard cap 2048). `save_to` also writes a PNG to disk at full render resolution unless `full_resolution` is false. `include_image: false` returns metadata only. `port_id` picks an output on a multi-output node. |
 | `evaluate` | `force?` | Renders every dirty node and waits for the readbacks, without producing an image. Reports elapsed time, nodes the headless renderer had to skip, and nodes that failed. Worth running before a long export. `force` re-renders everything. |
+| `check_tiling` | `node_id`, `port_id?` | Measures whether the output actually tiles, instead of assuming it. Runs at full render resolution, returns no image. |
+
+Every `render node` reply also carries `preview_path`, a single file the
+inline preview is mirrored to. It is overwritten each render rather than
+accumulated, and it exists because some MCP hosts drop image content blocks:
+a client that cannot show the inline PNG can open that path instead.
+
+`check_tiling` compares the wrap-around seam against the sharpest edge inside
+the image and returns a ratio per axis. About 1 means the seam is no sharper
+than detail the texture already contains; above 4 is a visible line. A
+hard-edged pattern such as a checker scores about 1, because its wrap edge is
+a legitimate tile boundary — what the check looks for is continuous-tone
+content sliced mid-feature, which is what a bad cell count produces. It costs
+a full-resolution pass, roughly half a second at 4K, so it belongs before an
+export rather than inside the tweak-and-look loop.
 
 ### export
 
@@ -314,19 +400,23 @@ per-preset normal Y-flip, resolved per-channel bit depth.
 | Action | Parameters | What it does |
 | --- | --- | --- |
 | `presets` | | The engine presets, workflows, formats and packed-map layouts export understands, plus the project's current settings. The catalog part needs no project. |
-| `configure` | `engine?`, `format?`, `material_type?`, `prefix?`, `write_packed_map?`, `write_split_maps?`, `normal_orientation?`, `jpeg_quality?`, `disabled_channels?` | Sets the project's export preset. Saved with the project, and the same preset the app's Export dialog shows. |
+| `configure` | `engine?`, `format?`, `material_type?`, `prefix?`, `write_packed_map?`, `write_split_maps?`, `normal_orientation?`, `disabled_channels?` | Sets the project's export preset. Saved with the project, and the same preset the app's Export dialog shows. |
 | `plan` | `node_id?`, `prefix?`, `format?` | The file list an export would write: names, channels, packed layout, per-channel bit depths and a bit-depth warning, without rendering and without a GPU. Use it to confirm naming before committing to a 4K export. |
 | `run` | `directory?`, `prefix?`, `format?`, `node_id?`, `all_materials?` | Evaluates and writes the texture set. Requires the render tier. **Overwrites files of the same name.** `all_materials` exports every material, suffixing files with the material name. |
 
 Value sets:
 
 - `engine`: `generic`, `unreal`, `unityUrp`, `unityHdrp`, `godot`, `gltf`
-- `format`: `png`, `jpeg`, `tga`, `bmp`, `exr`
+- `format`: `png`, `tga`, `tiff`, `bmp`, `exr`
 - `material_type`: `metallicRoughness`, `specularGlossiness`
 - `normal_orientation`: `openGl`, `directX`
-- `jpeg_quality`: 1 to 100
 - `disabled_channels`: channel ids such as `baseColor`, `roughness`, `metallic`,
   `normal`, `height`, `ao`, `opacity`
+
+JPEG is gone: lossy compression damages texture maps, so it was dropped rather
+than kept as a trap. A project saved when JPEG was still a format resolves to
+PNG when it next opens. `presets` reports each format's extension and the
+deepest bit depth its container carries.
 
 `node_id` for `plan` and `run` must be an output node (PBR Output, Custom Output
 or Trim Sheet). `run` defaults to every output node; `plan` defaults to the first.
@@ -344,6 +434,14 @@ declaration header, covering ports and Properties controls, above a GLSL body.
 | `set` | `node_id`, `source`, `force?` | Replaces the node's source. Rejected with the error unless `force: true`, since a broken node keeps its last good render. Ports are re-derived from the declarations, and connections into ports that vanished are dropped and reported. |
 | `trust` | `node_id` | Lifts the quarantine on the node's current source. |
 
+`get` and `validate` return the same diagnosis: `compiles`, the first `error`
+with its line and column, `native_checked` (whether naga actually judged the
+body, or the native library was absent), `vm_capable` and `vm_instruction_count`
+(which tier the source landed in and how much of the 96-instruction budget it
+uses), and `trust`. `set` adds `dropped_connections` and, when the source is
+under quarantine, a warning that it will not render natively until `trust` is
+called or the source is edited.
+
 Several mappings surprise a vanilla-GLSL author. `param int` and `seed` read as
 float, and an `@color` parameter stores as three separate
 `<name>Red`, `<name>Green` and `<name>Blue` scalars. Read `reference` first.
@@ -360,7 +458,7 @@ Embeds a bitmap file in the project and returns its `media:<name>` reference.
 
 | Parameter | What it does |
 | --- | --- |
-| `path` | Path to the image. PNG, JPEG, TGA, BMP, GIF and TIFF are supported. Fails with `path_not_allowed` if the path is outside the server's `--root` directories. |
+| `path` | Path to the image. PNG, JPEG, TGA, BMP, GIF and TIFF are supported. A path outside the standalone server's `--root` directories is refused with a message naming the allowed roots. |
 | `node_id?` | An Image node to point at the import, setting its `path` parameter in the same call. |
 
 Embedded media travels inside the `.surfacelabs` archive, so the project stays
@@ -372,9 +470,21 @@ A client can pull these without a tool call:
 
 - `surfacelab://node-registry`, the whole node catalog as JSON
 - `surfacelab://project`, the open project's active material as JSON
-- `surfacelab://conventions`, the invariants a graph must respect, covering
-  seamless tiling, normal orientation and headless-unsupported node types
+- `surfacelab://validation`, the same structural report `graph validate`
+  returns
+- `surfacelab://conventions`, the invariants a graph must respect: seamless
+  tiling and how to measure it, normal orientation, how bit depth travels
+  downstream, one wire per input, headless-unsupported node types, and the
+  expectation that every section is framed and labeled
 - `surfacelab://shader-language`, the SL v2 Custom Shader authoring contract
+
+Two are templates, so a client can address one thing rather than the whole
+catalog. Their variables complete as you type, which is what makes them worth
+having:
+
+- `surfacelab://node-type/{type_id}`, the payload `node_types describe`
+  returns
+- `surfacelab://node/{node_id}`, one node of the active material in full
 
 ## Prompts
 
@@ -396,7 +506,7 @@ is present splits every tool into two tiers.
 | Tier | Needs the native core | What is in it |
 | --- | --- | --- |
 | Graph | No | `node_types`, `project`, `materials`, `graph`, `edit_graph`, `import_image`, `custom_shader`, export presets, export configure, export plan |
-| Render | Yes | `render node`, `render evaluate`, `export run` |
+| Render | Yes | `render node`, `render evaluate`, `render check_tiling`, `export run` |
 
 `project info` reports `gpu_available`. When it is false,
 render-tier tools fail with the code `gpu_unavailable` and a message saying the
@@ -414,23 +524,35 @@ box with no display can check and edit graphs all day.
 
 ### What cannot be rendered headlessly
 
-Some node types need the app's own rasterizer. In a headless run they are
-reported as skipped rather than rendered wrong, and any map fed by one is missing
-from the output:
+A few nodes need the app's own rasterizer. In a headless run they are reported
+as skipped rather than rendered wrong, and any map fed by one is missing from
+the output:
 
 - **Draw** nodes
 - **Text** nodes
-- **Trim Sheet** nodes
-- **Custom Shader** nodes in the pasted-void-main form
+- **Custom Shader** nodes the native path declined — a source that does not
+  compile there, or one the [quarantine](/docs/shaders/editor-and-diagnostics/)
+  is holding off the GPU. In the app those fall back to the SL interpreter;
+  a headless process has no interpreter to fall back to.
 
-They can still be created, wired and configured headlessly. Only evaluation needs
-the app, so open the project in Surface Labs to export those. Custom Shaders
-written in SL compile and render natively.
+They can still be created, wired and configured headlessly. Only evaluation
+needs the app, so open the project in Surface Labs to export those. A Custom
+Shader that compiles for the native core renders headlessly like any other
+node, whichever entry point it uses.
+
+**Trim Sheets are no longer on this list.** They compose through an ordinary
+fragment shader now, so a sheet evaluates and exports headlessly and from the
+command line like anything else.
 
 ### Other limits
 
 **One project at a time.** The core keeps the open project in process-wide
 stores, so opening another closes the first and discards its unsaved changes.
+
+**Requests serialize.** Messages are dispatched one at a time, whatever the
+transport and however many clients are connected. Every tool acts on the one
+open project, so two tool calls interleaving would edit the same graph from two
+places at once.
 
 **Renders serialize.** The native core is one device with one render thread, so
 concurrent render requests queue.
@@ -444,8 +566,9 @@ Full-resolution pixels go to disk through `save_to` or `export run`, never throu
 the transport.
 
 **Deletions are not undoable through the server** in headless mode. That covers
-`edit_graph delete_nodes` and `materials delete`. In live mode those edits land in
-the app's undo history like any other.
+`edit_graph delete_nodes` and `materials delete`. In live mode a deleted node
+comes back with the canvas's Undo, along with everything else the assistant did
+since your last canvas action — see Live Mode above.
 
 ## What it can reach
 

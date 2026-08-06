@@ -1,16 +1,24 @@
 ---
 title: Settings
-description: Every page of the Settings window, from General and Appearance through Library, MCP Server, Shortcuts, Documentation and Debug.
+description: Every page of the Settings window, from General and Appearance through Library, MCP Server, Shortcuts and Debug.
 ---
 
 Settings is a window that opens over whichever screen you are on, the hub or
-the editor. Open it from the hub's left rail, the editor's ⚙ toolbar button,
-or <kbd>F1</kbd>. It is a centered card with a vertical tab list on the left and
-the selected page on the right. Close it with the × in the top-right or with
-<kbd>Escape</kbd>. General is selected when it opens.
+the editor. Open it from the hub's left rail, from the leftmost **Settings**
+button on the editor toolbar, or with <kbd>F1</kbd>. It is a centered card with
+a vertical tab list on the left and the selected page on the right. Close it
+with the × in the top-right or with <kbd>Escape</kbd>. General is selected when
+it opens.
 
 Settings values apply application-wide and persist between sessions. They are
 **not** stored inside project files.
+
+:::note[The manual is not a Settings page]
+Reading the manual moved out of this window. Articles are opened from the
+toolbar's search field and read over the editor - see
+[Interface Tour](/docs/interface-tour/). What Settings still owns is the
+manual's disk footprint, on the [Library](#library) page.
+:::
 
 :::caution[missing screenshot]
 The Settings window open over the editor, showing the tab list on the left and the General page on the right.
@@ -26,7 +34,14 @@ The Settings window open over the editor, showing the tab list on the left and t
 | **Export Diagnostics…** | Bundles crash dumps, session logs, captured failed-load projects, the open project and its autosave into one ZIP and hands it to a native save dialog. This is the way to get diagnostics off an iPad. Reports `Diagnostics exported` or `Diagnostics export failed: …` |
 | **Canvas Grid** | Shows/hides the canvas dot grid. On by default |
 | **Perf Overlay** | Shows the canvas FPS counter and per-node compute times. Off by default |
-| **3D Preview GPU** | Picks the graphics adapter the native renderer uses. Lists Automatic (High Performance) plus every adapter the system reports. **Takes effect after restarting the app**: the native core is created once per launch. If adapters cannot be enumerated the page reads `GPU selection is unavailable on this device.` |
+| **3D Preview GPU** | Picks the graphics adapter the native renderer uses, for both the 3D preview and the thumbnail renderer. Lists Automatic (High Performance) plus every adapter the system reports. **Takes effect after restarting the app**: the native core is created once per launch. If adapters cannot be enumerated the page reads `GPU selection is unavailable on this device.` |
+| **Graphics Backend** | **Windows only**, and absent everywhere else. Automatic (DirectX 12) or Vulkan. **Takes effect after restarting the app** |
+
+DirectX 12 is the tested default. Vulkan is an escape hatch for a DirectX 12
+driver bug rather than a faster path: presentation goes through the same
+Direct3D 11 shared-texture bridge either way. Choosing it cannot leave you
+without a preview - a machine with no Vulkan adapter falls back to DirectX 12
+on its own.
 
 ## Appearance
 
@@ -96,6 +111,34 @@ usage count, and a delete control. You can create new tags here.
 The Library page showing the storage path box and the two tag managers with built-in and user tags.
 :::
 
+### Documentation
+
+The last section on the page, and the only part of the manual Settings still
+owns: its disk footprint.
+
+The manual is not shipped inside the application. Its prose is fetched from
+surfacelabs.app on first launch and cached on disk, which is what makes it
+current, searchable and fully offline from then on; the whole corpus is a few
+hundred KB, so it needs no managing. Illustrations are tens of megabytes, so
+they are fetched one at a time as you open the articles that use them, and only
+cost space you have actually looked at. Anything fetched stays available
+offline.
+
+A status line reports what is on disk - `Checking…` while it measures, then
+`No illustrations downloaded yet.` or a count and a size. Two buttons act on
+it:
+
+- **Download All Illustrations** fetches every illustration in the published
+  manual in one pass, so articles read with their pictures offline. The button
+  names the total size, and reads `Downloading <n> of <total>…` while it runs.
+- **Remove Downloaded Images** appears only once something is on disk, and
+  deletes the cached illustrations. They re-download as you read. The prose is
+  untouched.
+
+Until the app has reached surfacelabs.app at least once there is no published
+image list to work from, so neither button appears and the page says so
+instead.
+
 ## MCP Server
 
 Lets an AI assistant read and edit the project you have open. It sees the same
@@ -123,16 +166,6 @@ after a confirmation. A **Controller** section covers game controller input;
 see [Input Devices](/docs/editor/input-devices/).
 
 See [Shortcuts](/docs/editor/shortcuts/) for the full binding tables.
-
-## Documentation
-
-The in-app manual. Articles are bundled with the application, preprocessed for
-the platform you are on so one body of prose reads correctly on both Windows
-and iPad. A Search documentation field sits above the article list and searches
-full article text. When the page is wide enough the list and the article sit
-side by side; narrower than that, the list fills the page and choosing an
-article drills down to it, with All Topics to go back. A search matching
-nothing reports `No matching articles.`
 
 ## Debug
 

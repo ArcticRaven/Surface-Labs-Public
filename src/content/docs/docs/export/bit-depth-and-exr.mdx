@@ -13,10 +13,14 @@ while authoring, see
 | Format | Extension | Depths it can carry | Encoder |
 | --- | --- | --- | --- |
 | PNG | `.png` | 8-bit, 16-bit | 8-bit in-app; 16-bit needs the native renderer |
-| JPEG | `.jpg` | 8-bit only | In-app |
 | TGA | `.tga` | 8-bit only | In-app |
+| TIFF | `.tiff` | 8-bit only | In-app, always single-frame |
 | BMP | `.bmp` | 8-bit only | In-app |
 | EXR | `.exr` | 16-bit half float, 32-bit float | Native renderer only |
+
+TIFF replaced JPEG in 1.2.1. Lossy compression is a poor fit for texture maps:
+the artifacts it leaves are invisible in a photo and obvious once a map drives
+a normal or a roughness response.
 
 ## Authoring bit depth
 
@@ -39,6 +43,8 @@ internally); it is the authoring intent the exporter resolves per channel.
 - For an individual map, the depth is whatever the chain feeding that channel
   resolves to.
 - For a packed map, the depth is that of its deepest contributing channel.
+- For a Custom Output, it is what the single chain feeding the node resolves
+  to.
 - Constant-backed channels and Trim Sheet channels resolve to the project
   default (Trim Sheet strips compose through an 8-bit pass regardless).
 - The resolved depth is then clamped to the format's ceiling; EXR is floored
@@ -49,7 +55,7 @@ internally); it is the authoring intent the exporter resolves per channel.
 A warning line appears under the Format chips when:
 
 - The material resolves deeper than the format can carry: "This material
-  resolves to 16-bit; JPEG writes 8-bit - banding or quantization the editor
+  resolves to 16-bit; TIFF writes 8-bit - banding or quantization the editor
   never showed may become visible. Consider PNG or EXR." (the suggestion
   becomes "Consider EXR" for 32-bit material).
 - The material resolves above 8-bit but the native encoder is not available
@@ -71,6 +77,8 @@ A warning line appears under the Format chips when:
   slightly smoother than the standard 8-bit path.
 
 :::note
-TIFF is not offered in the app. The underlying native encoder supports TIFF at
-8-bit and 16-bit, but the format is not exposed in the export dialog.
+TIFF is capped at 8-bit here even though the container carries more. Anything
+above 8 bits routes to the native encoder, which only writes PNG and EXR, so
+offering 16-bit TIFF would mean writing PNG bytes into a `.tiff`. For 16-bit
+work, pick PNG or EXR.
 :::

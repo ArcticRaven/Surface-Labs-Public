@@ -12,7 +12,7 @@ the dialog previews the exact list of files before anything is written.
 | Node | Export mode | What it writes |
 | --- | --- | --- |
 | PBR Output | Material | The full channel set for the chosen engine preset: individual maps, the packed map, or both |
-| Trim Sheet | Material | The same channel set, composed from the sheet's strips (Metallic / Roughness workflow only) |
+| Trim Sheet | Material | The seven channels the sheet composes, built from its strips (Metallic / Roughness workflow only) |
 | Custom Output | Single texture | One file, from the single texture wired into it |
 
 ## How to start an export
@@ -49,7 +49,8 @@ planned-file preview.
   not from the saved preset. Trim Sheet exports are always Metallic / Roughness.
 - **Engine.** The target preset. See
   [Export Presets and Engine Targets](/docs/export/presets/).
-- **Format.** PNG, JPEG, TGA, BMP, or EXR.
+- **Format.** PNG, TGA, TIFF, BMP, or EXR. JPEG was dropped in 1.2.1: lossy
+  compression on a texture map is a defect you only find later.
 - **Packed map.** Labeled with the layout the chosen engine uses (e.g.
   *ORM (AO / Roughness / Metallic)*). On by default. Only offered in the
   Metallic / Roughness workflow; Specular / Glossiness never writes a packed
@@ -91,6 +92,9 @@ The Export button is always enabled in this mode.
    captures a stale or low-res image.
 4. Files are written and a toast reports the result.
 
+The run happens after the dialog is gone, in the background, so the editor
+stays usable while a large set encodes. The toast is how you learn it finished.
+
 Files with the same name in the target folder are overwritten. There is no
 automatic numeric-suffix collision handling.
 
@@ -105,16 +109,25 @@ graph for it.
 - Normal is the exception: it has no constant form, so a Normal map is
   exported only when something is wired into it.
 - Channel order for Metallic / Roughness: Base Color, Normal, Roughness,
-  Metallic, AO, Height, Opacity, Clearcoat.
+  Metallic, AO, Height, Emissive, Opacity, Clearcoat, Clearcoat Roughness,
+  Thickness.
 - Channel order for Specular / Glossiness: Base Color, Normal, Specular,
-  Glossiness, AO, Height, Opacity.
-- A Trim Sheet exports Base Color, Normal, Roughness, Metallic, AO and Height,
-  and only when at least one of its four slots has a source.
+  Glossiness, AO, Height, Emissive, Opacity, Thickness. That workflow carries
+  no clearcoat maps.
+- Clearcoat Roughness has no input port, so it is only ever a constant. The
+  node's Use Clearcoat toggle enables it and Clearcoat together.
+- A Trim Sheet exports seven channels - Base Color, Normal, Roughness,
+  Metallic, AO, Height and Emissive - and only when at least one of its four
+  slots has a source. A whole material wired into a PBR Output's Material
+  input supplies the same seven.
 - Export follows reroute chains upstream to the texture that actually feeds a
   channel.
 
 Export resolution is the output node's resolution override when it has one,
-otherwise the project default. There is no export-size field in the dialog.
+otherwise the project default. There is no export-size field in the dialog. On
+iPad and Android the resolution ladder stops at 4096, so exports there top out
+at 4K; an 8K project opened on one of those devices is brought down to 4096
+before it evaluates.
 
 ## Messages you may see
 
@@ -135,20 +148,24 @@ unavailable encoder.
 
 ## Saved export settings
 
-The format, JPEG quality, prefix, engine preset, material type,
-packed/individual toggles, normal override, and the list of unticked channels
-are all stored inside the project file as a single "last used" preset, and
-restored when the project is reopened. There are no named, multiple presets.
+The format, prefix, engine preset, material type, packed/individual toggles,
+normal override, and the list of unticked channels are all stored inside the
+project file as a single "last used" preset, and restored when the project is
+reopened. There are no named, multiple presets.
 
-If the stored settings are missing or unreadable they fall back to: PNG, JPEG
-quality 90, no prefix override, Generic PBR engine, Metallic / Roughness,
-packed map on, individual maps on, no normal override, no disabled channels.
-Projects saved before the preset overhaul keep their format, quality and
-prefix and land on Generic PBR, with their old "Pack ORM" flag carried over as
-the packed-map toggle.
+If the stored settings are missing or unreadable they fall back to: PNG, no
+prefix override, Generic PBR engine, Metallic / Roughness, packed map on,
+individual maps on, no normal override, no disabled channels. Projects saved
+before the preset overhaul keep their format and prefix and land on Generic
+PBR, with their old "Pack ORM" flag carried over as the packed-map toggle.
 
 :::note
-JPEG quality is stored per project in the range 1 to 100 (default 90) but the
-dialog exposes no control for it. It can only be changed through the
-automation surface; see [MCP Server](/docs/mcp-server/).
+A project last saved with JPEG selected reopens on PNG. An unrecognized format
+name falls back rather than failing, and PNG is the closest lossless
+equivalent.
 :::
+
+The same settings are what the automation surface reads and writes, so a
+scripted export and a dialog export produce the same files; see
+[MCP Server](/docs/mcp-server/) and
+[Headless CLI](/docs/headless-cli/). Trim sheets export from there too.

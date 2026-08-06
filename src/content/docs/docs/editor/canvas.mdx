@@ -20,7 +20,12 @@ zoom step is limited to between half and double the current scale.
   drag does not pan. As soon as a second finger touches down, the in-progress
   one-finger pan, tap or long-press is abandoned.
 - Pinch and scroll zoom anchor on the pointer or the pinch focal point. Zoom
-  commands and the toolbar zoom field anchor on the center of the viewport.
+  commands, the toolbar's Zoom In and Zoom Out buttons and the toolbar zoom
+  field anchor on the center of the viewport.
+- The toolbar's **Zoom In** and **Zoom Out** buttons step by a factor of 1.25.
+  The zoom field itself accepts 50 to 500 typed, but the canvas still clamps
+  the result to the 10% to 200% range above, so anything over 200 lands at
+  200%.
 - **Canvas Zoom Sensitivity** (Settings → Accessibility, 0.1 to 2.0, default
   1.0) multiplies every pinch and scroll step.
 
@@ -63,9 +68,9 @@ what the graph renders. See [Comments](/docs/graphs/comments/).
 
 ## The minimap (Node Map)
 
-Off when the app starts. Toggle it with the ⊞ toolbar button or
-<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>M</kbd>; the button highlights while it is
-visible. **It is not drawn on iPad at all.**
+Off when the app starts. Toggle it with the **Toggle Minimap** button in the
+toolbar or <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>M</kbd>; the button stays lit
+while it is visible. **It is not drawn on iPad at all.**
 
 It is a 200-point-wide floating panel: a 28-point Node Map title bar above a
 150-point map area, anchored near the bottom-right of the canvas.
@@ -92,17 +97,19 @@ no ports and take no part in texture evaluation. They move, duplicate and delete
 like any other node, are renamed through the context menu's **Rename**, and are
 saved with the project.
 
+Place one the same way you place anything else: **Jump Node** sits in the
+**Canvas** category of the node library, alongside Reroute and Comment Box, so
+it can be dragged in from the Node Picker panel, found through the toolbar
+search field, or picked from the double-click node picker. They can also be
+created through the [MCP interface](/docs/mcp-server/).
+
+Being canvas-native rather than registry definitions, the three Canvas entries
+cannot be tagged, favorited or moved into your own categories the way generator
+and filter nodes can.
+
 Selecting one from the minimap's Jump Node list recenters the canvas on it
 without changing zoom. With none placed, the list reads *No Jump Nodes on
 canvas*.
-
-:::caution[No way to create Jump Nodes from the interface]
-Jump Nodes are absent from the node library gallery and from the node picker,
-and the old debug toolbar button for placing them has been removed. Jump Nodes
-stored in existing project files still load, render, move and rename correctly,
-and can be created through the [MCP interface](/docs/mcp-server/), but new ones
-cannot be placed by hand in this build.
-:::
 
 ## Performance overlay
 

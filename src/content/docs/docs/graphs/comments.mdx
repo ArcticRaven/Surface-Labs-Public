@@ -20,8 +20,30 @@ nodes.
 - Eight resize handles (four corners, four edges). Drag-to-move and the handles
   are disabled while the inline text editor is open, so text selection works
   normally.
+- **Dragging a box moves the nodes it encloses with it.** The set is fixed when
+  the drag starts: a node counts as enclosed when its top-left corner sits
+  inside the box.
 - A recolor dialog gives an HSV color wheel, a `#rrggbb` field and an opacity
   slider, all applying live. There is no confirm step.
+
+### Editing the text
+
+Two ways in, both writing the same text:
+
+- **Double-click the box** to open the inline editor on the canvas.
+- **Select the box** and use the **Comment** field in the Properties panel.
+  This is the reliable path: the inline editor is easy to miss, it competes
+  with the canvas's own double-click, and it is unavailable whenever the canvas
+  is in a mode that swallows double-clicks.
+
+**Rename** in the node context menu opens the inline editor too. Either way the
+edit takes an ordinary undo step.
+
+A connected assistant sees and edits comment boxes as first-class objects, not
+as an afterthought on the graph: the `graph` tool's `describe` action returns
+every comment with its geometry, its text and the node ids it encloses, and
+`edit_graph` can add, update and delete them. Jump nodes travel the same way.
+See [MCP Server](/docs/mcp-server/).
 
 :::caution[missing screenshot]
 A colored comment box framing a group of nodes, with its Markdown body text visible.

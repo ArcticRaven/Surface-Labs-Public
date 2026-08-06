@@ -23,14 +23,60 @@ visible.
 
 ## Toolbar
 
-A fixed strip across the top of the editor window. It holds Back to Hub and
-the save-status dot, plus buttons for Add Node, Import Asset, the minimap,
-annotation mode, focus mode, Settings and a zoom field that accepts a typed
-percentage. Every button is a glyph with a screen-reader label. See
-[Editor Layout](/docs/editor/layout/) for the full button table.
+A fixed strip across the top of the editor window: one row of card buttons
+with a search field stretched across the middle. To the left of the field are
+Settings, Back to Hub, Save, Undo and Redo; to the right are annotation mode,
+the minimap, Zoom In, the zoom field, Zoom Out, focus mode and Import. Every
+button carries a screen-reader label, and the ones that toggle a mode stay lit
+while that mode is on. See [Editor Layout](/docs/editor/layout/) for the full
+button table.
 
 :::caution[missing screenshot]
-The editor toolbar with each zone labeled.
+The editor toolbar: the left button cluster, the search field, and the right
+cluster with the zoom field between the zoom buttons.
+:::
+
+## Search
+
+The search field in the toolbar searches two things at once. **Nodes** match on
+name and description; drag a result onto the canvas to place it where you drop
+it, or tap it to place it at the center of the viewport. **Documentation**
+results open the manual over the editor, so looking something up does not mean
+leaving the graph. Nodes are listed first, documentation under it, capped at
+five articles.
+
+An empty query lists the whole node catalog and no articles. With nothing
+matching, the panel reads *No matches*. <kbd>Escape</kbd> clears the field and
+closes the panel.
+
+:::caution[missing screenshot]
+The search drop-down open under the toolbar, showing the Nodes group above the
+Documentation group.
+:::
+
+## The manual
+
+Search is the only way into the manual; Settings has no Documentation page.
+An article opens as a card over the editor with three controls: **Back**, which
+appears once you have followed a cross-link and is labeled with the article you
+came from; **Open on the web**, which opens the same page on the website in your
+browser; and a close button. <kbd>Escape</kbd> walks back up the cross-links you
+followed, then closes the reader.
+
+The manual is not shipped inside the app. It downloads from the website the
+first time the app is online and is cached on disk, so it stays current without
+an app update, and every launch after that works fully offline. Only a device
+that has never been online has no manual: search offers no articles, and an
+article says so rather than failing.
+
+Illustrations are fetched per image as you read them, not up front, so they only
+use the space you actually look at. Settings → Library → **Documentation** shows
+what is cached, offers **Download All Illustrations** with the total size on the
+button, and can remove them again.
+
+:::caution[missing screenshot]
+An article open in the reader over the editor, with the Open on the web and
+close controls in its header.
 :::
 
 ## Canvas

@@ -21,8 +21,12 @@ A parameter row in the Properties panel with the hollow and filled diamond state
 
 Exposed parameters appear in the **Global Variables** panel (Globals tab) with
 exactly the same live controls, so key values from anywhere in the graph can be
-edited from one place. Each entry can be removed from the panel directly. The
-diamond does not appear inside the Global Variables panel itself.
+edited from one place. Each entry carries a ✕ that removes it from the panel.
+The diamond does not appear inside the Global Variables panel itself.
+
+The panel always shows the exposures of the graph you are editing. Enter a
+subgraph and it swaps to that subgraph's own exposures; come back out and the
+material's set returns.
 
 :::caution[missing screenshot]
 The Global Variables panel listing exposed parameters from several different nodes, each with its live control.
@@ -31,3 +35,7 @@ The Global Variables panel listing exposed parameters from several different nod
 Exposures are saved into the project archive, so they travel with the project.
 Exposures whose node has since been deleted are pruned automatically, so the
 panel never shows dead entries.
+
+Collapsing exposed nodes into a subgraph does not lose their exposures: they
+become parameters of the subgraph node itself, held per instance. See
+[Subgraphs](/docs/graphs/subgraphs/).

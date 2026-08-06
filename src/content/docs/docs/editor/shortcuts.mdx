@@ -45,8 +45,8 @@ Bindings are stored with your application preferences, not inside a project.
 
 Seven actions are unbound out of the box: Open Project, New Project, Go to Hub,
 Zoom to Fit, Zoom In, Zoom Out and Toggle Annotation Mode. All of them can be
-reached another way (the hub, the toolbar, the zoom field) and all can be given
-a binding.
+reached another way (the hub, the toolbar's Zoom In, Zoom Out and annotation
+buttons, the zoom field) and all can be given a binding.
 
 On the Shortcuts page key names are shown in lower case (`mod+s`, `f1`,
 `delete`, `mod+arrowleft`); modifier names keep their capitals. The Space
@@ -72,6 +72,10 @@ keeps its Surface Labs default.
 | **Nuke** | Open Node Picker <kbd>Tab</kbd>, Zoom to Selection <kbd>F</kbd>, Frame Selection <kbd>Shift</kbd>+<kbd>F</kbd>, Zoom to Fit <kbd>Home</kbd> |
 | **Custom** | Not selectable. This label appears automatically once you remap anything by hand |
 
+The Custom chip is only drawn while Custom is the active state, and the note
+under the row reads *Presets preload familiar bindings from other tools.
+Remapping any shortcut afterwards switches to Custom.*
+
 ## Remapping
 
 1. Open Settings → Shortcuts.
@@ -86,7 +90,19 @@ keeps its Surface Labs default.
 Recorded modifiers are the primary modifier (Ctrl/Cmd), <kbd>Shift</kbd> and
 <kbd>Alt</kbd>.
 
+A row that carries an override grows a **×** control beside its binding, which
+clears that one override and restores the registry default.
+
 Any manual remap, or a per-row reset, flips the stored preset label to Custom.
+
+**Reset All Shortcuts to Defaults** at the bottom of the list clears every
+override at once and returns the preset to Surface Labs. It asks first: *Reset
+all shortcuts?* — *This restores every keyboard shortcut to its default binding.
+This action cannot be undone.*
+
+Below that button, the same page carries the **Controller** section: the enable
+toggle, the live connection status and the three tuning sliders. See
+[Input Devices](/docs/editor/input-devices/).
 
 ## Conflicts
 
@@ -110,10 +126,12 @@ buttons.
 ## When shortcuts do not fire
 
 Shortcuts are deliberately suppressed while a text field has keyboard focus:
-the comment box inline editor, the toolbar zoom field, the Jump Node label
-editor, a search box. Typing <kbd>C</kbd> in a comment writes a c instead of
-placing another comment. <kbd>Escape</kbd> is the exception: it is never routed
-through the shortcut system, so it always reaches whatever it needs to cancel.
+the comment box inline editor, the toolbar search field, the toolbar zoom
+field, the Jump Node label editor, a panel's search box. Typing <kbd>C</kbd> in
+a comment writes a c instead of placing another comment, and typing `space` in
+the toolbar search field types a space instead of opening the node picker.
+<kbd>Escape</kbd> is the exception: it is never routed through the shortcut
+system, so it always reaches whatever it needs to cancel.
 
 Which actions are live also depends on where you are. Go to Hub, Toggle Command
 Palette, New Project and Open Project are registered application-wide, so they
@@ -122,17 +140,41 @@ toggles and Focus Mode are registered by the editor. Undo, Redo, Select All,
 Delete, Duplicate, Copy, Paste and the canvas actions are registered by the
 canvas. An action whose handler is not currently registered simply does nothing.
 
+A few keys belong to a panel rather than to the shortcut system, so they are not
+listed above and cannot be remapped. In the 3D preview, <kbd>[</kbd> and
+<kbd>]</kbd> cycle through the material's maps and <kbd>Tab</kbd> shows or hides
+the corner toolbar; both only fire while that viewport holds focus, which it
+claims on pointer-down. See
+[3D Material Preview](/docs/export/preview-3d/).
+
 ## The command palette
 
 <kbd>Mod</kbd>+<kbd>P</kbd> opens a small overlay in the upper part of the
 window with a search field, focused automatically, and the hint line *Run any
-action or jump to a shortcut*. <kbd>Mod</kbd>+<kbd>P</kbd> again or
-<kbd>Escape</kbd> closes it (<kbd>Escape</kbd> also clears the typed text;
-<kbd>Mod</kbd>+<kbd>P</kbd> leaves it in place for next time). It works in the
-hub and in the editor.
+action or jump to a shortcut*. It works in the hub and in the editor.
 
-:::note[The palette does not yet run actions]
-It is currently the search field and hint only, with no result list and no
-execution. On iPad it needs an attached hardware keyboard; there is no on-screen
-button or gesture that opens it.
+Under the field is the action list, and it runs what you pick:
+
+- With the field empty, every action available right now is listed under its
+  category heading, in the order of the table above.
+- Typing filters by subsequence match over the action name and its category, so
+  `tfm` finds Toggle Focus Mode. Filtered results drop the headings and label
+  each row with its category instead. Nothing matching reads *No matching
+  actions*.
+- Each row shows the action's current binding, so the palette doubles as a way
+  to look one up.
+- <kbd>↑</kbd> and <kbd>↓</kbd> move the highlight, wrapping at both ends and
+  scrolling the highlighted row into view. <kbd>Enter</kbd> or a tap runs the
+  highlighted action through the same path a keyboard shortcut takes.
+- Choosing Toggle Command Palette from inside the palette just closes it.
+
+Only actions with a handler registered right now appear, so the canvas and
+graph actions are absent in the hub. <kbd>Mod</kbd>+<kbd>P</kbd> again or
+<kbd>Escape</kbd> closes it (<kbd>Escape</kbd> also clears the typed text;
+<kbd>Mod</kbd>+<kbd>P</kbd> leaves it in place for next time).
+
+:::note[Opening it on iPad]
+There is no on-screen button or gesture for the palette. On iPad it takes an
+attached hardware keyboard, or a game controller (see
+[Input Devices](/docs/editor/input-devices/)).
 :::

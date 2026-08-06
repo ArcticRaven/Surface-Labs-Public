@@ -12,7 +12,7 @@ error) or as centered dialogs. This is the current user-facing set.
 | --- | --- |
 | `Project saved` | A manual save succeeded. |
 | `Save failed - your work is not saved` | The write to disk failed. Your work is still in memory: try Save again, or use Export Diagnostics… and save elsewhere. Back to Hub aborts rather than navigating away when this happens. |
-| `Autosaved` | The 60-second autosave timer fired and wrote the `.autosave` companion. See [Autosave & Recovery](/docs/help/autosave-and-recovery/). |
+| `Autosaved` | The five-minute autosave timer fired and wrote the `.autosave` companion. See [Autosave & Recovery](/docs/help/autosave-and-recovery/). |
 | `Failed to load project: …` | The archive could not be read: wrong format version, corruption, or a missing internal file. |
 | `Project not found - it may have been moved or deleted.` | A recent-projects entry or an opened file no longer exists on disk. The entry is removed from the list. |
 | `Could not create the project. Please try again.` | Writing the new blank project archive failed. |
@@ -29,6 +29,8 @@ error) or as centered dialogs. This is the current user-facing set.
 | `Failed to import asset: …` | The file could not be read or embedded. |
 | `Add a PBR Output, Trim Sheet, or Custom Output node to export textures` | The export shortcut found no output node in the graph. See [Exporting](/docs/export/exporting/). |
 | `Exported N textures`, optionally `(N not ready)` | Export finished. "Not ready" channels are ones whose textures had not finished evaluating. |
+| `Nothing exported - connected textures are still rendering` | Nothing was written because every planned channel was still evaluating. Wait for the graph to settle and export again. |
+| `Nothing exported - connect textures to this node first` | Nothing was written because the output node has nothing wired into it. |
 | `Export failed - no files were written` | Nothing could be written to the chosen folder. |
 | `Exported <node> as .surfacenode` / `Export failed - no file was written` | Single-node package export. See [Sharing Nodes](/docs/help/sharing-nodes/). |
 | `Could not import .surfacenode - file is invalid` | The package could not be read. |
@@ -38,6 +40,18 @@ error) or as centered dialogs. This is the current user-facing set.
 | `Could not load HDRI - is it a Radiance .hdr?` / `Environment loaded` | 3D preview environment import. See [3D Preview](/docs/export/preview-3d/). |
 | `Exported 4K preview to …` / `4K preview export failed` | 3D preview beauty-shot export. |
 | `Added N tags from this project: …` | Opening someone else's project added tags you did not have to your local vocabulary. |
+| `This project was authored above 4096 × 4096 and has been reduced to fit this device.` | iPad and Android only. An 8K project was clamped to the handheld ceiling on open, and marked as changed. See [Project & File Formats](/docs/help/file-formats/). |
+| `This material was authored above 4096 × 4096 and has been reduced to fit this device.` | The same clamp, applied when you switch to another material inside the project. |
+
+## Memory messages
+
+| Message | Meaning |
+| --- | --- |
+| `High memory use - previews may reduce quality` | Texture use reached 80% of the memory budget. Nothing has been dropped yet. |
+| `Reduced preview quality to stay within memory` | Textures were evicted, the OS asked for memory back, or the app has used 90% of its iOS memory allowance. |
+
+Both fire once per episode rather than repeatedly. See
+[Performance & Memory](/docs/help/performance-and-memory/).
 
 ## Settings and diagnostics messages
 
@@ -63,7 +77,11 @@ error) or as centered dialogs. This is the current user-facing set.
 | **Remove from shelf?** | Removing a project from a user shelf. |
 | **Reset all shortcuts?** *"This restores every keyboard shortcut to its default binding. This action cannot be undone."* | Reset All Shortcuts in [Settings](/docs/help/settings/). |
 | **Close Minimap** *"Hide the canvas minimap? You can show it again from the toolbar or with Ctrl+M."* | Long-pressing the minimap title bar. |
-| **Surface Labs recovered from a crash** | Crash artifacts found at hub launch. See [Autosave & Recovery](/docs/help/autosave-and-recovery/). |
+
+The crash notice is **not** one of these. It is a toast with an **Export…**
+button, it names whether the crash was the previous session or an earlier one,
+and once it slides past it never asks about that crash again. See
+[Autosave & Recovery](/docs/help/autosave-and-recovery/).
 
 ## Editor state messages
 
@@ -71,8 +89,47 @@ error) or as centered dialogs. This is the current user-facing set.
 | --- | --- |
 | `Expand to full screen to start editing.` | iPad only. The app window is not full screen. Editing is blocked until it is. |
 | `No Jump Nodes on canvas.` | The Jump Node list is empty. |
-| `No matching articles.` | Documentation search found nothing. |
+| `No matches` | The toolbar search found neither a node nor a manual article. See [Interface Tour](/docs/interface-tour/). |
 | `Select a node to edit its parameters` | The Properties panel with nothing selected. |
+
+## The manual is missing or incomplete
+
+The manual is not shipped inside the application. It is downloaded from
+surfacelabs.app the first time the app is online and cached on disk, after
+which it works fully offline and updates itself without an app update.
+
+- On a device that has **never** been online there is no manual yet. Search
+  offers no article results, and an article opened by a cross-link reads
+  *"This article hasn't been downloaded yet - the manual syncs from
+  surfacelabs.app the next time you're online."*
+- Every network failure - offline, a 404, a 500, a timeout, a bad response - is
+  handled the same way: keep the last good copy. No documentation error is ever
+  shown, because there is nothing you could do about it. The next launch with a
+  connection fills in whatever is missing.
+- Illustrations are fetched per image as you open the articles that use them,
+  so an article read for the first time offline shows its prose without its
+  pictures. Settings → Library → Documentation can pre-fetch them all, and
+  reports what is on disk. See [Settings](/docs/help/settings/).
+
+## The 3D preview stopped
+
+While the native renderer is coming up, the panel reads
+`Starting native renderer…`.
+If it cannot start, the panel shows **3D renderer stopped**, the
+underlying failure, and a **Restart Renderer** button that tears the native
+core down and rebuilds it from scratch. A failed start is retried
+automatically a few times first, because it is usually a create racing a
+teardown; the button is for a core that is genuinely wedged.
+
+The preview no longer dies when a discrete GPU drops out of the adapter list -
+Remote Desktop, or a driver reset mid-session. The presentation bridge is
+matched to the same adapter the renderer picked, so it falls back to the
+integrated GPU and keeps working instead of failing with an interop error.
+
+If the preview misbehaves on one particular Windows machine, try
+Settings → General → **Graphics Backend** → Vulkan. It is an escape hatch for
+a DirectX 12 driver bug, not a faster path. See
+[Settings](/docs/help/settings/).
 
 ## Custom shader quarantine
 

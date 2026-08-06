@@ -3,7 +3,7 @@ title: Normal & Surface Nodes
 description: Turn a height map into normals, curvature, occlusion, thickness, flow direction and roughness.
 ---
 
-The Normal category turns a height map into the surface data a renderer needs: slope, curvature, occlusion, flow direction and roughness. Every node here reads brightness as height, and every one wraps its sampling at the texture border, so a tiling input produces a tiling result.
+The Normal category turns a height map into the surface data a renderer needs: slope, curvature, occlusion, flow direction and roughness. Every node here reads its input as height (as brightness, except Normal from Height, which reads the red channel), and every one wraps its sampling at the texture border, so a tiling input produces a tiling result.
 
 ### Normal from Height
 
@@ -13,7 +13,7 @@ Converts a grayscale height map into a tangent-space normal map, encoding surfac
 
 **Inputs**
 
-- Height (grayscale, required): the height field to read slopes from.
+- Height (grayscale, required): the height field to read slopes from. A color map connects, but only its red channel is read; put a Grayscale node in front if you want its brightness instead.
 
 **Outputs**
 
@@ -22,6 +22,8 @@ Converts a grayscale height map into a tangent-space normal map, encoding surfac
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Strength | Float | 4.0 | 0.0 to 32.0 | Slope multiplier. At 0 the map is dead flat; higher values exaggerate relief. Calibrated against a 1024 px result, so the same value reads the same at any output size. |
+
+The slope is measured over a stencil that widens with resolution, one texel at 1024 and four at 4K, so a large bake reads the shape rather than the dither baked into its input. A 4K normal map off a smooth height field comes out clean instead of sparkling with grain.
 
 There is no Mask input, and no green-channel flip here. Use Normal Adjust for that.
 
@@ -73,7 +75,7 @@ One sampling walk over a height map that produces ambient occlusion, thickness a
 | Angle | Float | 270.0 | 0.0 to 360.0 | Incoming direction, in degrees. Has no effect on any of this node's three outputs. |
 | Spread | Float | 60.0 | 1.0 to 180.0 | Cone half-width, in degrees. Has no effect on any of this node's three outputs. |
 
-No Mask input. Sampling density follows Radius (up to 6 rings of 24 taps), and the pattern is rotated per pixel so the residual error reads as fine grain rather than directional banding.
+No Mask input. Sampling density follows Radius, up to 10 rings of 32 taps, so widening the radius adds samples instead of spreading the same few further apart. Each pixel rotates the whole pattern and jitters each ring's radius within its band, so what error is left reads as fine grain rather than as directional banding or concentric rings around every bump.
 
 ### Directional Occlusion
 
@@ -96,7 +98,7 @@ Occlusion restricted to a single incoming direction: where light pools from a ch
 | Angle | Float | 270.0 | 0.0 to 360.0 | The direction occlusion is measured from, in degrees. |
 | Spread | Float | 60.0 | 1.0 to 180.0 | Half-width of the cone around Angle. Narrow gives sharp shafts, wide gives soft pooling. |
 
-No Mask input. Directions outside the cone are ignored entirely rather than counted as open, so widening the cone shifts the result instead of uniformly darkening it.
+No Mask input. Directions outside the cone are ignored entirely rather than counted as open, so widening the cone shifts the result instead of uniformly darkening it. The cone edge is feathered by half the spacing between samples, which keeps a narrow Spread continuous instead of breaking into salt-and-pepper where a pixel happens to catch no sample inside the cone.
 
 ### Flow Map
 
@@ -107,11 +109,11 @@ Turns a height map or mask into a direction field, encoded in red and green with
 **Inputs**
 
 - Input (any texture, required): the height or mask the direction is derived from.
-- Mask (grayscale, optional): where dark, the node's input passes through unchanged.
+- Mask (grayscale, optional): where dark, the node's input passes through unchanged — the height itself, not neutral flow.
 
 **Outputs**
 
-- Output (color): a direction field in the red and green channels; blue is unused.
+- Output (color): a direction field in the red and green channels; blue is always 0.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -119,6 +121,8 @@ Turns a height map or mask into a direction field, encoded in red and green with
 | Scale | Float | 4.0 | 1.0 to 64.0 | How far apart the samples that measure direction sit, in pixels. Raise it on smooth inputs; too small a spacing quantizes the field into a handful of angles and facets it. |
 | Curl | Float | 0.0 | 0.0 to 1.0 | Mixes in a swirling component, so flow curls around features rather than piling up against them. At 0 the field is pure gradient. |
 | Intensity | Float | 1.0 | 0.0 to 1.0 | Length of the output vectors. At 0 the map flattens to no flow. |
+
+Where the input is flat, the measured gradient falls below one 8-bit step, which is rounding noise rather than slope, so the vector fades to zero length instead of being normalized up into a full-strength random direction. Flat areas therefore read as mid-gray no-flow, and a Warp or Vector Morph driven by this node leaves them alone rather than shredding them into noise.
 
 ### Roughness from Height
 
@@ -129,7 +133,7 @@ Derives a plausible roughness map from how busy the height is locally, not from 
 **Inputs**
 
 - Input (any texture, required): the height field to measure.
-- Mask (grayscale, optional): where dark, the node's input passes through unchanged.
+- Mask (grayscale, optional): where dark, the node's input passes through unchanged — the height itself, not a roughness value.
 
 **Outputs**
 
@@ -140,6 +144,6 @@ Derives a plausible roughness map from how busy the height is locally, not from 
 | Radius | Float | 0.02 | 0.001 to 0.25 | Detail scale, as a fraction of the shorter image edge. Small counts only fine grain; large also counts broad undulation as roughness. |
 | Smooth | Float | 0.2 | 0.0 to 1.0 | The roughness value assigned to perfectly flat areas. |
 | Rough | Float | 0.9 | 0.0 to 1.0 | The roughness value assigned to the busiest areas. Set it below Smooth to invert the mapping. |
-| Contrast | Float | 1.0 | 0.1 to 4.0 | Response curve. Above 1, only the busiest areas reach the rough end. |
+| Contrast | Float | 1.0 | 0.1 to 4.0 | Response curve. Above 1, only the busiest areas reach the rough end. Below 1 it lifts faint detail toward the rough end without dragging flat areas with it: the dither floor every generator bakes into its output is subtracted before the curve, so a flat surface stays at Smooth at any Contrast. |
 
 The measurement weights occasional sharp steps well above uniform fine grain, matching how a chipped edge reads as rougher than an evenly grained surface.

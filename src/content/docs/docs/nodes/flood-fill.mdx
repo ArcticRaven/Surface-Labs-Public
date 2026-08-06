@@ -5,9 +5,11 @@ description: Label each enclosed region of a mask, then select, reshape, query a
 
 Most procedural texturing works pixel by pixel: every operation looks at a color value and returns a new one, with no idea which brick, tile or pebble that pixel belongs to. The Flood Fill family breaks that limit. Feed it a black-and-white image and it performs *connected-component labeling*: it walks the image, finds every enclosed shape, and gives each one its own internal identity number. From that moment on, the rest of the family can address shapes individually. Make every brick a different color, grow each stone by a different random amount, put one rivet in the center of each cell, keep only the three biggest shapes.
 
-The family is five nodes, meant to be used in workflow order: Flood Fill, then Region Select, then Region Modify, then Region Query or Region Scatter. Flood Fill does the analysis and nothing else. On its own it is pure data, and its preview simply paints each region a random gray so you can see what it found. Everything downstream reads that one shared analysis. This matters for speed: the source image is analyzed once, no matter how many Region nodes you hang off it, so you can pull five different properties out of the same Flood Fill for the price of one.
+The family is five nodes, meant to be used in workflow order: Flood Fill, then Region Select, then Region Modify, then Region Query or Region Scatter. Flood Fill does the analysis and nothing else. On its own it is pure data: its preview is a plain white-on-black mask of everything it labeled, not a per-region look. Everything downstream reads that one shared analysis. This matters for speed: the source image is analyzed once, no matter how many Region nodes you hang off it, so you can pull five different properties out of the same Flood Fill for the price of one.
 
 Region data travels the wires as an ordinary texture. That is deliberate. You can plug a Region Query straight into a Blend, a Warp, a Levels or a Gradient Map, and using this data in ways it was not "meant" for is encouraged. Two practical rules to remember: all five nodes work in tiling space by default, so a shape that crosses the image edge stays a single region; and every Region node renders at the Flood Fill's analysis resolution, which means their own per-node resolution control has no effect.
+
+The whole family runs on the native render core. Connected-component labeling is a GPU compute pass, and both distance transforms run as a jump flood instead of the sequential chamfer sweeps they replaced, which were the slowest part of the analysis. The native path also samples the region id field and the per-region table with nearest filtering, so a pixel on a boundary reads its own region instead of an interpolation of two neighbors. Binarizing the input and computing the per-region statistics stay on the CPU deliberately, and CPU versions of the rest remain as a fallback, so a build without the core finds the same regions, only slower.
 
 A good starting point is a Cells or Voronoi node from the [Generators](/docs/nodes/generators/) for instant brick, pebble or scale regions, or a thresholded Perlin/FBM for organic blobs.
 
@@ -19,7 +21,7 @@ A Cells pattern wired through Flood Fill into a Region Query, showing the workfl
 
 Type id: `flood_fill`
 
-Labels each connected region of a mask so later nodes can address them individually. This node produces data, not a picture. Its preview shows each region as a flat random gray; wire it into a Region node to see anything useful.
+Labels each connected region of a mask so later nodes can address them individually. This node produces data, not a picture. Its preview is a white-on-black mask of every labeled region; wire it into a Region node to see anything per-region.
 
 **Inputs:** Height / Mask (texture, required), the image to analyze. It is thresholded into shape and background before labeling.
 
@@ -33,10 +35,10 @@ Labels each connected region of a mask so later nodes can address them individua
 | Connectivity | Choice | 8-connected | 4-connected, 8-connected | 8-connected merges diagonally touching pixels into one region; 4-connected keeps them separate. |
 | Background | Choice | Exclude | Exclude, Include as Region | Exclude treats the below-threshold area as empty space between shapes. Include as Region also cuts the background into its own regions. |
 | Tiling | Toggle | On | On / Off | Treats the image as seamless, so a shape crossing the edge counts as one region rather than two. Keep this on for tileable materials. |
-| Seed | Seed | 0 | Any whole number | Reshuffles the per-region random values and colors. |
+| Seed | Seed | 0 | Any whole number | Reshuffles the per-region random values and colors baked into the analysis. Changing it re-runs the analysis; to re-roll the random maps without that, use Region Query's own Seed. |
 
 :::caution[missing screenshot]
-A Flood Fill node's random-gray preview next to the black-and-white input that produced it.
+A Flood Fill node's white-on-black carrier next to the input that produced it, with a Region Query in Random Value beside them showing the per-region look.
 :::
 
 ### Region Select
@@ -82,7 +84,9 @@ Grows, shrinks or softens each Flood Fill region independently, optionally by a 
 | Bias | Slider | 0.5 | 0.0 to 1.0 | Tips the Random balance: 0 = everything contracts, 0.5 = even, 1 = everything expands. Shown for Random only. |
 | Seed | Seed | 0 | Any whole number | Which region gets which random amount. Shown for Random only. |
 
-Expand, Contract and Random move the actual region boundaries, so masks and further chaining stay correct. Feather only softens the visible edge; downstream nodes still see the original hard-edged regions. After an Expand or Contract, per-region statistics (area, centroid, average color, average height) are inherited from before the change rather than recomputed, so a later Region Query reads the pre-modify numbers.
+Expand, Contract and Random move the actual region boundaries, so masks and further chaining stay correct. Feather only softens the visible edge; downstream nodes still see the original hard-edged regions. After a boundary-moving operation, area is recounted from the new labels, but centroid, bounding box and perimeter are inherited from before the change, and average color and average height cannot be refreshed at all because Region Modify does not hold the source image. A later Region Query reads those inherited numbers.
+
+What those three ops move is the boundary between regions and background, so with the upstream Flood Fill set to Include as Region there is no background left to move into and the Amount control is hidden. Feather still works there, because it only softens the carrier.
 
 Recipe, stone walls and cracked plates: Cells, then Flood Fill, then Region Modify set to Random with Amount around 0.1, then adjust Seed until the silhouette reads right. Follow with a Region Query in Distance to Edge for chiselled bevels.
 
@@ -102,8 +106,11 @@ Reads one property of the regions and outputs it as a map. This single node repl
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Mode | Choice | Random Value | Random Value, Random Color, Average Color, Average Height, Area, Perimeter, Aspect Ratio, Region ID, Local UV, Centroid, Bounding Box, Distance to Edge, Distance to Center, Border Mask, Interior Mask, Region Count | Which property to output. See the table below. |
+| Mode | Choice | Random Value | Random Value, Random Color, Average Color, Average Height, Area, Perimeter, Aspect Ratio, Region ID, Local UV, Centroid, Bounding Box, Distance to Edge, Distance to Center, Border Mask, Interior Mask, Region Count, Random Slope | Which property to output. See the table below. |
 | Scale | Slider | 1.0 | 0.0 to 8.0 | Widens the distance falloff and the Border/Interior margin. Shown only for Distance to Edge, Distance to Center, Border Mask and Interior Mask. |
+| Seed | Seed | 0 | Any whole number | Re-rolls Random Value, Random Color and Random Slope's per-region direction. It is applied while the map is drawn, so scrubbing it never re-runs the Flood Fill analysis, and two Region Query nodes on one Flood Fill can carry different randomness. At 0, Random Value and Random Color keep the values the Flood Fill baked, so existing projects render exactly as before; Random Slope's direction is seeded per region either way, since randomizing it is that mode's own job. |
+| Slope Angle | Slider | 0.0 | 0.0 to 360.0 | Direction of the Random Slope ramp, in degrees. Shown for Random Slope. |
+| Slope Random | Slider | 0.0 | 0.0 to 1.0 | How much of a seeded per-region turn is added to Slope Angle. 0 points every region the same way, 1 gives every region its own direction. Shown for Random Slope. |
 
 Modes, in list order:
 
@@ -124,14 +131,15 @@ Modes, in list order:
 | Distance to Center | 0 at the centroid, rising toward the edges. |
 | Border Mask | A band hugging each region's outline, on both sides of the boundary. |
 | Interior Mask | The inside of each region, past a margin. |
-| Region Count | A single flat gray encoding how many regions were found (value is roughly the count divided by 256). This is the one mode that also fills the background. |
+| Region Count | A single flat gray encoding how many regions were found (value is roughly the count divided by 256). It covers the whole image, background included. |
+| Random Slope | A grayscale ramp across each region's bounding box, running 0 to 1 along Slope Angle. Feed it to [Height Blend](/docs/nodes/blend/) or [Normal from Height](/docs/nodes/normal/) for tilted tiles, stone steps and torn shingles. |
 
-Every mode except Region Count leaves the background black.
+Region Count fills the whole image, and Border Mask's band covers the background side of each boundary as well as the inside. Every other mode leaves the background black.
 
-Recipes: per-brick color is Cells, Flood Fill, then Region Query in Random Color. Worn tile heights are Flood Fill, Region Query in Random Value, then Levels, blended over your base height. Bevelled edges are Region Query in Distance to Edge into Levels or Curves.
+Recipes: per-brick color is Cells, Flood Fill, then Region Query in Random Color. Worn tile heights are Flood Fill, Region Query in Random Value, then Levels, blended over your base height. Bevelled edges are Region Query in Distance to Edge into Levels or Curves. Two Region Query nodes on one Flood Fill with different Seeds give two uncorrelated random maps, one for roughness and one for color, without a second analysis.
 
 :::caution[missing screenshot]
-A grid of Region Query previews on the same Flood Fill: Random Value, Random Color, Distance to Edge, Local UV, Border Mask and Area.
+A grid of Region Query previews on the same Flood Fill: Random Value, Random Color, Random Slope, Distance to Edge, Local UV and Border Mask.
 :::
 
 ### Region Scatter

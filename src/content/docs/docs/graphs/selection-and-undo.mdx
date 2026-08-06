@@ -15,9 +15,15 @@ description: Selecting nodes with click, shift-click and marquee, and how parame
   release; holding <kbd>Shift</kbd> on release adds to the existing selection
   instead of replacing it. The marquee stays pinned to the canvas while edge
   auto-pan moves the view underneath it. A touch long-press that lands on a
-  node or comment does nothing, so drag-to-move stays available, and the
-  long-press marquee is disabled while annotation mode is on.
-- <kbd>Escape</kbd> cancels an in-progress node drag.
+  node or comment opens that node's context menu instead of starting a
+  marquee. Drag-to-move is unaffected, because any movement past the pan
+  threshold cancels the long-press before it fires. The long-press marquee is
+  disabled while annotation mode is on, where a one-finger drag draws.
+- <kbd>Escape</kbd> cancels one thing per press, innermost first: an
+  in-progress annotation stroke, then a wire drag, then a marquee, then a node
+  drag (which puts the moved nodes back), then inline label editing, then
+  annotation mode, then the selection. An open modal or the command palette
+  takes the key before the canvas sees it.
 
 :::caution[missing screenshot]
 A marquee rectangle mid-drag over several nodes, with already-selected nodes outlined and glowing.
@@ -26,7 +32,11 @@ A marquee rectangle mid-drag over several nodes, with already-selected nodes out
 ## Undo behavior
 
 Every parameter edit gesture pushes exactly one undo step. Consecutive edits to
-the *same* parameter within a short window, such as the ticks of a slider drag,
-share one snapshot, so undoing a drag undoes the whole drag rather than one
-pixel of it. Editors with a batch action (Levels' Auto and Reset) push a single
-snapshot for the whole set of changes.
+the *same* parameter within about 800 ms of each other, such as the ticks of a
+slider drag, share one snapshot, so undoing a drag undoes the whole drag rather
+than one pixel of it. Editors with a batch action (Levels' Auto and Reset) push
+a single snapshot for the whole set of changes.
+
+Comment box text is edited through the same path, so a comment edit takes an
+undo step like any other panel edit even though comments are canvas furniture
+rather than graph nodes.

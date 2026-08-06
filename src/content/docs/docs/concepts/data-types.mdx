@@ -11,13 +11,24 @@ colors tell you at a glance what is flowing where.
 
 A port is a connection point. Input ports receive data; output ports supply
 it. A placed node's ports are fixed by its node type, together with its label,
-category and parameter list.
+category and parameter list. Two kinds of node are the exception: a Custom
+Shader's ports come from the source that instance holds, and a subgraph
+instance's ports come from its definition's boundary, so both change when what
+they wrap changes.
 
 An input may be **required** or **optional**:
 
 - A **required** input must be connected before the node produces anything.
+  The node stays unrendered rather than erroring.
 - An **optional** input changes the result when connected but the node works
-  without it.
+  without it. Left unwired, an optional texture input binds a flat constant
+  the port declares for itself, so the node still has something to sample.
+  Most ports use mid-gray; the ones that need something else say so. Blend's
+  Base is fully transparent, so an unconnected Base makes a cut-out rather
+  than a gray plate. Channel Combine's R, G and B are black, so an unpacked
+  color channel contributes nothing, while its A is white, so the Alpha
+  parameter passes through unchanged. Tile Sampler's Mask Map is white, so an
+  unconnected mask hides nothing.
 
 Some nodes expose more than one output port, each carrying different data
 derived from the same computation. See
@@ -47,10 +58,15 @@ the standard way to confine a filter or generator to part of a texture.
 - **Value**: a number or a 2-, 3- or 4-component vector. All value types
   interconnect.
 - **Boolean**: an on/off value; connects only to boolean ports.
-- **Material**: a whole map-set carried on a single wire, used by the PBR
-  Output and Trim Sheet nodes.
-- **Custom**: an unchecked type used by the Reroute node; connects to anything
-  and bypasses type validation.
+- **Material**: a whole map-set carried on a single wire. PBR Output, Trim
+  Sheet and the Material node each output one; PBR Output and Trim Sheet also
+  accept one as an input. The wire itself carries no texture — it names the
+  node the maps come from, and the consumer resolves the channel it needs
+  through that node when it renders or exports. Material ports connect only to
+  other material ports.
+- **Custom**: an unchecked type that connects to anything and bypasses type
+  validation. The Reroute node uses it, and so do a Trim Sheet's four strip
+  slots, which take either a plain map or a whole material.
 
 Textures and values are **not** interchangeable with each other.
 

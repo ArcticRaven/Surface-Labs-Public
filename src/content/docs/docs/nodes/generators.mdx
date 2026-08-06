@@ -39,17 +39,25 @@ visible in Properties.
 | Type | enum | Perlin | Perlin · fBm · Ridged Multifractal · Billow · White · Simplex · Wave / Band · Gabor · Curl / Flow · Gaussian Spots · Scratches / Fibers | Chooses the family. The stored value is the position in this list, so the order never changes; new families are only ever added at the end. |
 | Scale | float | 8.0 | 1.0 to 128.0 | Cells per axis. Rounded to a whole number internally so the field stays seamless. On White noise it sets grain size. |
 | Seed | seed | 0 | 0 to 9999 | |
-| Octaves | whole number | 5 | 1 to 8 | How many layers are summed. Shown for fBm, Ridged Multifractal, Billow and Curl / Flow. |
+| Octaves | whole number | 5 | 1 to 8 | How many layers are summed. A layer whose cells would land below a pixel is dropped, so a preview and a bake of the same graph show the same fine grain. Shown for fBm, Ridged Multifractal, Billow and Curl / Flow. |
 | Lacunarity | whole number | 2 | 1 to 4 | Frequency multiplier per octave. Whole numbers only; a fractional value would break tiling. Shown for fBm, Ridged Multifractal, Billow and Curl / Flow. |
 | Gain | float | 0.5 | 0.0 to 1.0 | Amplitude multiplier per octave; below 0.5 the fine layers fade faster. Shown for fBm, Ridged Multifractal, Billow and Curl / Flow. |
-| Angle | float | 0.0 | 0.0 to 360.0 degrees | Direction of the pattern. Shown for Wave / Band, Gabor and Scratches / Fibers. |
-| Anisotropy | float | 1.0 | 0.05 to 8.0 | Directional stretch. Above 1 stretches along the angle, below 1 compresses across it; this is how you get brushed-metal, wood-grain and fabric looks. Shown for Wave / Band, Gabor, Gaussian Spots and Scratches / Fibers. |
+| Angle | float | 0.0 | 0.0 to 360.0 degrees | Direction of the pattern. On Wave / Band, Angle, Scale and Anisotropy fold into one wave vector that is snapped to the nearest tiling-safe pair, so the bands stay seamless at every setting and the rendered angle is the closest the tile admits. Shown for Wave / Band, Gabor and Scratches / Fibers. |
+| Anisotropy | float | 1.0 | 0.05 to 8.0 | Directional stretch. Above 1 stretches along the angle, below 1 compresses across it; this is how you get brushed-metal, wood-grain and fabric looks. On Scratches / Fibers it also sets strand length, up to a ceiling of two cells. Shown for Wave / Band, Gabor, Gaussian Spots and Scratches / Fibers. |
 | Density | whole number | 2 | 1 to 4 | Number of features per cell. Shown for Gabor, Gaussian Spots and Scratches / Fibers. |
-| Sharpness | float | 0.5 | 0.01 to 1.0 | Feature size and falloff; on Wave / Band it acts as the band duty. Shown for Wave / Band, Gabor, Gaussian Spots and Scratches / Fibers. |
+| Sharpness | float | 0.5 | 0.01 to 1.0 | Feature size and falloff: bandwidth on Gabor, spot falloff on Gaussian Spots, strand thickness on Scratches / Fibers, and how far the bands bend on Wave / Band. Shown for Wave / Band, Gabor, Gaussian Spots and Scratches / Fibers. |
 | Warp | float | 0.25 | 0.0 to 1.0 | Flow displacement strength. Shown for Curl / Flow only. |
 
 Hidden controls are not reset: a parameter you set for one family keeps its
 value if you switch away and back.
+
+Perlin and fBm are normalized to the full black-to-white range instead of
+hovering in the middle grays, so neither needs a Levels node just to reach the
+ends; one still narrows the range back if you want a flatter result. Averaging
+octaves does pull fBm's values toward the middle, which is fBm's nature rather
+than a range problem. Billow no longer clips into flat white cores at low
+octave counts, and Gabor stays inside the range at every Sharpness instead of
+running together into solid blobs.
 
 :::caution[missing screenshot]
 A grid of the eleven noise families rendered by one Noise node, labeled by
@@ -76,8 +84,9 @@ distance-field looks (F1, borders, crystal) reach for
   between them; the default output.
 - F1 Distance (grayscale texture): distance to the nearest seed point,
   normalized so the ramp spans 0 to 1 whatever the scale.
-- Edges (F2-F1) (grayscale texture): bright inside regions, black exactly on
-  the boundary; the classic crack/edge mask.
+- Edge Distance (grayscale texture): distance to the nearest region boundary:
+  black exactly on the boundary, rising into the region. The classic
+  crack/edge mask.
 - Cell Color (color texture): a random RGB color, flat-filled per region.
 - Cell Position (color texture): the owning seed point's location, flat-filled
   per region. Feeds per-region gradients and warps.
@@ -89,10 +98,23 @@ distance-field looks (F1, borders, crystal) reach for
 | Scale | whole number | 6 | 1 to 64 | Cells per axis. |
 | Seed | seed | 0 | | |
 | Jitter | float | 1.0 | 0.0 to 1.0 | How far each point strays from its grid slot. At 0 the cells form a regular grid. |
+| Edge Width | float | 0.0 | 0.0 to 0.2 | Width of the solid wall core on each side of a boundary, in cell units. At 0 the wall is nothing but the softness ramp. |
+| Edge Softness | float | 0.02 | 0.0 to 0.2 | Width of the ramp past the core, in cell units. 0 gives a hard cut between wall and fill. |
+| Variation | float | 1.0 | 0.0 to 1.0 | How much of the per-region random gray survives on the Cells port. 1 is the classic mosaic; 0 fills every region white, leaving a pure black-and-white crack mask that needs no Levels node after it. |
+| Rounding | float | 0.0 | 0.0 to 0.5 | Corner fillet radius in cell units. 0 keeps the exact straight-edged polygons; higher values round the regions into pebbles. It works on the boundary distance itself, so the Cells walls and the Edge Distance port round together. |
+
+Both the walls and the Edge Distance port are cut from the true distance to
+the region boundary, so a wall holds the same thickness along every edge and
+into the corners instead of thinning where regions meet.
 
 :::caution[missing screenshot]
 The six Voronoi outputs side by side from the same node: Cells, F1 Distance,
-Edges, Cell Color, Cell Position, Cell ID.
+Edge Distance, Cell Color, Cell Position, Cell ID.
+:::
+
+:::caution[missing screenshot]
+Three Cells outputs from one Voronoi node: default, Variation at 0 for the
+black-and-white mask, and Rounding near maximum with a wider Edge Width.
 :::
 
 ### Cells
@@ -113,7 +135,13 @@ for it for stone walls, tiled surfaces, organic clusters and crack masks.
 | Scale | whole number | 6 | 1 to 64 | Cells per axis. |
 | Seed | seed | 0 | | |
 | Jitter | float | 1.0 | 0.0 to 1.0 | How far each point strays from its grid slot. |
-| Mode | enum | F1 | F1 · F2 - F1 · Borders · Crystal | F1 is distance to the nearest point (rounded blobs darkening toward each point). F2 - F1 is the gap between the two nearest points, falling to black along cell boundaries. Borders is a hard line along each boundary. Crystal fills each cell with one flat random tone. |
+| Mode | enum | F1 | F1 · F2 - F1 · Borders · Crystal | F1 is distance to the nearest point (rounded blobs darkening toward each point). F2 - F1 is the gap between the two nearest points, falling to black along cell boundaries. Borders draws a wall along each boundary, cut from the true distance to it so the thickness holds all the way into the junctions. Crystal fills each cell with one flat random tone. |
+| Edge Width | float | 0.0 | 0.0 to 0.2 | Width of the solid wall core on each side of a boundary, in cell units. |
+| Edge Softness | float | 0.04 | 0.0 to 0.2 | Width of the ramp past the core. 0 gives a hard black-and-white cut. |
+| Rounding | float | 0.0 | 0.0 to 0.5 | Corner fillet radius in cell units; rounds the wall junctions so the cells read as pebbles rather than polygons. |
+
+The three wall controls only apply to Borders, and Properties hides them in
+the other three modes.
 
 :::caution[missing screenshot]
 The four Cells modes rendered from the same seed: F1, F2 - F1, Borders,
@@ -146,17 +174,18 @@ The default 8 by 8 checkerboard output.
 
 Type id: `brick`
 
-A parametric tile lattice with mortar gaps, bevelled edges and per-cell tone
-variation: brick courses, stack bond, herringbone, hexagons, triangles or
-diamonds. The four outputs come from one lattice evaluation, so the mortar,
+A parametric tile lattice with per-axis mortar gaps, bevelled and optionally
+rounded corners: brick courses, stack bond, herringbone, hexagons, triangles
+or diamonds. The four outputs come from one lattice evaluation, so the mortar,
 cell ID and cell UV always line up with the brick mask.
 
 **Inputs:** None.
 
 **Outputs:**
 
-- Bricks (grayscale texture): the brick faces, each shaded with its own random
-  tone; the default output.
+- Bricks (grayscale texture): the brick mask, white faces on black mortar; the
+  default output. Per-brick tone is deliberately not baked in; take it from
+  Cell ID and apply it where you want it.
 - Mortar (grayscale texture): the exact complement of the brick mask, so the
   two never leave a hairline gap or overlap along the bevel.
 - Cell ID (grayscale texture): a stable random gray per brick, for per-brick
@@ -167,18 +196,28 @@ cell ID and cell UV always line up with the brick mask.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Columns | whole number | 8 | 1 to 32 | Rounded up to the nearest even value for the Hexagon, Herringbone and Diamond lattices, which need that parity to tile. |
-| Rows | whole number | 16 | 1 to 64 | Rounded up to the nearest even value for Running Bond, Hexagon, Herringbone and Diamond. Stack has no parity requirement and uses the count as typed. |
-| Gutter | float | 0.1 | 0.0 to 0.4 | Mortar gap width, as a fraction of a cell. |
+| Columns | whole number | 8 | 1 to 32 | Bricks across. Rounded up to the nearest even value for Diamond, and to the nearest multiple of four (minimum 4) for Herringbone, whose repeating block is four cells wide. Running Bond, Stack, Hexagon and Triangle use the count as typed. |
+| Rows | whole number | 16 | 1 to 64 | Courses down. Rounded up to the nearest even value for Running Bond, Hexagon and Diamond, and to the nearest multiple of four for Herringbone. Stack and Triangle use the count as typed. |
+| Gutter X | float | 0.1 | 0.0 to 0.4 | Width of the vertical head joints, as a fraction of a cell. |
+| Gutter Y | float | 0.1 | 0.0 to 0.4 | Width of the horizontal bed joints. Herringbone, Hexagon, Triangle and Diamond use the average of the two gutters: their joints are diagonal or alternate orientation, so no joint is purely head or bed. |
 | Bevel | float | 0.02 | 0.0 to 0.2 | Edge falloff width. 0 gives a hard edge. |
-| Seed | seed | 0 | | Varies the per-brick tone. |
-| Lattice | enum | Running Bond | Running Bond · Stack · Herringbone · Hexagon · Triangle · Diamond | All six share the same gutter, bevel and per-cell tone machinery; only the cell shape changes. |
+| Seed | seed | 0 | | Drives the Cell ID tone and the two randomizers below. |
+| Lattice | enum | Running Bond | Running Bond · Stack · Herringbone · Hexagon · Triangle · Diamond | All six share the same gutter and bevel machinery; only the cell shape changes. Hexagon lays a point-topped honeycomb, and Herringbone the zigzag weave, with each brick's joints meeting its neighbors' rather than stopping mid-air. |
+| Row Offset | float | 0.5 | 0.0 to 1.0 | Course stagger in brick widths; 0.5 is the classic running bond, 0 collapses it to a stack. Running Bond only: Stack is defined by not staggering, and the interlocking lattices' offsets are fixed by their geometry. |
+| Row Offset Random | float | 0.0 | 0.0 to 1.0 | Extra random stagger per course, constant along that course. Stack plus this is a random bond. Running Bond and Stack only. |
+| Offset Random | float | 0.0 | 0.0 to 1.0 | Slides each joint by a random amount, so bricks come out slightly irregular in size, hand-laid rather than machined. It moves joints, not whole cells, so the lattice never tears open. Running Bond and Stack only. |
+| Corner Radius | float | 0.0 | 0.0 to 0.4 | Corner rounding, in cell units. Running Bond, Stack and Herringbone only; the diagonal-edged lattices have no square corners to round. |
 
 Rounding of the grid counts happens silently; a slightly different brick count
 is preferable to a visible seam.
 
 :::caution[missing screenshot]
 The six lattice options rendered with the same gutter and bevel settings.
+:::
+
+:::caution[missing screenshot]
+A running bond at Corner Radius near maximum beside the same wall with Offset
+Random raised, showing the irregular hand-laid brick sizes.
 :::
 
 ### Gradient
@@ -203,9 +242,9 @@ linear one.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Type | enum | Linear | Linear · Radial · Angular · Diamond · Square | Angular is the conical sweep; Square is a box ramp. |
-| Angle | float | 0.0 | 0.0 to 360.0 degrees | Rotation about the tile center, applied to every shape. |
+| Angle | float | 0.0 | 0.0 to 360.0 degrees | Rotation about the tile center, applied to every shape. The linear ramp is renormalized as it turns, so an off-axis angle still runs corner to corner instead of clipping into solid triangles. |
 | Start | float | 0.0 | 0.0 to 1.0 | Where the active range of the ramp begins. |
-| End | float | 1.0 | 0.0 to 1.0 | Where it ends. Narrowing Start and End steepens the ramp. |
+| End | float | 1.0 | 0.0 to 1.0 | Where it ends. Narrowing Start and End steepens the ramp. Dragging End past Start inverts the ramp, so one node can remap and invert together. |
 | Use Input | on/off | off | | Turns on the input modulation. With it off the node is a pure generator, whether or not something is connected. |
 | Input Influence | float | 1.0 | 0.0 to 1.0 | How strongly the input reshapes the ramp. No effect while Use Input is off. |
 
@@ -232,7 +271,7 @@ The building block for stamps and masks.
 | Shape | enum | Circle | Circle · Square · Polygon | |
 | Size | float | 0.75 | 0.0 to 1.0 | Radius as a fraction of the tile's half-extent. |
 | Sides | whole number | 6 | 3 to 12 | Polygon side count. No effect unless Shape is Polygon. |
-| Softness | float | 0.01 | 0.0 to 0.5 | Edge falloff width. 0 gives a hard edge. |
+| Softness | float | 0.01 | 0.0 to 0.5 | Edge falloff width. The falloff straddles the edge rather than sitting inside it, so raising Softness blurs the outline in place instead of shrinking the shape, and Size stays the size you asked for. At 0 the edge is still cleanly anti-aliased, about a pixel wide, rather than a raw staircase. |
 
 On a non-square resolution the shape stays circular rather than stretching; it
 is measured against the shorter axis.
@@ -309,8 +348,13 @@ overgrow their own cell, overlap neighbors, and tessellate.
   Tiles pick among the first **Pattern Count** of them.
 - Scale Map (grayscale texture, optional): sampled once at each tile's center,
   so a tile scales as a whole.
-- Mask Map (grayscale texture, optional): sampled once per tile; tiles below
-  **Mask Threshold** are dropped entirely.
+- Mask Map (grayscale texture, optional): sampled once per tile, at the tile's
+  center. Tiles below **Mask Threshold** are dropped outright; above it, a
+  tile's chance of surviving rises with how far the value clears the
+  threshold, so a gray ramp thins the scatter gradually instead of switching
+  it on at a hard line. A pure black-and-white mask still switches hard: white
+  always admits, black never does. Unconnected it reads as white, so every
+  tile is admitted.
 - Background (any texture, optional): composited under the stamps.
   Unconnected it is black, so the default output is stamps on nothing.
 - Color Map (color texture, optional): tints each tile by the color under its
@@ -333,20 +377,20 @@ overgrow their own cell, overlap neighbors, and tessellate.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Tiles X | float | 8.0 | 1.0 to 64.0 | Grid columns. |
-| Tiles Y | float | 8.0 | 1.0 to 64.0 | Grid rows. |
-| Shape | enum | Circle | Circle · Square · Hexagon · Pattern | Pattern stamps the connected pattern inputs instead of a procedural shape. A connected pattern is ignored in the other three modes. |
+| Tiles X | whole number | 8 | 1 to 64 | Grid columns. Whole numbers only: a fractional count leaves a clipped sliver of stamps at the seam. |
+| Tiles Y | whole number | 8 | 1 to 64 | Grid rows. Whole numbers only, and rounded up to the nearest even value whenever Row Offset is above 0, since the stagger alternates per row and has to repeat exactly across the tile. |
+| Shape | enum | Circle | Circle · Square · Hexagon · Pattern | Pattern stamps the connected pattern inputs instead of a procedural shape. A connected pattern is ignored in the other three modes. Hexagon stamps are point-topped, the orientation that closes into a honeycomb under a Row Offset of 0.5. |
 | Size | float | 0.6 | 0.0 to 20.0 | Stamp size in cell units. 1.0 spans a whole cell; above that stamps overlap neighbors and merge into continuous coverage. Very large values are expensive; the compositing window grows with size. |
 | Scale X | float | 1.0 | 0.05 to 4.0 | Stretches the stamp on X without stretching the grid. |
 | Scale Y | float | 1.0 | 0.05 to 4.0 | Stretches the stamp on Y without stretching the grid. |
-| Row Offset | float | 0.0 | 0.0 to 1.0 | Horizontal stagger of alternate rows, in cells. 0.5 gives hexagonal or brick packing. |
+| Row Offset | float | 0.0 | 0.0 to 1.0 | Horizontal stagger of alternate rows, in cells. 0.5 gives hexagonal or brick packing. Any value above 0 forces Tiles Y to an even count. |
 | Rotation | float | 0.0 | 0.0 to 360.0 degrees | Base orientation applied to every stamp, on top of the random rotation below. |
 | Offset Random | float | 0.0 | 0.0 to 1.0 | Per-tile positional jitter. |
-| Scale Random | float | 0.0 | 0.0 to 1.0 | Per-tile size variation. |
+| Scale Random | float | 0.0 | 0.0 to 1.0 | Per-tile size variation, shrinking each tile by up to this fraction. It draws its own random value, so size does not correlate with the positional jitter. |
 | Scale Random Y | float | 0.0 | 0.0 to 1.0 | Separate Y-axis size variation, so tiles can vary in aspect rather than just overall size; planks and shingles want one axis loose and one tight. |
 | Rotation Random | float | 0.0 | 0.0 to 1.0 | Per-tile rotation variation. |
 | Value Random | float | 0.0 | 0.0 to 1.0 | Per-tile brightness variation, tied to the seed. |
-| Mask Threshold | float | 0.0 | 0.0 to 1.0 | Tiles whose Mask Map brightness falls below this are dropped. |
+| Mask Threshold | float | 0.0 | 0.0 to 1.0 | Tiles whose Mask Map brightness falls below this are dropped. Above it a tile's odds run from none at the threshold to certain at white, so this control sets both where the scatter stops and how fast it thins out on the way there. |
 | Scale Map Influence | float | 0.0 | 0.0 to 1.0 | How strongly Scale Map drives tile size. |
 | Rotation Map Influence | float | 0.0 | 0.0 to 1.0 | How strongly Rotation Map drives tile rotation. |
 | Vector Map Influence | float | 0.0 | 0.0 to 1.0 | How strongly Vector Map pushes tiles around. |
@@ -354,12 +398,22 @@ overgrow their own cell, overlap neighbors, and tessellate.
 | Pattern Count | whole number | 1 | 1 to 8 | How many of the pattern inputs are in play. Each tile picks one of the first N. |
 | Blend Mode | enum | Max | Max · Add · Topmost | How overlapping stamps combine: brightest wins, sum, or a random per-tile stacking order. |
 | Seed | seed | 0 | | |
-| Collision Radius | float | 0.0 | 0.0 to 4.0 | Minimum center-to-center spacing in cell units; 0 disables it. A tile is dropped when a higher-priority neighbor sits closer than this. Priority is a stable per-tile value, so the same tile always wins and the result never flickers. |
-| Layers | whole number | 0 | 0 to 3 | Extra finer scatter layers, each at double the tile count and half the size. 0 is a single layer. Gives hierarchical scattering, big shapes with progressively smaller ones filling the gaps, from one node instead of a stack of them. |
+| Collision Radius | float | 0.0 | 0.0 to 4.0 | Minimum center-to-center spacing in cell units; 0 disables it. A tile is dropped when a higher-priority neighbor sits closer than this. Priority is a stable per-tile value, so the same tile always wins and the result never flickers. Spacing is resolved within a layer, so a finer layer may still land on top of a coarser one. |
+| Layers | whole number | 0 | 0 to 3 | Extra finer scatter layers, each at double the tile count and half the size, composited over the coarser ones. 0 is a single layer. Gives hierarchical scattering, big shapes with progressively smaller ones filling the gaps, from one node instead of a stack of them. |
+| Rounding | float | 0.0 | 0.0 to 1.0 | Rounds the stamp's corners: 0 is the sharp shape, 1 reaches a circle. Shown only while Shape is Square or Hexagon. |
+
+Stamp edges hold the same crispness at any tile count, stamp size or render
+resolution; the anti-aliasing band is measured in output pixels, not in
+cells.
 
 :::caution[missing screenshot]
 A Tile Sampler scattering an imported leaf stamp with randomized rotation,
 scale and color, next to the same grid with Layers set to 2.
+:::
+
+:::caution[missing screenshot]
+Hexagon stamps at Row Offset 0.5 closing into a honeycomb, shown at Rounding
+0 and near 1.
 :::
 
 ## Deprecated noise nodes
@@ -378,9 +432,9 @@ matching **Type** instead.
   Scale (whole number, default 4, 1 to 32), Seed, Octaves (default 5, 1 to
   8), Lacunarity (default 2, 1 to 4), Gain (float, default 0.5, 0.0 to 1.0).
 - **Clouds** (`clouds`, deprecated): soft, billowy fractal noise with broad
-  tonal variation rather than fine detail. Superseded by Noise with Type set
-  to Billow. Parameters: Scale (whole number, default 4, 1 to 32), Seed,
-  Octaves (default 6, 1 to 8).
+  tonal variation rather than fine detail, normalized so the brightest puffs
+  do reach white. Superseded by Noise with Type set to Billow. Parameters:
+  Scale (whole number, default 4, 1 to 32), Seed, Octaves (default 6, 1 to 8).
 - **Anisotropic Noise** (`anisotropic_noise`, deprecated): noise stretched
   along one axis; grain for wood, brushed metal and fabric. Superseded by
   Noise with Type set to Gabor or Scratches / Fibers, driving the look with

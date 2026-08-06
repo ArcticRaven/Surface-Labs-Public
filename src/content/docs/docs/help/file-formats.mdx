@@ -7,8 +7,8 @@ Surface Labs reads and writes four file formats of its own:
 
 | Extension | What it is |
 | --- | --- |
-| `.surfacelabs` | The project archive: all materials, subgraphs, embedded images, export settings and cached thumbnails in one portable file |
-| `.surfacenode` | A single node or subgraph packaged for sharing, with embedded media and a preview thumbnail |
+| `.surfacelabs` | The project archive: all materials, subgraphs, embedded images, fonts, the preview model and export settings in one portable file |
+| `.surfacenode` | A single node or subgraph packaged for sharing, with a preview thumbnail |
 | `.surfacetheme` | An exported color theme |
 | `.mcpb` | A one-click Claude Desktop extension bundle exported by the [MCP server](/docs/mcp-server/) settings page |
 
@@ -22,21 +22,46 @@ A project is a single ZIP archive. Its internal structure:
 | `graph/material.xml` | The **active** material: every node with parameters, seed, resolution mode and override, bit-depth mode and override, ports and port defaults, plus all connections |
 | `graph/m<n>.xml` | One file per **inactive** material in the project |
 | `materials.xml` | The material list: each material's name, and which index is active |
-| `export_presets.xml` | The project's saved export settings (format, quality, prefix, engine, workflow, packed/individual toggles, normal override, disabled channels) |
+| `export_presets.xml` | The project's saved export settings (format, prefix, engine, material type, packed/individual toggles, normal override, disabled channels) |
 | `exposed_params.xml` | The project's exposed-parameter list |
 | `view_state.json` | Canvas pan/zoom plus the 3D preview's camera and render settings |
 | `subgraphs/<id>.xml` | One file per subgraph definition |
-| `thumbnails/<node id>.png` | Cached node preview images |
-| `thumbnails/…` (project entry) | The rendered material image used as the project's Hub card, written when the graph has a PBR Output |
-| `media/<name>` | Imported bitmaps used by Image nodes, referenced as `media:<name>` |
+| `thumbnails/__project__.png` | The rendered material image used as the project's Hub card, written when the graph has a PBR Output |
+| `media/<name>` | Imported bitmaps used by Image nodes, referenced as `media:<name>`, plus the model imported into the 3D preview |
 | `fonts/<name>` | Imported fonts used by Text nodes, referenced as `font:<name>` |
+
+Per-node preview images are **not** written. Encoding one PNG per node meant a
+GPU-to-CPU readback, a resize and an encode for every node in the graph on
+every save, which stalled large projects; nothing read them back, because
+canvas previews re-render when a project opens. The only image in the archive
+is the project's Hub card.
 
 The graph XML also carries canvas furniture: Jump Nodes, comment boxes
 (position, size, background color and opacity, text) and freehand annotation
 strokes.
 
-The archive is zipped on a background thread, so autosaving a project with tens
-of megabytes of thumbnails and media does not freeze the editor.
+The archive is zipped and written on a background isolate, so autosaving a
+project with tens of megabytes of embedded media does not freeze the editor.
+
+### Embedded assets
+
+Everything a project depends on travels inside it, so a `.surfacelabs` you hand
+to someone else opens the same way it does for you:
+
+- **Imported bitmaps** used by Image nodes.
+- **Fonts** used by Text nodes, so a Text node typesets identically on a
+  machine that does not have the font installed.
+- **The 3D preview model**, when you import your own `.obj` or `.glb`.
+- **Tags**, written into `manifest.xml` in full (id, label, color) rather than
+  as bare ids, so they arrive with the labels their author chose.
+
+Embedded assets are pruned on save: one no longer referenced by any material or
+subgraph is dropped rather than carried forever, so deleting or repointing an
+Image or Text node stops inflating every later save. The prune reads **every**
+material and subgraph, not just the active one, so a bitmap used only by a
+material you have not switched to is never removed, and it only drops an asset
+once a saved copy exists to fall back on. The preview model is named by
+`view_state.json` rather than by a node parameter, and is kept on that basis.
 
 ### Loading
 
@@ -47,6 +72,19 @@ entries degrade gracefully: no `materials.xml` resets to a single material, no
 restores export defaults. A corrupt `view_state.json` is ignored rather than
 failing the load. A project that fails to open is copied into the crash
 directory automatically so it can be attached to a bug report.
+
+A project last saved when JPEG was still an export format loads with its format
+reset to **PNG**: an unrecognized format name falls back rather than failing,
+and PNG is the closest lossless equivalent. See
+[Exporting](/docs/export/exporting/).
+
+:::caution[Opening an 8K project on iPad or Android]
+8192 is a desktop-only ceiling. On a handheld the project's default resolution
+and every per-node override are clamped to **4096** before the engine ever
+holds the graph, the project is marked as changed, and a warning names what
+happened. Switching to another material inside the project clamps that one the
+same way. See [Resolution & Bit Depth](/docs/concepts/resolution-and-bit-depth/).
+:::
 
 ### Where projects live
 
@@ -85,7 +123,10 @@ A small ZIP holding one node:
 | `thumbnail.png` | The node's last rendered output, written only when the node has already been evaluated |
 
 Connections are not part of the package: it describes one node in isolation. A
-missing thumbnail is not an error; previews regenerate. See
+missing thumbnail is not an error; previews regenerate. Unlike a
+`.surfacelabs`, a `.surfacenode` carries no embedded assets and no tags - so a
+node that depends on an imported bitmap does not bring the bitmap with it, and
+any tags you applied to it stay on your machine. See
 [Sharing Nodes](/docs/help/sharing-nodes/) for how to export and import these
 packages.
 

@@ -43,7 +43,7 @@ A shape mask next to its Signed, Inside and Outside distance fields at the same 
 | --- | --- | --- | --- | --- |
 | Threshold | Decimal | 0.5 | 0.0 to 1.0 | Luminance cutoff that decides what counts as inside the shape. |
 | Spread | Decimal | 0.25 | 0.001 to 2.0 | The distance the gradient covers before it clips, as a fraction of the *shorter* image edge, so the same value produces the same visual band at any resolution. |
-| Mode | Choice | Signed | Signed, Inside, Outside | Signed puts the boundary at mid-gray, going darker outward and brighter inward. Inside reads 0 at the silhouette and rises inward, staying black outside the shape. Outside reads 0 at the silhouette and rises outward. |
+| Mode | Choice | Signed | Signed, Inside, Outside | Signed puts the boundary at mid-gray, going darker inward and brighter outward. Inside reads 0 at the silhouette and rises inward, staying black outside the shape. Outside reads 0 at the silhouette and rises outward, staying black inside it. |
 
 Shapes crossing the tile seam are treated as one shape, so the field has no
 discontinuity at the image edges. The cost scales with resolution rather than
@@ -86,7 +86,7 @@ A terrain height map before and after Hydraulic and Thermal erosion, plus the Fl
 | Evaporation | Decimal | 0.3 | 0.0 to 1.0 | *Hydraulic only.* How fast water leaves, which decides how far it carries its load before dropping it. |
 | Capacity | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How much sediment moving water can hold: the balance between cutting deep channels and silting everything up. More capacity cuts deeper. |
 | Deposition | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How readily suspended material is dropped. More deposition silts up the low ground. |
-| Output | Choice | Height | Height, Flow, Deposit, Wear | Which map the run returns. Height is the eroded terrain. Flow is where water ran, a wetness or moss mask, averaged over the run so raising Iterations does not just brighten it. Deposit is where material landed: silt and sand masks. Wear is where material was stripped: exposed-rock masks. |
+| Output | Choice | Height | Height, Flow, Deposit, Wear | Which map the run returns. Height is the eroded terrain. Flow is how much moved through each pixel — where water ran under Hydraulic, where material slid under Thermal — averaged over the run so raising Iterations does not just brighten it; use it as a wetness or moss mask. Deposit is where material landed: silt and sand masks. Wear is where material was stripped: exposed-rock masks. |
 
 Talus is hidden while Type is Hydraulic, and Rain, Evaporation, Capacity and
 Deposition are hidden while Type is Thermal.

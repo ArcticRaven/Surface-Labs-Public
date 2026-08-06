@@ -5,8 +5,8 @@ description: Blur, sharpen, tonal, color and shape filters that modify a texture
 
 Filter nodes take a texture on their **Input** port, change it, and pass the
 result out through **Output**. They are listed under the **Filters** category in
-the Node Library. Twenty-three nodes live in the category; the twenty-one
-single-pass filters are documented on this page.
+the Node Library. Twenty-three nodes live in the category; twenty-one of them
+are documented on this page.
 
 ## Shared behavior
 
@@ -17,6 +17,10 @@ single-pass filters are documented on this page.
   it is black the node's own **Input** shows through unchanged; values in
   between crossfade. Masking a filter therefore always means "less of this
   effect here", never "black here".
+- Quick Blur, Detail Blur, Directional Blur and Non-Uniform Blur filter color
+  premultiplied by alpha, and so does the mask composite. Blurring or masking a
+  cut-out therefore does not ring its soft edges with a dark halo. Fully opaque
+  work renders identically either way.
 - Three filters take an extra **required** second input: Slope Blur
   (**Slope**), Non-Uniform Blur (**Blur Map**) and Vector Morph
   (**Vector Map**). Those ports have no fallback; leave one unconnected and
@@ -48,9 +52,9 @@ Side-by-side comparison of the same input through Quick Blur, Detail Blur, Direc
 
 Type id: `quick_blur`
 
-A cheap, single-pass blur that stays responsive at large resolutions at the
-cost of edge quality. Reach for this while you are building and tuning a
-graph, then swap in Detail Blur on the branch that actually feeds an output.
+A cheap blur that stays responsive at large resolutions at the cost of edge
+quality. Reach for this while you are building and tuning a graph, then swap in
+Detail Blur on the branch that actually feeds an output.
 
 **Inputs**
 
@@ -64,6 +68,13 @@ graph, then swap in Detail Blur on the branch that actually feeds an output.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Radius | Decimal | 4.0 | 0.0 to 64.0 | Measured in pixels at the node's current render resolution, so the same value softens less at a higher export size. 0 passes the input through untouched. |
+
+The node is a nine-tap kernel. At a radius of 8 or below that is a single pass,
+which is what it has always rendered. Past 8 the taps would sit far enough apart
+to read as nine ghosted copies rather than a blur, so the node runs two or three
+passes at shrinking radii instead, scaled so the overall strength is the same.
+That chaining needs the native render core; without it the node stays one pass
+and large radii ghost.
 
 ### Detail Blur
 
@@ -87,7 +98,9 @@ map.
 | Radius | Decimal | 4.0 | 0.0 to 64.0 | Measured in pixels at the node's current render resolution. 0 passes the input through untouched. |
 
 Detail Blur is internally a separable two-pass gaussian (horizontal, then
-vertical), which is why it is both slower and cleaner than Quick Blur.
+vertical), which is why it is both slower and cleaner than Quick Blur. The tap
+count follows the radius rather than being fixed, so the spacing stays near one
+pixel instead of widening into a comb as the radius grows.
 
 ### Directional Blur
 
@@ -109,7 +122,12 @@ surface.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Angle | Decimal | 0.0 | 0.0 to 360.0 | Degrees. Sets the axis the blur runs along. |
-| Distance | Decimal | 0.05 | 0.0 to 0.5 | How far the smear travels, as a fraction of the image. Resolution-independent. |
+| Distance | Decimal | 0.05 | 0.0 to 0.5 | How far the smear travels in each direction along that axis, as a fraction of the image. Resolution-independent. |
+
+The tap count follows the streak length so the taps stay about a pixel apart
+rather than spreading into a ladder of ghosted copies. The count runs to 128 per
+side, up from 48, so that tight spacing holds nearly three times further than it
+did in 1.2.0; past that the spacing widens again.
 
 ### Non-Uniform Blur
 
@@ -134,8 +152,11 @@ softening, and melting only the worn parts of a surface.
 | Radius | Decimal | 0.05 | 0.0 to 0.5 | The *maximum* blur radius, as a fraction of the shorter image edge. The Blur Map scales it per pixel. |
 
 Unlike Detail Blur this cannot be split into two cheap passes, because
-neighboring pixels want different kernels. The sampling density follows the
-local radius instead, which keeps the sharp areas cheap.
+neighboring pixels want different kernels. The sampling density is set by
+Radius, the same for every pixel: deriving it from the per-pixel radius put a
+step in the sampling pattern along every contour of the Blur Map, which drew
+onion-ring lines through the result. Pixels the Blur Map leaves black still exit
+before sampling, so a mostly black map is still cheap.
 
 ### Slope Blur
 
@@ -159,10 +180,27 @@ curves along the terrain the way water would.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Intensity | Decimal | 0.1 | 0.0 to 0.5 | How far the march travels, as a fraction of the image. |
-| Samples | Whole number | 32 | 1 to 64 | Steps taken along the march. The node also caps this at the march length, since more steps than pixels only resamples the same pixels. |
+| Intensity | Decimal | 0.1 | 0.0 to 0.5 | How far the march travels, as a fraction of the image. The response is not linear: the slider is squared so the low end is fine-grained, and 0.5 still means half the image. |
+| Samples | Whole number | 32 | 1 to 64 | Steps requested along the march. The node samples up to four times denser than asked, to a ceiling of 128 steps, so a step never lands further apart than the features it is marching over. The total is still capped at one step per marched pixel: more steps than pixels only resamples the same pixels. Samples remains the cost and quality knob. |
 | Mode | Choice | Blur | Blur, Min (Erode), Max (Melt) | Blur averages the samples (a smear). Min (Erode) keeps the darkest, carving the input away. Max (Melt) keeps the brightest, growing it. |
 | Falloff | Decimal | 1.0 | 0.0 to 1.0 | How the reduction weighs distance. At 1.0 a sample counts for less the further along the march it sits, so one distant extreme cannot decide the pixel; raising Samples then adds detail. At 0.0 every sample counts in full, which is the plain running minimum or maximum other tools compute: a harder, more aggressive carve, where raising Samples mostly adds reach. |
+
+The Slope input is read through a small averaging filter and measured over a
+baseline that scales with the march length, so the march reads the shape of the
+driver rather than the dither the generators lay over it. Where the gradient
+falls to the level of 8-bit rounding — the flat areas of a soft driver — the
+march fades out and the pixel passes through untouched, instead of streaking off
+in a direction that is really just rounding noise.
+
+:::note[Intensity reads differently than it did in 1.2.0]
+Intensity's response is now gradual, so the low end of the slider makes genuinely
+subtle changes instead of reaching across whole features immediately. The top of
+the range is unchanged, but every value below it marches shorter than it used to,
+so mid-range settings in existing projects read softer. To get an old look back,
+raise Intensity to the square root of half the old value: 0.1 becomes about 0.22,
+0.25 about 0.35, and 0.5 stays 0.5. Short marches are also cheaper, so subtle
+settings render faster.
+:::
 
 Slope Blur is *not* Erosion: it smears pixels along a gradient, which reads as
 wear but conserves nothing.
@@ -190,7 +228,9 @@ after a scatter or noise pass has left salt-and-pepper dots.
 | Radius | Choice | 5×5 (fast) | 3×3 (exact), 5×5 (fast) | Kernel size. |
 
 Each color channel gets its own median, so color input is handled per
-channel rather than by luminance.
+channel rather than by luminance; alpha passes through. 3×3 is the exact
+median of its nine pixels. 5×5 is a separable approximation — the median of
+five row medians — which clears the same speckle for a fraction of the work.
 
 ## Detail and Edges
 
@@ -269,6 +309,15 @@ panel seams, and anything that needs to know where the silhouettes are.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Intensity | Decimal | 1.0 | 0.0 to 8.0 | Gain on the edge magnitude. Affects the Magnitude output only. |
+| Smoothing | Decimal | 0.0 | 0.0 to 1.0 | Widens the detection stencil from one pixel to four and pre-averages each tap. Reads one smooth line where a hard stencil turns small features and dithered areas into single-pixel speckle and doubled edges. Affects both outputs. |
+| Width | Decimal | 0.0 | 0.0 to 0.1 | Thickens the detected line into a band, as a fraction of the shorter image edge — the same units as Dilate / Erode's Amount. 0 leaves the line one stencil wide. Affects the Magnitude output only. |
+| Rounding | Decimal | 0.0 | 0.0 to 0.1 | Fillets the corners of the thickened line instead of leaving sharp miters. Affects the Magnitude output only. |
+
+Width and Rounding are morphology passes run over the Magnitude output: the line
+is dilated by Width plus Rounding and then eroded back by Rounding. That
+overshoot and return is a morphological close, which is why concave corners
+round as well as convex ones. Rounding on its own, with Width at 0, rounds the
+line without thickening it.
 
 Edge detection wraps around the image borders, so it stays seamless on tiling
 maps. The response is calibrated against a 1024-pixel reference so the same
@@ -303,9 +352,12 @@ the workhorse for setting contrast precisely rather than by feel.
 | Gamma | Decimal | 1.0 | 0.1 to 4.0 | Biases the midtones between the two input points. |
 | Out Black | Decimal | 0.0 | 0.0 to 1.0 | Low end of the range the result is written into. |
 | Out White | Decimal | 1.0 | 0.0 to 1.0 | High end of the range the result is written into. |
+| Channel | Choice | Master | Master, Red, Green, Blue | Which channel the five sliders act on. Master remaps all three; the others remap only their own and pass the rest through untouched. Chain a second Levels to grade a second channel. |
 
-Out Black and Out White are independent; neither is constrained to stay below
-the other, so swapping them inverts the result.
+Neither pair is constrained to keep its low end below its high end. Drag In White
+below In Black, or Out White below Out Black, and the ramp inverts — an invert
+and a remap in one node instead of two. Dragging the handles across each other
+stays continuous rather than collapsing to a hard threshold.
 
 ### Brightness/Contrast
 
@@ -329,6 +381,12 @@ precision.
 | Brightness | Decimal | 0.0 | -1.0 to 1.0 | Negative darkens, positive lightens. 0 is no change. |
 | Contrast | Decimal | 0.0 | -1.0 to 1.0 | Negative flattens toward mid-gray, positive stretches away from it. 0 is no change. |
 
+Contrast pivots around mid-gray on a slope that steepens toward the ends of the
+slider. The top of the range is a decisive contrast wall, at roughly fourteen
+times the input slope, and it stays monotonic: brighter input still means
+brighter output. Before 1.2.2 the last stop of the slider overshot into a
+hard-thresholded negative.
+
 ### Curves
 
 Type id: `curves`
@@ -351,7 +409,7 @@ touching the highlights, or pinning the midtones while crushing both ends.
 | *(curve pad)* | Control-point list | Identity (two points, at the bottom-left and top-right corners) | Unlimited control points, each anywhere in 0.0 to 1.0 on both axes | There are no numeric parameters. The curve editor in the Properties Panel is the entire interface: add, move and remove points freely, including horizontally. |
 
 The curve is interpolated with a monotone cubic that never overshoots, so a
-dialled-in curve cannot produce values outside the range its points span.
+dialed-in curve cannot produce values outside the range its points span.
 Beyond the first and last points the curve extends flat, matching Photoshop.
 The same curve is applied to each color channel independently; alpha passes
 through untouched. A malformed or missing curve falls back to the identity
@@ -438,7 +496,19 @@ color is reduced to luminance before the ramp is applied.
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | *(gradient bar)* | Color-stop list | A four-stop rust ramp: near-black `#0D0A08` at 0.0, dark brown `#592E1A` at 0.35, orange `#CC7326` at 0.70, cream `#FFF2D9` at 1.0 | Unlimited stops, each with a color and a position 0.0 to 1.0 | Edited on the gradient bar in the Properties Panel; stops can be added, removed and moved. A malformed or missing ramp falls back to the default four stops. |
-| Mid | Decimal | 0.5 | 0.01 to 0.99 | A gamma-style bias on the lookup. 0.5 is linear; lower values push more of the image toward the ramp's bright end, higher values toward its dark end. |
+| Mid | Decimal | 0.5 | 0.01 to 0.99 | A gamma-style bias on the lookup: the input value set here is what lands in the middle of the ramp. 0.5 is linear; lower values push more of the image toward the ramp's bright end, higher values toward its dark end. |
+
+:::note[Mid moves the other way than it did in 1.2.0]
+Mid used to bias the lookup in the opposite direction from the identically named
+Midpoint on [Histogram](/docs/nodes/histogram/). The two now agree. A Gradient
+Map saved with Mid away from 0.5 therefore reads inverted against what it did
+before; moving Mid to the other side of 0.5 gets close to the old result.
+:::
+
+Levels, Curves, Gradient Map and Brightness/Contrast all add a ±1 step dither
+before writing their 8-bit result. Compressing a range squeezes the input's own
+dither below one output step, which is what used to make smooth ramps re-band on
+export. The dither is seamless, so tiling is unaffected.
 
 ## Shape and Surface
 
@@ -472,12 +542,19 @@ flood-filled regions.
 Open and Close are deliberately not options here. Each needs two full passes
 over the neighborhood, so chain two of these nodes with opposite Amounts.
 
+The structuring element is sampled densely enough to catch any feature out to
+about 32 pixels of radius. Past that the node splits the work into as many
+passes of 32 pixels or less as it takes, up to eight. Dilations compose exactly,
+so the passes add up to the radius you asked for without the dropout speckle a
+single sparse pass leaves on thin lines. That splitting needs the native render
+core; without it the node stays one pass and large radii speckle.
+
 ### Bevel
 
 Type id: `bevel`
 
 Rounds the edges of a mask into a soft height ramp: chamfers, panel edges,
-chiselled tiles and raised lettering. Feed it a mask, take the height into a
+chiseled tiles and raised lettering. Feed it a mask, take the height into a
 [Normal node](/docs/nodes/normal/). Bevel runs as GPU compute where the native
 render core is available and falls back to an approximation without it.
 
@@ -502,7 +579,8 @@ Inside mode, with the profile shaping applied on top. That makes the ramp
 exact at any width. Without the native core it falls back to a bounded outward
 search capped at the bevel width, whose accuracy is limited by its sample
 budget; a wide bevel can visibly step. A Bevel Width of exactly 0 always uses
-the fallback, which returns solid white.
+the fallback, which fills the shape solid white and leaves everything outside
+it black.
 
 ### Vector Morph
 
@@ -510,8 +588,8 @@ Type id: `vector_morph`
 
 Displaces the input along a vector field in repeated small steps, re-reading
 the field at each new position, so pixels follow a *curved* path: material
-flowing around a form rather than sliding past it. Set Steps to 1 and it
-reproduces a plain Warp exactly.
+flowing around a form rather than sliding past it. Set Steps to 1 and the walk
+becomes a single straight jump, which is what Warp does.
 
 **Inputs**
 
@@ -525,9 +603,14 @@ reproduces a plain Warp exactly.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Intensity | Decimal | 0.05 | -0.5 to 0.5 | Total displacement, as a fraction of the texture. Negative values follow the field backwards. |
-| Steps | Whole number | 4 | 1 to 16 | Integration steps. 1 is a plain Warp and is the cheap setting, not a broken one; more steps follow curvature more faithfully. |
+| Intensity | Decimal | 0.05 | -0.5 to 0.5 | Total displacement, as a fraction of the texture. Negative values follow the field backwards. A unit of Intensity here displaces twice as far as it does on Warp, so the two nodes' defaults move a pixel the same distance. |
+| Steps | Whole number | 4 | 1 to 64 | Integration steps. 1 is a plain Warp and is the cheap setting, not a broken one; more steps follow curvature more faithfully. The ceiling reaches 64 because at 16 a full-strength morph on a 2K texture jumped 64 pixels per step and the "curved" path came out as a kinked polyline no setting could smooth. |
 | Angle | Decimal | 0.0 | 0.0 to 360.0 | Rotates the vector field before it is followed, in degrees. Lets one vector map drive several directions without re-authoring it. |
+
+Steps changes the path taken, not the distance traveled: the total displacement
+is split across them, so raising quality does not also strengthen the effect. The
+Vector Map is read through a small averaging filter, which keeps the dither a
+generated field carries from jittering hard edges as the walk integrates it.
 
 ### Normal Adjust
 
@@ -555,13 +638,20 @@ the graph before blending.
 
 Maps inside the graph use the DirectX convention.
 
+Normal Adjust is filed under Filters because it edits a map in place rather than
+deriving one. The nodes that *produce* surface data from a height field — Normal
+from Height, Curvature / Cavity, Surface Detail, Directional Occlusion, Flow Map
+and Roughness from Height — are under
+[Normal & Surface Nodes](/docs/nodes/normal/).
+
 ### Normal to Height
 
 Type id: `normal_to_height`
 
 Integrates a normal map back into an approximate height map. For rebuilding
-displacement from art you only have as normals, and for feeding Height Blend,
-Ambient Occlusion or Curvature from normal-only source material.
+displacement from art you only have as normals, and for feeding Height Blend or
+the [Normal & Surface](/docs/nodes/normal/) nodes from normal-only source
+material.
 
 **Inputs**
 
@@ -576,6 +666,11 @@ Ambient Occlusion or Curvature from normal-only source material.
 | --- | --- | --- | --- | --- |
 | Radius | Decimal | 0.1 | 0.0 to 0.5 | Integration reach, as a fraction of the shorter image edge. Raise it for large forms, lower it for fine detail and speed. |
 | Intensity | Decimal | 1.0 | 0.0 to 8.0 | Output contrast around mid-gray. |
+
+The recovery averages many bounded integrations fanned out from each pixel, and
+the step count along each of them follows Radius: a wide Radius no longer strides
+past everything finer than its own stride, so the integration reaches its whole
+radius at full detail. Below one pixel of Radius the node outputs flat mid-gray.
 
 This is an approximation by construction. Two consequences are worth knowing:
 absolute height is meaningless, only relative shape survives, and forms

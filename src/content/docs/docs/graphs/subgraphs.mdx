@@ -9,8 +9,16 @@ A subgraph packages a group of nodes into a single reusable node.
 
 Select the nodes, open the context menu, and choose **Collapse to Subgraph**.
 Connections that crossed the selection boundary become the new node's input and
-output ports. **Expand Subgraph** is the reverse, from a subgraph instance's
-context menu. **Rename** is also in the context menu.
+output ports. The item is offered only when every node in the selection came
+from the node registry. **Expand Subgraph** is the reverse, from a subgraph
+instance's context menu. **Rename** is also in the context menu; on an instance
+it renames the definition, so every instance follows.
+
+Any exposed parameters the collapsed nodes carried come along, as parameters of
+the subgraph itself. Each instance keeps its own values for them, so two
+instances of one definition can be tuned separately, and an instance you have
+not touched renders exactly like the definition. An exposure whose inner node or
+parameter is later removed inside the subgraph is simply no longer offered.
 
 :::caution[missing screenshot]
 A selection of nodes before and after Collapse to Subgraph, showing boundary connections becoming ports.
@@ -27,7 +35,11 @@ archive. To share a node between projects instead, export it as a
 
 Double-click (or double-tap) a subgraph node to enter it. A breadcrumb trail
 appears; use it to exit. Committing the edit refreshes every instance of that
-definition.
+definition. Subgraphs nest: a subgraph placed inside another is entered and
+evaluated the same way, to any depth.
+
+The Global Variables panel follows you in and out, always showing the exposed
+parameters of the level you are editing rather than the material's.
 
 :::caution[missing screenshot]
 The canvas inside a subgraph, with the breadcrumb trail showing the path back to the material.

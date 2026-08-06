@@ -31,9 +31,13 @@ A node's context menu with the Export .surfacenode… entry highlighted.
 Connections are not part of the package: it describes one node in isolation. A
 missing thumbnail is not an error; previews regenerate.
 
-:::caution[Embedded media is not bundled]
+:::caution[Embedded media and tags are not bundled]
 Imported bitmaps are not packaged into a `.surfacenode`. A node that depends on
-an imported bitmap will not carry that bitmap with it.
+an imported bitmap will not carry that bitmap with it. Neither do node tags
+travel: they are part of your own library vocabulary, kept in
+[Settings → Library](/docs/help/settings/), not part of the node. Project tags
+are the exception - those are written into the `.surfacelabs` archive and do
+travel with a project you share.
 :::
 
 ## Importing

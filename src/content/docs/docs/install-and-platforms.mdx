@@ -21,7 +21,13 @@ no installer, and nothing is written to the registry.
 Run `surface_lab.exe` from the unzipped folder. Keep that folder intact: the
 executable needs `flutter_windows.dll`, the plugin DLLs and the `data/`
 directory sitting beside it. The Visual C++ runtime is bundled, so you should
-not need to install one separately.
+not need to install one separately. Nothing here needs administrator rights.
+
+Rendering goes through DirectX 12. If the 3D preview misbehaves on a particular
+machine, Settings → General → **Graphics Backend** switches the render core to
+Vulkan; it takes effect after a restart, and a machine with no Vulkan adapter
+falls back to DirectX 12 on its own. It is an escape hatch for a driver bug, not
+a faster path.
 
 To uninstall, delete the folder.
 
@@ -89,13 +95,27 @@ requirement.
 
 There is no formal minimum-spec sheet. What has actually been measured:
 
-- 8192 x 8192 textures on an M3 iPad Air
+- 8192 x 8192 textures on an M3 iPad Air, before handhelds were capped at 4096
 - On Windows with an RTX 3070, the Erosion node takes roughly 230 ms for 80
   steps at 2048 x 2048
 
 Any modern discrete or recent integrated GPU handles work at 1024 x 1024 through
 2048 x 2048 comfortably. Projects at 4096 x 4096 are memory-hungry; see
 Resolution & Bit Depth for how the memory governor allocates.
+
+## Resolution ceiling
+
+The authoring ladder is 256, 512, 1024, 2048, 4096 and 8192, and it is the same
+list for the project resolution and for a per-node override. 8192 is the top of
+what the graphics API guarantees on every desktop adapter the app runs on.
+
+**iOS and Android stop at 4096.** Evaluating an 8K graph runs a tablet or phone
+out of memory, so the dropdowns do not offer it there, and a project authored at
+8192 on desktop is brought down to 4096 as it opens, before the engine ever
+holds the graph. Switching to a material that was authored higher clamps it too,
+with a toast: *This material was authored above 4096 × 4096 and has been reduced
+to fit this device.* A value above the cap that is already set on a node stays
+visible in the dropdown, so the field never misreports what the node is on.
 
 ## What differs on iPad
 
@@ -104,11 +124,15 @@ Most of the application is identical everywhere. The exceptions are all on iPad:
 | Feature | Desktop | iPad |
 | --- | --- | --- |
 | Node canvas, properties, export | Yes | Yes |
+| Maximum resolution | 8192 | 4096 |
 | Minimap / Node Map panel | Yes | Not drawn |
 | In-app MCP server | Yes | Not available |
 | Open in File Manager | Yes | Not available |
-| Command palette | Yes | Needs a hardware keyboard |
+| Command palette | Yes | Needs a hardware keyboard or a game controller |
 | Game controller input | Yes | Yes |
+
+Android shares the 4096 ceiling with iPad. The minimap is only withheld on
+iPadOS; it is drawn on Android.
 
 :::caution[iPad requires full screen]
 If the window is more than about 10 points smaller than the screen in either
@@ -147,7 +171,7 @@ no display and no human.
 ```
 surface_lab_headless <project.surfacelabs> --out <dir>
     [--native-lib <path to surface_gpu>]
-    [--format png|jpg|tga|bmp|exr]
+    [--format png|tga|tiff|bmp|exr]
     [--prefix <name>]
     [--material <index>|all]
     [--verbose]
@@ -158,12 +182,16 @@ export preset, and `--material` defaults to the active material. Exit codes are
 `0` for at least one file written, `1` for a usage or project error, `2` for no
 render core, and `3` for nothing to export.
 
+`--format` takes the same set the Export dialog offers. JPEG was dropped in
+1.2.1 because lossy compression damages texture maps, and TIFF took its place;
+`--format jpg` is rejected. `tif` is accepted as a spelling of `tiff`.
+
 `surface_lab_mcp` is the standalone MCP server, for driving a project from a
 script or an AI assistant without the application running. See Automation for
 what it exposes.
 
 :::caution[Not packaged yet]
-Neither program has a distributable build. The installers package the
+Neither program has a distributable build. The published packages carry the
 application only. Running either one means a Surface Labs source checkout and
 the Dart SDK:
 

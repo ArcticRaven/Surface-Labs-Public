@@ -14,6 +14,13 @@ textures are authored and exported at: 8, 16 or 32 bits per channel.
 **[Boolean (data type)](/docs/concepts/data-types/)**: an on/off value;
 connects only to boolean ports.
 
+**[Channel](/docs/nodes/outputs/)**: one map of a material, wired into a named
+input on the PBR Output node and written out by the exporter. The channels are
+Base Color, Normal, Roughness, Metallic, Specular, Glossiness, AO, Height,
+Opacity, Emissive, Clearcoat and Thickness. **Thickness** drives subsurface
+scattering and replaced the 3D preview's old Thin Wall toggle, which no longer
+exists.
+
 **[Custom (data type)](/docs/concepts/data-types/)**: an unchecked type used by
 the Reroute node; connects to anything and bypasses type validation.
 
@@ -34,11 +41,14 @@ A project may hold several; you switch between them in the Material Library
 panel.
 
 **[Material (data type)](/docs/concepts/data-types/)**: a whole map-set carried
-on a single wire, used by the PBR Output and Trim Sheet nodes.
+on a single wire, rather than one map per wire. Produced by the PBR Output and
+Material nodes, consumed by Trim Sheet slots and by another PBR Output's
+Material input. Only connects to other material ports.
 
 **[Multi-output node](/docs/graphs/multi-output/)**: a node exposing more than
 one output port, each carrying different data derived from the same
-computation. Six node types do this; see the
+computation. Eight node types do this - Voronoi, Brick, Tile Sampler, Edge
+Detect, Surface Detail, Trim Sheet, Height Blend and Frequency Split; see the
 [Node Reference](/docs/nodes/overview/).
 
 **[Node](/docs/nodes/overview/)**: one operation. Every node is created from a
@@ -64,8 +74,10 @@ characteristic.
 single reusable node, stored with the project and evaluated wherever it is
 instanced.
 
-**[Tag](/docs/help/settings/)**: a label applied to nodes and projects, used to
-organize and filter the node library.
+**[Tag](/docs/help/settings/)**: a label applied to nodes and to projects, used
+to filter the Node Library panel and the Project Hub. Project tags are written
+into the `.surfacelabs` archive and travel with a project you share; node tags
+stay local to your library. Managed on the Library page of Settings.
 
 **[Texture (data type)](/docs/concepts/data-types/)**: image data. Three
 variants exist: a generic type used by filters that preserve whatever they are

@@ -1,6 +1,6 @@
 ---
 title: Performance & Memory
-description: How the memory governor trims texture caches, the current budgets, and the hardware figures the project has actually measured.
+description: How the memory governor trims texture caches, how the budget is sized per device, what the memory guard warns about, and the hardware figures the project has actually measured.
 ---
 
 Every rendered node can hold up to two full RGBA textures: its current output
@@ -21,16 +21,29 @@ would break downstream re-renders. Every node keeps its small thumbnail (256²
 or smaller) regardless, so node bodies stay visible on the canvas even after
 their full texture has been evicted.
 
-### Budgets
+### The budget
 
-| Scope | Budget |
+The budget is not a fixed number. It starts at a conservative floor and is
+raised at startup to a figure derived from the device:
+
+| Scope | Value |
 | --- | --- |
-| Node texture cache, iPadOS | 512 MB |
-| Node texture cache, desktop | 1.5 GB |
-| Native GPU texture-handle cache | 256 MB |
+| Floor, iPadOS | 512 MB |
+| Floor, desktop | 1.5 GB |
+| iPadOS, calibrated | Half of the memory allowance the process has at launch - what it already holds plus the headroom left before iOS kills it |
+| Desktop, calibrated | A quarter of physical RAM |
 
-These budgets are deliberately conservative and expected to change as they are
-tuned against real devices.
+A device reading can only raise the budget, never lower it: whatever the
+calibration produces is clamped up to the floor. The half of the iPad allowance
+and the three quarters of a desktop's RAM that are left over go to everything
+that is not a node texture - the Flutter engine, the GPU driver's own
+allocations, decoded images, and the export buffers, which at 8192 run to a
+gigabyte on their own.
+
+Textures the native render core allocates are tracked separately and reported
+alongside in diagnostics, but are **not** counted against this budget: the two
+accountings overlap in ways neither side can resolve, and the budget was
+calibrated against the governor's own numbers.
 
 ### What you will see
 
@@ -40,12 +53,49 @@ clearing and then re-rendering on a large project is expected behavior, not a
 sign of a broken graph. The small canvas thumbnails themselves are always
 retained.
 
+## The memory guard
+
+Separately from the governor, a guard watches the totals and says something
+before you run out. It is not an 8K feature: a 2048 graph with a hundred nodes
+exhausts an iPad exactly as thoroughly as a small graph at 8192.
+
+| Message | When |
+| --- | --- |
+| `High memory use - previews may reduce quality` | Texture use reached **80%** of the budget. Nothing has been dropped yet |
+| `Reduced preview quality to stay within memory` | The governor actually evicted something, the OS asked for memory back, or the app has used **90%** of its iOS memory allowance |
+
+Each level fires **once per episode**, not once per interval, and re-arms only
+after use falls back under 65% of budget and nothing is being dropped - a graph
+parked at 80% would otherwise warn on every render settle. A critical message
+subsumes the warning, so one episode never produces both. Sampling piggybacks
+on the settle the canvas already runs after a render burst; nothing polls on a
+timer and nothing blocks a frame.
+
+## The 3D preview
+
+The preview redraws **only when something changes**. With nothing dirty and
+nothing in flight, the render loop blocks and the GPU goes fully idle, which is
+what keeps a parked preview off the battery and the fans quiet. While a
+viewport is dirty it redraws on a roughly 30 fps budget.
+
+Texture exports encode on a worker thread, so a 4K or 8K export no longer
+freezes the live preview while it writes.
+
+On weak graphics hardware the core asks for extra headroom above the
+guaranteed-safe limits but never for more than the adapter reports, so a
+limited device gets a reduced preview rather than a failed one. See
+[Settings](/docs/help/settings/) for the 3D Preview GPU and, on Windows, the
+Graphics Backend controls.
+
 ## Measured hardware
 
 There is no formal minimum-spec sheet. The figures the project has actually
 measured are:
 
-- 8192 × 8192 textures on an **M3 iPad Air**.
+- 8192 × 8192 textures on an **M3 iPad Air**. That figure predates the
+  handheld cap: iPadOS and Android now stop at 4096, because evaluating an 8K
+  graph runs tablets and phones out of memory even where a single texture that
+  size allocates.
 - 512 × 512 and larger on Windows with an **RTX 3070**; the Erosion node runs
   roughly 230 ms for 80 steps at 2048² on that card.
 

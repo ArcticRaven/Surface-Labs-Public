@@ -9,7 +9,7 @@ normal-map orientation, and the file-name style.
 | Preset | Packed map | Normal default | Name prefix | Channel suffix style |
 | --- | --- | --- | --- | --- |
 | Generic PBR | ORM | OpenGL (Y+) | none | Long (BaseColor, Normal, Roughness…) |
-| Unreal Engine | ORM | DirectX (Y-) | `T_` | Short (D, N, R, M, O, H, A, S, G, CC) |
+| Unreal Engine | ORM | DirectX (Y-) | `T_` | Short (D, N, R, M, O, H, A, S, G, CC, CCR, T) |
 | Unity URP | MetallicSmoothness | OpenGL (Y+) | none | Long |
 | Unity HDRP | Mask Map | OpenGL (Y+) | none | Long |
 | Godot | ORM | OpenGL (Y+) | none | Lowercase (albedo, normal, roughness…) |
@@ -45,9 +45,9 @@ Notes on packing:
   inside the packed map.
 - With **Individual maps** off and the packed map on, the channels folded into
   the packed layout are dropped from the individual set; channels the packed
-  layout does not carry (Base Color, Normal, Height, Opacity, Clearcoat) are
-  also not written, because turning off individual maps turns off all
-  individual files.
+  layout does not carry (Base Color, Normal, Height, Emissive, Opacity,
+  Clearcoat, Clearcoat Roughness, Thickness) are also not written, because
+  turning off individual maps turns off all individual files.
 - With both off, nothing is written and the Export button is disabled.
 
 ## File naming
@@ -76,10 +76,19 @@ Per-channel suffixes:
 | Metallic | Metallic | M | metallic |
 | AO | AO | O | ao |
 | Height | Height | H | height |
+| Emissive | emissive | emissive | emissive |
 | Opacity | Opacity | A | opacity |
 | Specular | Specular | S | specular |
 | Glossiness | Glossiness | G | glossiness |
 | Clearcoat | Clearcoat | CC | clearcoat |
+| Clearcoat Roughness | ClearcoatRoughness | CCR | clearcoat_roughness |
+| Thickness | Thickness | T | thickness |
+
+Emissive is the odd one out: it has no entry in any of the three suffix
+tables, so every preset falls back to the raw channel id and suffixes the file
+`_emissive`, lowercase, in every naming style - including Unreal's, where the
+rest of the set is single letters. Rename the file afterwards if your pipeline
+matches on case.
 
 A Custom Output ignores all of this and writes
 `<prefix>_<node-label-slug>.<ext>`. The slug is the node's label, lowercased,

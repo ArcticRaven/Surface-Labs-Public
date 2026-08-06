@@ -23,7 +23,9 @@ The 2D Preview panel showing a node's texture, with the header readout and the
   several channels wired you see one of them; select the upstream node to
   inspect a specific channel.
 - The panel automatically promotes the displayed texture to full resolution in
-  the background and refreshes when the sharper version lands.
+  the background and refreshes when the sharper version lands. It holds that
+  full-resolution claim only while it is open and only for the node it is
+  showing, so closing the panel stops the app paying for full-size pixels.
 
 ## Header readout
 
@@ -50,10 +52,14 @@ sharp-edged for inspecting noise, dithering, and single-pixel artifacts.
 
 ## Live updates and limits
 
-The preview repaints when a render completes anywhere the preview depends on,
+The preview repaints whenever a render finishes or fails anywhere in the graph,
 and on any graph change. There is no manual refresh, no reset-view or fit
 button, no zoom readout and no pixel-value/color picker. Zoom, pan, tiling,
 and the isolated channel carry over when you select a different node, and none
 of them are saved with the project.
 
 Nothing in this panel affects the graph or what is exported.
+
+This panel shows one node's flat output. To see a material's channels wrapped
+around a model instead - unlit, exactly as authored - use the 3D preview's map
+rows; see [3D Material Preview](/docs/export/preview-3d/).

@@ -14,38 +14,45 @@ canvas in the middle.
 
 ## The toolbar
 
-A fixed strip across the top of the editor window, in three zones. Every button
-is a glyph with a screen-reader label.
+A fixed strip across the top of the editor window: a single row of card buttons
+with the search field stretched across the middle, taking whatever width the
+buttons leave. Every button carries a screen-reader label and a minimum
+44-point touch target.
 
-**Left zone**
+**Left of the search field**
 
-| Glyph | Name | Behavior |
-| :-: | --- | --- |
-| ⌂ | Back to Hub | Saves the current project (aborting the navigation if the save fails) and returns to the hub |
-| ● | Save status dot | Filled means unsaved changes. Outline only means saved |
+| Name | Behavior |
+| --- | --- |
+| Settings | Opens the Settings window |
+| Back to Hub | Saves the current project (aborting the navigation if the save fails) and returns to the hub |
+| Save | Saves the project. An accent pip in the button's top-right corner means there are unsaved changes; no pip means saved |
+| Undo | Undoes the last graph change. Grayed out and inert when there is nothing to undo |
+| Redo | Redoes the last undone change. Grayed out and inert when there is nothing to redo |
 
-**Center zone**
+**The search field**
 
-| Glyph | Name | Behavior |
-| :-: | --- | --- |
-| ↶ | Undo | **Permanently disabled.** Rendered grayed out and does nothing when clicked |
-| ↷ | Redo | **Permanently disabled.** Same |
+Searches nodes and manual articles together. Covered in
+[Interface Tour](/docs/interface-tour/).
 
-These two are reserved placeholders. Undo and redo themselves work normally: use
-<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Z</kbd> and
-<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Y</kbd>. Only the toolbar buttons are inert.
+**Right of the search field**
 
-**Right zone**
+| Name | Behavior |
+| --- | --- |
+| Annotation Mode | Toggles freehand annotation drawing. Stays lit while active |
+| Toggle Minimap | Shows or hides the Node Map. Stays lit while visible |
+| Zoom In | Multiplies the canvas zoom by 1.25 |
+| Zoom field | Shows the canvas zoom as a whole percentage (124%) and accepts a typed value to jump to it |
+| Zoom Out | Divides the canvas zoom by 1.25 |
+| Focus Mode | Hides all panels and collapses the toolbar |
+| Import | Native picker; the chosen file is embedded into the open project. Warns *Open a project first.* if nothing is open. The only button labeled with a word rather than an icon |
 
-| Glyph | Name | Behavior |
-| :-: | --- | --- |
-| ✚ | Add Node | Opens the node picker |
-| ⇩ | Import Asset | Native picker; the chosen file is embedded into the open project. Warns *Open a project first.* if nothing is open |
-| ⊞ | Toggle Minimap | Shows or hides the Node Map. Highlights in the accent color while visible |
-| ✎ | Annotation Mode | Toggles freehand annotation drawing. Highlights while active |
-| ⛶ | Focus Mode | Hides all panels and collapses the toolbar |
-| ⚙ | Settings | Opens the Settings window |
-| (field) | Zoom field | Shows the canvas zoom as a whole percentage (124%) and accepts a typed value to jump to it |
+A button reads in the secondary text color at rest, brightens on hover and
+press, and switches to the accent color over an accent-tinted card while its
+mode is on. A disabled button (Undo or Redo with nothing to do) reads in the
+disabled color.
+
+There is no Add Node button. Nodes come from the search field, the Node Picker
+panel, or a double-click on empty canvas.
 
 In focus mode the whole strip collapses to a sliver of roughly 8 points, just
 enough to keep the canvas from drawing behind the OS menu bar. On iPad the
@@ -53,7 +60,8 @@ toolbar's content is pushed down by the status-bar safe area so the system clock
 never overlaps it.
 
 :::caution[missing screenshot]
-The toolbar with each zone labeled, and the zoom field showing a typed value.
+The toolbar with each button labeled: the Settings-to-Redo cluster, the search
+field, and the annotation-to-Import cluster with the zoom field in it.
 :::
 
 ## Panel slots and panel types
@@ -107,8 +115,8 @@ and unpinned types.
 - A collapsed slot gives its entire area to the canvas; no strip is reserved. A
   small floating pill appears on the canvas-facing edge where the panel used to
   be, and tapping it expands the slot again.
-- **Focus mode** (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>↑</kbd>, or the ⛶
-  toolbar button) slides all three panels out to their respective edges over
+- **Focus mode** (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>↑</kbd>, or the Focus
+  Mode toolbar button) slides all three panels out to their respective edges over
   about 200 ms and collapses the toolbar. A floating **Exit Focus Mode** pill
   at the top-right is the only interactive control left. Tapping it, or
   pressing the shortcut again, restores everything.

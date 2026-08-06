@@ -1,6 +1,6 @@
 ---
 title: Channels Nodes
-description: Pull a single channel out of a texture as grayscale, or pack three grayscale maps into one RGBA texture.
+description: Pull a single channel out of a texture as grayscale, or pack up to four grayscale maps into one RGBA texture.
 ---
 
 Two nodes for taking a texture apart into single channels and putting channels back together. Neither has a Mask input.
@@ -27,15 +27,16 @@ Pulls a single red, green, blue or alpha channel out of the input as a grayscale
 
 Type id: `channel_combine`
 
-Packs three grayscale inputs into one RGBA texture, with alpha supplied as a constant. The node to use when building a channel-packed export, for instance roughness, metallic and occlusion in one image.
+Packs up to four grayscale inputs into one RGBA texture. The node to use when building a channel-packed export, for instance roughness, metallic and occlusion in one image.
 
 **Inputs**
 
-- R (grayscale, required): contributes its red channel to the output's red channel.
-- G (grayscale, required): contributes its red channel to the output's green channel.
-- B (grayscale, required): contributes its red channel to the output's blue channel.
+- R (grayscale, optional): contributes its red channel to the output's red channel.
+- G (grayscale, optional): contributes its red channel to the output's green channel.
+- B (grayscale, optional): contributes its red channel to the output's blue channel.
+- A (grayscale, optional): contributes its red channel to the output's alpha, multiplied by the Alpha parameter.
 
-All three must be connected.
+Every input is optional and the node renders whatever is wired. An unconnected color channel is black, so it contributes nothing; an unconnected A leaves the constant Alpha in charge.
 
 **Outputs**
 
@@ -43,7 +44,7 @@ All three must be connected.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Alpha | Float | 1.0 | 0.0 to 1.0 | A constant alpha for the whole output. There is no alpha input port. |
+| Alpha | Float | 1.0 | 0.0 to 1.0 | With nothing wired into A this is a flat alpha for the whole output. With a map on A it becomes a master level over that map. |
 
 :::caution[missing screenshot]
 Before/after: three grayscale maps (roughness, metallic, occlusion) feeding Channel Combine, beside the single packed RGBA result.

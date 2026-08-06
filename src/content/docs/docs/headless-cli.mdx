@@ -27,7 +27,7 @@ Flutter engine.
 ```
 surface_lab_headless <project.surfacelabs> --out <dir>
     [--native-lib <path to surface_gpu>]
-    [--format png|jpg|tga|bmp|exr]
+    [--format png|tga|tiff|bmp|exr]
     [--prefix <name>]
     [--material <index>|all]
     [--verbose]
@@ -37,9 +37,9 @@ surface_lab_headless <project.surfacelabs> --out <dir>
 | --- | --- |
 | `--out`, `-o` | Output directory. **Required.** |
 | `--native-lib` | Path to the `surface_gpu` library. Auto-detected from a source checkout; `SURFACE_GPU_LIB` also works. |
-| `--format`, `-f` | Output format. Defaults to the project's saved export preset. |
+| `--format`, `-f` | Output format: `png`, `tga`, `tiff` (`tif` also accepted), `bmp` or `exr`. Anything else is an error rather than a fallback. Defaults to the project's saved export preset. |
 | `--prefix`, `-p` | File-name prefix. Defaults to the saved preset, otherwise a slug of the project name. |
-| `--material`, `-m` | A material index, or `all`. Defaults to the active material. |
+| `--material`, `-m` | A material index, or `all`. Defaults to the active material. `all` exports every material, suffixing files with the material name. |
 | `--verbose`, `-v` | Print core diagnostics to stderr. |
 | `--help`, `-h` | Usage. |
 
@@ -48,6 +48,11 @@ load warnings and skipped nodes, go to stderr.
 
 **Exit codes:** `0` wrote at least one file, `1` usage or project error, `2` no
 render core, `3` nothing to export.
+
+Trim Sheets export from here like any other output node: the strip compositor
+is an ordinary fragment shader, so the whole sheet resolves on the native core
+with no app involved. Draw nodes, Text nodes and Custom Shaders the native path
+declined are still skipped, each named on stderr.
 
 This is the piece you want in CI. A build step can re-export a committed
 `.surfacelabs` on every change with no GUI, no display and no human.
@@ -71,11 +76,12 @@ surface_lab_mcp [--http [port]] [--token <secret>]
 | `--http [port]` | Serve the same protocol on a loopback port instead, default 4319, like the in-app server. |
 | `--token <secret>` | Bearer token required on HTTP requests. **Without it, `--http` accepts any local caller.** |
 | `--native-lib <path>` | `surface_gpu` library path. Auto-detected in a source checkout; `SURFACE_GPU_LIB` also works. |
-| `--out <dir>` | Default directory for renders and exports when a tool names none. Defaults to `<temp>/surface_lab_mcp`. |
+| `--out <dir>`, `-o` | Default directory for renders and exports when a tool names none. Defaults to `<temp>/surface_lab_mcp`. |
 | `--root <dir>` | Confine every file argument to this directory, rejecting `..` traversal out of it. Repeatable. Without it the server can read and write anywhere you can. |
 | `--read-only` | Refuse mutating tools. See the caveat below. |
 | `--log <file>` | Append diagnostics to a file instead of stderr. |
-| `--verbose` | Include core diagnostics. |
+| `--verbose`, `-v` | Include core diagnostics. |
+| `--help`, `-h` | Usage, on stderr. |
 
 A stdio client config:
 
@@ -94,6 +100,9 @@ A stdio client config:
 On stdio, standard output is the protocol. Every diagnostic goes to stderr or the
 log file so nothing corrupts the stream, and `--http` prints its endpoint to
 stderr for the same reason.
+
+On stdio the server exits when its client closes the pipe. Under `--http` it
+serves until interrupted, and exits `4` if the port will not bind.
 
 :::caution[--read-only is incomplete]
 It refuses authoring, saving, exporting and material changes, but does not

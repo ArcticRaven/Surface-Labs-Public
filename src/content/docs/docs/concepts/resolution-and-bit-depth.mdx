@@ -10,7 +10,17 @@ work a change costs and how much memory a graph holds.
 ## Project resolution
 
 Set in the Properties panel with no node selected. The choices are square:
-**256 × 256, 512 × 512, 1024 × 1024, 2048 × 2048, 4096 × 4096**.
+**256 × 256, 512 × 512, 1024 × 1024, 2048 × 2048, 4096 × 4096, 8192 × 8192**.
+8192 is the top of what every graphics adapter the desktop app runs on
+guarantees for a single texture, which is why the ladder stops there.
+
+:::caution[8K is desktop only]
+iPad and Android stop the ladder at 4096, because evaluating an 8K graph runs
+phones and tablets out of memory. Opening a project authored at 8K on one of
+those devices brings the project resolution and every per-node override down
+to 4096 before the graph reaches the engine. A project still sitting at 8K
+keeps showing its true value in the dropdown, so nothing is misreported.
+:::
 
 :::caution[missing screenshot]
 The Properties panel with no node selected, showing the project resolution
@@ -23,13 +33,11 @@ Select a node and use its **Resolution** dropdown:
 
 - **Inherit (N × N)**: follows the project resolution. This is the default,
   and the label shows the current project value.
-- A fixed square size from the same list: 256, 512, 1024, 2048 or 4096.
-
-A "match input" resolution mode exists in the file format and is honored
-during evaluation (it takes the largest upstream resolution, falling back to
-the project default for nodes with no inputs), but the Properties dropdown
-does not offer it. It can only be reached through a file authored elsewhere or
-through the MCP interface.
+- **Match input (W × H)**: takes the largest upstream resolution, measured by
+  pixel count, and falls back to the project default for a node with no
+  inputs. The label shows what the node resolves to right now.
+- A fixed square size from the same ladder the project dropdown offers, capped
+  the same way per device.
 
 ## Bit depth
 
@@ -58,9 +66,16 @@ it dirty; a pass runs shortly afterwards.
 
 - **Normal debounce: about 150 ms** after the last change.
 - **While you are actively dragging a control**, the engine switches into an
-  interactive mode: the debounce drops to about **24 ms** and every node
-  renders at a **draft cap of 256 pixels**. This keeps the whole downstream
-  chain and both previews moving live while you drag.
+  interactive mode: the debounce drops to about **24 ms** and the expensive
+  nodes render at a **draft cap of 256 pixels** on their longest axis. Cheap
+  nodes are not drafted at all — they render at full resolution for every
+  frame of the drag, which is what lets the 2D preview show real pixels while
+  you move a slider. Expensive here means the marches and gathers (Detail
+  Blur, Slope Blur, Bevel, Curvature / Cavity, Tile Sampler, Surface Detail,
+  Directional Occlusion, Trim Sheet, Image and the Flood Fill family), the
+  compute nodes (Distance Field, Erosion), and subgraphs and Custom Shader
+  nodes, which are assumed expensive because their cost cannot be read off a
+  type id.
 - **About 220 ms after your last edit**, interactive mode ends and everything
   still showing a draft is re-rendered at full resolution.
 
@@ -70,7 +85,7 @@ dirty whose signature has not actually changed is served straight from cache
 instead of re-rendering, so an edit on an unrelated branch costs nothing.
 
 Automatic texture readbacks are capped at 256² previews; full-resolution data
-is materialised only when something actually needs it (the 2D preview, an
+is materialized only when something actually needs it (the 2D preview, an
 export, a 3D upload, a fallback render, or a memory eviction rescue).
 
 ## The memory governor
@@ -88,6 +103,18 @@ A cached output that feeds another node is **never** evicted, because that
 would break downstream re-renders. Every node keeps its small (up to 256²)
 thumbnail regardless, so node bodies stay visible on the canvas even after
 their full texture has been evicted.
+
+The budget starts at a conservative floor and is raised at startup to a figure
+derived from the device: a share of the memory headroom the process actually
+has on iPad, a share of physical RAM on desktop. A device reading can only
+raise the budget, never lower it.
+
+A memory guard watches the same numbers and says something before you run out.
+At 80% of the budget it toasts "High memory use — previews may reduce
+quality"; if the governor has actually evicted something, or the OS asks for
+memory back, it toasts "Reduced preview quality to stay within memory". Each
+fires once per episode and stays quiet until usage falls back well under the
+line, so a graph parked near the limit does not toast on every render.
 
 The budgets are deliberately conservative and may change; the current numbers
 are listed in [Performance & Memory](/docs/help/performance-and-memory/).

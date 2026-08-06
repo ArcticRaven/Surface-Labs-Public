@@ -3,7 +3,7 @@ title: Node Reference Overview
 description: What the node reference covers, how it is organized, and the conventions shared by every node page.
 ---
 
-The node reference documents all 70 node types, grouped by the same categories
+The node reference documents all 72 node types, grouped by the same categories
 the Node Library uses. Each entry follows one structure: the node's label, its
 type id, a short statement of purpose, its input and output ports, and a table
 of every parameter with type, default, range and notes.
@@ -23,6 +23,12 @@ of every parameter with type, default, range and notes.
 - [Flood Fill Nodes](/docs/nodes/flood-fill/)
 - [Output Nodes](/docs/nodes/outputs/)
 
+Those pages line up with the categories the Node Library shows, with one
+exception: Distance Field and Erosion are listed under **Filters** in the
+library and documented together on the Simulation & Compute page, because they
+share the iterative compute path. **Routing** has no page of its own — its
+single node is documented at the bottom of this one.
+
 Beyond these categories, the Custom Shader node (`custom_shader`) lets you
 write a node of your own in shader code. It has its own section of the
 documentation: see [Custom Shader Node](/docs/shaders/custom-shader-node/).
@@ -33,17 +39,23 @@ A few behaviors repeat across the whole library, so they are stated once here
 rather than on every entry.
 
 - **Mask input.** Where a node has a Mask input, it composites the node's
-  result back over what the node would otherwise have shown. On a generator
-  there is no upstream image to fall back to, so a masked-out area resolves to
-  black. On a transform or filter, masked-out areas keep the node's own
-  unmodified input.
+  result back over what the node would otherwise have shown. On a transform or
+  filter, masked-out areas keep the node's own unmodified input; where that
+  input is optional and nothing is connected to it, they fall back to the
+  port's own neutral instead, which is why masking a Blend with an empty Base
+  gives transparency rather than gray. Tile Sampler is the only generator with
+  a Mask, and a generator has no upstream image to fall back to, so masked-out
+  areas there resolve to black. On a node with more than one output, the mask
+  applies to the first output only.
 - **Seeds.** A **Seed** control is a whole number with no slider. Type a value
   or press the randomize button beside it. Changing the seed reshuffles the
   pattern without changing any other characteristic.
 - **Per-node resolution.** Every node renders at the project resolution by
-  default. Select a node and use its **Resolution** dropdown to override that
-  with a fixed square size instead: **Inherit** follows the project setting,
-  or pick 256, 512, 1024, 2048 or 4096. See
+  default. Select a node and use its **Resolution** dropdown to override that:
+  **Inherit** follows the project setting, **Match input** takes the largest
+  resolution feeding the node (the project default when it has no inputs), or
+  pick a fixed square — 256, 512, 1024, 2048, 4096 or 8192. The ladder stops
+  at 4096 on iPad and Android. See
   [Resolution and Bit Depth](/docs/concepts/resolution-and-bit-depth/).
 - **Deprecated nodes.** A handful of node types are deprecated. They are
   hidden from the Node Library but still open in existing projects, and each
@@ -51,7 +63,9 @@ rather than on every entry.
 
 ## Routing
 
-The Routing category holds a single node.
+The Routing category holds a single node. The Node Library lists it under
+**Canvas** with the Comment Box and Jump Node rather than in a category of its
+own, since it is placed the way canvas furniture is.
 
 ### Reroute
 

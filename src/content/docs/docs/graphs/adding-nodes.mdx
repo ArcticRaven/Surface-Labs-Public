@@ -8,9 +8,11 @@ gallery, showing live GPU-rendered preview thumbnails for every node that has on
 
 ## The node picker
 
-A transient modal sheet. Open it by double-clicking empty canvas, pressing
-<kbd>Space</kbd>, or clicking the ✚ toolbar button. Tap a card to place the node.
-This is a plain catalog with no arrangement controls.
+A transient modal sheet. Open it by double-clicking empty canvas or pressing
+<kbd>Space</kbd>. Tap a card to place the node. This is a plain catalog with no
+arrangement controls. There is no Add Node toolbar button — the 1.2.1 toolbar
+rework replaced it with the search field, which finds nodes as well as manual
+articles. See [Interface Tour](/docs/interface-tour/).
 
 :::caution[missing screenshot]
 The node picker sheet open over the canvas, showing the card gallery with preview thumbnails.
@@ -45,36 +47,48 @@ The library's permanent home, and where you customize it:
 The Node Library panel with the tag filter strip, the pinned Favorites section and a custom category.
 :::
 
-Two entries in the gallery are canvas furniture rather than real nodes and sit
-in a **Canvas** category: **Reroute** (a wiring pin that bends a wire without
-changing what flows through it, see
-[Connections & Reroutes](/docs/graphs/connections/)) and **Comment Box** (see
-[Comments & Annotations](/docs/graphs/comments/)). Neither can be tagged,
-favorited or recategorised. Deprecated node types stay loadable from old
-projects but are hidden from the gallery.
+Three entries in the gallery are canvas furniture rather than real nodes and
+sit in a **Canvas** category:
+
+- **Reroute** — a wiring pin that bends a wire without changing what flows
+  through it. See [Connections & Reroutes](/docs/graphs/connections/).
+- **Comment Box** — see [Comments & Annotations](/docs/graphs/comments/).
+- **Jump Node** — a labeled navigation marker. It is a jump target for
+  recentering the view from the Node Map panel and takes no part in texture
+  evaluation.
+
+None of the three can be tagged, favorited or recategorized: they are not
+registry definitions, so they carry no node id for those features to hang on.
+Deprecated node types stay loadable from old projects but are hidden from the
+gallery.
 
 You can also insert a Reroute by double-clicking just off a wire on empty canvas.
 
 ## The node context menu
 
-Right-click a node (desktop), two-finger tap it (touch), or hold the primary
-button or Pencil on it for 500 ms. The menu header reads "1 node selected" or
-"N nodes selected", and offers:
+Right-click a node (desktop), two-finger tap it (touch), hold one finger on it
+for 400 ms, or hold the primary button or Pencil on it for 500 ms. Opening the
+menu on a node that is not already selected replaces the selection with just
+that node; opening it on a node that is selected leaves the whole selection
+intact and the menu applies to all of it. The menu header reads "1 node
+selected" or "N nodes selected", and offers:
 
 | Item | When it appears |
 | --- | --- |
-| **Rename** | Only when exactly one node is selected and it has an editable label |
+| **Rename** | Only when exactly one node is targeted and it has an editable label: a Jump Node, a comment box, or a subgraph instance (which renames the definition) |
 | **Duplicate** | Always. Applies to the whole selection |
-| **Show Preview** / **Hide Preview** | On nodes with a rendered preview |
-| **Collapse to Subgraph** | When the selection can be collapsed |
-| **Expand Subgraph** | On a subgraph instance |
-| **Export .surfacenode…** | On exportable nodes |
-| **Insert Comment Box** | Where applicable |
+| **Show Preview** / **Hide Preview** | On a single selected node that came from the node registry |
+| **Collapse to Subgraph** | When every node in the selection came from the node registry |
+| **Expand Subgraph** | On a single subgraph instance |
+| **Visualize** | On a single PBR Output that is not already the one the 3D preview shows |
+| **Export .surfacenode…** | On a single selected node that came from the node registry |
+| **Insert Comment Box** | Always. Places a comment box just below and right of the node you opened the menu on, selected and already in text editing |
 | **Delete** | Always, styled as destructive. Applies to the whole selection |
 
 :::caution[missing screenshot]
 The node context menu open on a selected node, showing the full item list.
 :::
 
-A right-click on empty canvas does nothing. A two-finger tap on empty canvas
-does nothing.
+A right-click on empty canvas does nothing, and neither does a two-finger tap.
+A one-finger hold on empty canvas starts a marquee instead — see
+[Selection & Undo](/docs/graphs/selection-and-undo/).

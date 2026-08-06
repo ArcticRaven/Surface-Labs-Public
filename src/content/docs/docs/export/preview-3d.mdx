@@ -1,40 +1,75 @@
 ---
 title: 3D Material Preview
-description: The lit 3D viewport, which channels it reads, camera navigation, the 4K preview export, and every options section.
+description: The lit 3D viewport, the corner toolbar, the pop-out view, viewing one map at a time, the 4K preview export, and every options section.
 ---
 
 The 3D Material Preview renders your material on a lit model through the
 native (Rust/wgpu) renderer, with image-based lighting, an analytic
-three-light rig, 4× MSAA, and an ACES filmic tonemap.
+three-light rig, MSAA, and an ACES or AgX tonemap. MSAA runs at 4× where the
+adapter supports it and steps down to 2× or off where it does not, so a weak
+GPU gets a plainer image instead of a dead viewport. The viewport redraws only
+when something changes - camera, material, environment or size - so a preview
+you are not touching costs no GPU time.
 
 :::caution[missing screenshot]
 The 3D Material Preview viewport showing a material on the default sphere,
-with the Reset Camera and Turntable controls visible.
+with the collapsed corner toolbar at the bottom left.
 :::
 
-While the renderer is starting the panel reads "Starting native renderer…".
-If the native renderer stops, the panel shows "3D renderer stopped" with the
-failure text and a restart control.
+While the renderer is starting the panel reads "Starting native renderer…". A
+failed start retries a few times on its own first; if it still cannot come up,
+the panel shows "3D renderer stopped" with the failure text and a **Restart
+Renderer** button.
 
 ## What the preview reads
 
-The preview reads the first PBR Output node in the graph. It consumes exactly
-six channels: **Base Color, Normal, Roughness, Metallic, AO, Height**.
+The preview reads one PBR Output node and consumes nine channels: **Base
+Color, Normal, Roughness, Metallic, AO, Height, Emissive, Opacity,
+Thickness**.
 
 - In the Specular / Glossiness workflow, the *Roughness* slot reads the
   Glossiness input and the *Metallic* slot reads the Specular input. The
   panel's labels do not change.
-- Opacity and Clearcoat inputs are not read from the graph. The Shading
-  section's Opacity, Clearcoat and Coat Roughness sliders are preview-only
-  scalars.
-- An unwired channel falls back to the constant on the PBR Output node (base
-  color, roughness/glossiness, metallic/specular, AO, height values). An
-  unwired Normal always falls back to a flat surface normal; it has no
+- A wired input always renders. The channel's on/off toggle on the PBR Output
+  node only decides what an *unwired* channel does: on, it renders the node's
+  constant; off, it renders the channel's neutral.
+- An unwired Normal always falls back to a flat surface normal; it has no
   constant value.
-- A map only contributes when both the panel's per-map toggle and the matching
-  channel enable on the PBR Output node are on.
-- With no PBR Output node in the graph at all, the viewport still renders
-  using every fallback constant.
+- The Maps section's per-map switch is separate, and it wins over both: a map
+  switched off there renders its neutral no matter what is wired.
+- A whole material wired into the Material input - a Trim Sheet, a Material
+  node, another PBR Output - supplies every channel you did not wire
+  explicitly. A per-channel input stays more specific and keeps winning.
+- Clearcoat, Clearcoat Roughness and Opacity are read from the node as well.
+  The shaded opacity is the node's Opacity Value, when Use Opacity is on,
+  multiplied by the Opacity map - so an alpha map thins the surface where it is
+  dark and the node's value scales the whole thing. Clearcoat is 0 until Use
+  Clearcoat is on.
+- Thickness drives subsurface scattering: light bends through the surface
+  toward the eye and wraps around the back, scaled by the map and by the
+  environment behind the model. At 0 - the default - it scatters nothing.
+- With no PBR Output node in the graph at all, every Maps row is inert and the
+  model renders as a neutral gray surface.
+
+In the Metallic / Roughness workflow the dielectric specular level is fixed;
+nothing exposes it. Every other shading value the renderer gets is the one the
+PBR Output node holds, so the preview and an export of the same graph cannot
+drift apart.
+
+## Which material the preview shows
+
+A project with several PBR Outputs previews the one you nominate. Select the
+node and press **Visualize in 3D Preview** in the Properties panel, or pick
+**Visualize** from its context menu; the button then reads "Visualized in 3D
+Preview". The choice is saved with the project, not with the app, so reopening
+a multi-material file lands on the same material.
+
+With no choice made, the preview takes a *terminal* PBR Output - one whose
+Material output feeds nothing - and falls back to the first one in the graph
+when every candidate feeds something. That rule is why a trim-sheet graph
+previews the sheet rather than whichever strip happened to be built first.
+Deleting the chosen node falls back the same way. See [Multiple materials in
+one project](/docs/graphs/multi-material/).
 
 ## Navigating the viewport
 
@@ -44,130 +79,277 @@ six channels: **Base Color, Normal, Roughness, Metallic, AO, Height**.
 | Zoom | Scroll wheel | Pinch |
 | Pan | <kbd>Shift</kbd>+drag or middle-mouse drag | Two-finger drag |
 
-Vertical orbit is clamped so the camera cannot pass over the poles. Camera
-distance ranges 0.5 to 7.0 and starts at 3.0; the pan target is clamped to
-±2.5 on each axis. At the closest zoom you can push the camera through a
-volumetric shape, which is intentional.
+Dragging right turns the model right. Vertical orbit is clamped so the camera
+cannot pass over the poles. Camera distance ranges 0.5 to 7.0 and starts at
+3.0; the pan target is clamped to ±2.5 on each axis. At the closest zoom you
+can push the camera through a volumetric shape, which is intentional.
 
-- **Reset Camera** restores the default orbit angles, zoom, and pan target.
-- **Turntable ▶ / ■** slowly rotates the environment and the key light
-  together (about 0.35 rad/s, one lap in roughly 18 seconds) so reflections
-  sweep across the material. The model itself does not spin.
+Two keys work once you have clicked or tapped inside the viewport, which is
+what gives it keyboard focus:
+
+| Key | Result |
+| --- | --- |
+| <kbd>[</kbd> and <kbd>]</kbd> | Step back and forth through the maps this material has, wrapping through Final |
+| <kbd>Tab</kbd> | Open or close the toolbar's full strip |
+
+## The corner toolbar
+
+The toolbar sits in the bottom-left corner of the render, in the viewport and
+in the pop-out alike. At rest it fades to about 45% opacity a couple of seconds
+after you stop interacting, and comes back to full strength on hover.
+
+Collapsed, it is four buttons: expand, **Reset camera**, **Turntable**, and
+**Pop preview out**.
+
+- **Reset camera** restores the default orbit angles, zoom, and pan target.
+- **Turntable** slowly rotates the environment and the key light together
+  (about 0.35 rad/s, one lap in roughly 18 seconds) so reflections sweep across
+  the material. The model itself does not spin. It is the same setting as the
+  Lighting section's Turntable toggle.
+
+Expanded - the first button, or <kbd>Tab</kbd> - it becomes one wrapping strip:
+a chip per map this material has (starting with Final), an **Exposure**
+mini-slider, **ACES** / **AgX**, **Turntable**, **Canvas**, and a **×** to
+collapse it again. Every one of those is the same setting as its counterpart in
+the options sections below.
+
+**Canvas** is "use as canvas background": it draws a dedicated high-resolution
+material still (2048 px, matched to the canvas aspect, transparent backdrop,
+model centered) behind the node canvas. While it is on, the live viewport in
+the panel unmounts to avoid rendering the material twice, and a notice with a
+**Show viewport here** button takes its place. Turning it off clears the canvas
+background immediately.
+
+:::caution[missing screenshot]
+The corner toolbar expanded over a render, showing the map chips, the exposure
+slider and the tonemapper chips.
+:::
+
+## Viewing one map at a time
+
+Any channel the material actually has can be shown on the model instead of the
+shaded result - the map itself, wrapped around the geometry. Pick it from a
+Maps row, a toolbar chip, or <kbd>[</kbd> / <kbd>]</kbd>.
+
+- Map views are unlit and unprocessed. Exposure, tonemapping and bloom are all
+  skipped, so what you see is the authored value, not a lit interpretation of
+  it.
+- Base Color and Emissive are shown re-encoded to match their source bytes,
+  and Normal is shown as the raw tangent-space sample. Everything else is a
+  straight grayscale readout of the channel.
+- While a map view is active the render is labeled "Viewing: `<channel>`" in
+  its top-left corner, so a screenshot of it says what it is.
+- Only channels this material has are in the <kbd>[</kbd> / <kbd>]</kbd> cycle
+  and in the toolbar's chips. The Maps section lists all of them either way,
+  with the missing ones dimmed.
+
+Which map you are viewing is view state, not a setting. It is not saved with
+the project, does not survive a relaunch, and never reaches anything rendered
+off-screen: the 4K export, the canvas background and the project hub's
+thumbnail always render Final. Nothing in this panel - neither map views nor
+the per-map switches - changes what [Export Textures](/docs/export/exporting/)
+writes.
+
+## Popping the preview out
+
+The toolbar's last button fills the window with just the render: no options
+panel, no header, the toolbar still in its corner and a close button top right.
+The docked panel reads "Preview is popped out" while it is open, because there
+is only ever one live viewport - the pop-out's.
+
+<kbd>Esc</kbd> brings it back. If the toolbar's full strip is open,
+<kbd>Esc</kbd> collapses that first and a second press closes the pop-out. The
+same button (now pointing the other way) and the close button both return it to
+the panel.
+
+:::caution[missing screenshot]
+The pop-out filling the window with a single material render over the dimmed
+editor.
+:::
 
 ## Export 4K Preview
 
-**Export 4K Preview** renders the current view at 4096 px through the native
+**Export 4K Preview** renders the material at 4096 px through the native
 renderer and writes it as a PNG to a folder you pick. The button reads
 "Rendering 4K…" and is disabled while the render is in flight.
 
-- The file is always named `material_preview_4k.png`, so repeated exports to
-  the same folder overwrite each other.
+- The still is *framed*, not screenshotted: it solves for a camera distance
+  that fits the model and ignores the viewport's zoom and pan, so a preview you
+  left half off-screen still exports whole.
+- **No background**, the toggle beside the button, drops the backdrop and
+  writes the model on transparency - a cutout for a sheet or a slide rather
+  than a beauty shot over the environment. Off, the still keeps whatever the
+  Environment section's Backdrop is set to.
+- The file is named `material_preview_4k.png`, or
+  `material_preview_4k_cutout.png` with **No background** on, so repeated
+  exports to the same folder overwrite each other.
 - Success: "Exported 4K preview to `<path>`". Failure: "4K preview export
   failed". Canceling the folder picker exits silently.
 
 ## Options sections
 
-All sections are collapsible; every setting persists across launches.
+Six sections sit under the viewport: **Model**, **Maps**, **Surface**,
+**Lighting**, **Environment**, **Display**. All of them are collapsible, and
+which ones you left collapsed persists along with everything else.
+
+Each header carries a **Reset** and, whenever anything inside it differs from
+its default, a small dot - so a collapsed section still tells you it has been
+touched. Pressing Reset restores that section only. Hold it, or right-click
+it, to get "reset all preview settings" behind a confirm; the
+imported model and the imported HDRI survive that, since they are assets with
+their own Remove and Studio actions.
+
+Every numeric setting has both a slider and a directly typeable value field.
 
 :::caution[missing screenshot]
-The 3D preview options panels: Model, View, Environment, Mapping, Lighting,
-and Shading sections expanded.
+The options list with all six sections - Model, Maps, Surface, Lighting,
+Environment, Display - expanded, and a change dot on one header.
 :::
 
 ### Model
 
 - **Shape**: Sphere, Cube, Rounded, Plane, Cylinder. Default Sphere. These are
-  real tessellated meshes, not shader tricks.
-- **Subdivisions**: 8 to 256, default 96. Segments along the primary axis;
-  each shape maps it to its own topology (a cube at 256 is roughly 786k
-  triangles per the internal clamp). Higher values give displacement more
-  geometry to work with, at a render-time cost.
-- **Displacement**: 0.00 to 0.30, default 0.08. Vertex-stage displacement
-  driven by the Height channel, following the active projection.
+  real tessellated meshes, not shader tricks. A sixth chip, **Model**, appears
+  once the project has an imported model.
+- **Import Model… / Replace Model…** takes an `.obj` or `.glb`, parses it
+  before storing anything (so a file the importer cannot read is reported
+  rather than silently embedded), and embeds the file itself in the project.
+  The toast reports the triangle count, or warns that the mesh has no UVs and
+  the Model UV node will have nothing to bake. **Remove** drops it and returns
+  to the sphere. The line underneath names the imported asset, or reads "No
+  model imported - .obj or .glb, shown as authored".
+- **Subdivisions**: 8 to 256, default 96. Segments along the primary axis; each
+  shape maps it to its own topology. Higher values give displacement more
+  geometry to work with, at a render-time cost. Disabled on an imported model,
+  which is shown as authored.
 
-### View
+The model here is the project's, not the viewport's: the Model UV node bakes
+whatever is selected in this section, and switching model or subdivisions
+re-bakes it.
 
-One row per channel: the wide button on the left isolates that map in the
-viewport, and the switch on the right hides that map from shading (the
-material falls back to that channel's neutral). Rows: **Final, Albedo,
-Normal, Rough, Metal, AO, Height**. *Final* has no hide switch. Isolated
-channel views bypass exposure and tonemapping entirely, so you see raw map
-values.
+### Maps
 
-Below the rows: **Use as canvas background** draws a dedicated high-resolution
-material still (2048 px, matched to the canvas aspect, transparent backdrop,
-model centered) behind the node canvas. While it is on, the live viewport in
-the panel unmounts to avoid rendering the material twice, and a notice with a
-**Show viewport here** button takes its place. Turning it off clears the
-canvas background immediately.
+One row per channel: the wide button on the left views that map in the viewport
+(see [Viewing one map at a time](#viewing-one-map-at-a-time)), and the switch
+on the right hides that map from shading, so the material falls back to that
+channel's neutral. Rows, in order: **Final, Base Color, Normal, Roughness,
+Metallic, AO, Height, Emissive, Opacity, Thickness**. *Final* has no switch.
+
+Rows are never hidden. A channel this material has no source for is dimmed and
+inert, and a channel backed by the node's constant rather than by a texture
+carries a small `constant` tag - so the list doubles as an inventory of what
+the material has got.
+
+The per-map switches persist across launches; the row you are *viewing* does
+not.
+
+### Surface
+
+**Height**
+
+- **Displacement** or **Parallax**. Displacement moves real vertices, so it
+  changes the silhouette, but it can only resolve what the tessellation
+  carries. Parallax resolves the same depth per pixel: it cannot change the
+  silhouette, but it holds fine detail at any map resolution and costs nothing
+  where the height field is flat.
+- **Depth**: 0.000 to 0.300, default 0.080. It powers both modes - at 0,
+  neither does anything. Depth is scaled by the tiling, so it means the same
+  thing in world terms whether the material tiles once or twenty times.
+- **Contact Shadow**: 0.00 to 1.00, default 0.35. Marches the height channel
+  toward the key light, so bricks, ridges, stitches and gaps shadow themselves.
+  It applies to the key light only, and costs nothing on a material with no
+  height map.
+
+Displaced geometry has its shading normal corrected to the shape it was moved
+into, so a displaced surface lights as real form rather than as a flat one
+wearing a normal map. In Parallax mode that correction is skipped, because the
+parallax offset already landed on the right texel.
+
+**Projection**
+
+- **Projection**: Triplanar (default), Spherical, or Mesh UV.
+- **UV Scale**: 0.25 to 16.00, default 2.00.
+- **Triplanar Sharpness**: 1.0 to 16.0, default 4.0. Disabled unless the
+  projection is Triplanar.
+
+### Lighting
+
+A three-light analytic rig. You control the key light; fill and rim are derived
+from it.
+
+- **Studio / Warm Key / Rim** preset chips set the whole rig at once -
+  direction, strength, softness, fill, rim and color. They are starting points,
+  not modes: every control below stays live afterwards.
+- **Light direction pad**: drag to set the key light's rotation and elevation
+  together.
+- **White / Warm / Cool** chips, plus a **Key Light Colour** picker
+  (saturation/value square, hue bar, hex field). The default key color is a
+  slightly warm white.
+- **Key Strength**: 0.00 to 10.00, default 2.50.
+- **Key Rotation**: 0.00 to 6.28, default 0.60.
+- **Key Elevation**: -1.40 to 1.40, default 0.70.
+- **Key Softness**: key-light angular radius, 0.00 (pin sharp) to 0.50 (soft
+  box), default 0.10.
+- **Fill Light**: 0.00 to 2.00, default 0.60.
+- **Rim Light**: 0.00 to 2.00, default 0.80.
+- **Turntable**: the same setting as the toolbar's.
+
+Fill and rim are multipliers on the key, so **Key Strength** at 0 turns the
+whole rig off and leaves Environment Light as the only source.
 
 ### Environment
 
 - **Backdrop**: **Environment** (the lit environment itself, default) or
-  **Flat** (the interface's surface color). A transparent backdrop also
-  exists but is not a user option: it is used internally for the
-  canvas-background still.
-- **Exposure**: 0.25 to 4.00, default 1.00. Feeds the ACES filmic tonemap.
-- **Rotation**: environment yaw, 0.00 to 6.28, default 0.00.
+  **Flat** (the interface's surface color). A transparent backdrop also exists
+  but is not a user option here: it is what the canvas-background still and the
+  4K cutout use.
+- **Studio** returns to the built-in procedural studio environment. Disabled
+  when no HDRI is loaded; the readout then reads "Built-in studio environment".
+- **Import HDRI…** loads a Radiance `.hdr` equirectangular file (the picker is
+  filtered to `.hdr`). The environment is baked into a prefiltered specular
+  cubemap, a diffuse irradiance cubemap, and a lookup table on the GPU.
+  Success: "Environment loaded". Failure: "Could not load HDRI - is it a
+  Radiance .hdr?". The chosen file's path is remembered and reloaded on the
+  next launch; the file name is shown under the buttons. A file that has since
+  moved or stopped decoding drops back to the studio environment.
 - **Environment Light**: image-based lighting intensity and the brightness of
   the environment backdrop, 0.00 to 3.00, default 1.00.
-- **Import HDRI…** loads a Radiance `.hdr` equirectangular file (the picker is
-  filtered to `.hdr`; the dialog is titled *Import HDRI Environment*). The
-  environment is baked into a prefiltered specular cubemap, a diffuse
-  irradiance cubemap, and a lookup table on the GPU. Success: "Environment
-  loaded". Failure: "Could not load HDRI - is it a Radiance .hdr?". The chosen
-  file's path is remembered and reloaded on the next launch; the file name is
-  shown under the buttons.
-- **Studio** returns to the built-in procedural studio environment. Disabled
-  when no HDRI is loaded; the readout then reads "Built-in studio
-  environment".
+- **Environment Rotation**: environment yaw, 0.00 to 6.28, default 0.00.
 
-### Mapping
+### Display
 
-- **Projection**: Triplanar (default), Spherical, or UV.
-- **UV Scale**: 0.25 to 16.00, default 2.00.
-- **Triplanar Sharpness**: 1.0 to 16.0, default 4.0.
+- **Tonemapper**: **ACES** (default) or **AgX**. ACES is the familiar filmic
+  fit. AgX desaturates hot colors far more gently, so a bright saturated
+  emissive keeps its hue instead of racing to white.
+- **Exposure**: 0.25 to 4.00, default 1.00. Feeds the tonemapper.
+- **Bloom Intensity**: 0.00 to 2.00, default 0.00. How much of the thresholded
+  highlights are added back before tonemapping, so bright highlights and
+  emissives glow past their edges instead of stopping at them. At 0 - the
+  default - the bloom passes are not recorded at all, so nothing pays for it.
+- **Bloom Threshold**: 0.00 to 4.00, default 1.00. The luminance a pixel has to
+  clear to feed the bloom. Pixels are scaled by how far they clear it, so the
+  glow keeps their hue.
 
-### Lighting
-
-A three-light analytic rig. You control the key light; fill and rim are
-derived from it.
-
-- **Light direction pad**: drag to set the key light's angle and elevation
-  together.
-- **White / Warm / Cool** preset chips, plus a **Light Color** picker
-  (saturation/value square, hue bar, hex field). Default key color is a
-  slightly warm white.
-- **Strength**: 0.00 to 10.00, default 2.50.
-- **Rotation**: 0.00 to 6.28, default 0.60.
-- **Elevation**: -1.40 to 1.40, default 0.70.
-- **Softness**: key-light angular radius, 0.00 (pin sharp) to 0.50 (soft
-  box), default 0.10.
-- **Fill Light**: 0.00 to 2.00, default 0.60. The fill sits at the key's
-  angle plus about 2.4 radians, low, at roughly a third of the key's
-  intensity scaled by this value.
-- **Rim Light**: 0.00 to 2.00, default 0.80. The rim sits opposite the key,
-  higher, at roughly 0.6 of the key's intensity scaled by this value.
-
-### Shading
-
-Preview-only material scalars, not graph inputs.
-
-- **Specular**: 0.00 to 1.00, default 0.50 (dielectric reflectance).
-- **Clearcoat**: 0.00 to 1.00, default 0.00.
-- **Coat Roughness**: 0.05 to 1.00, default 0.10.
-- **Opacity**: 0.00 to 1.00, default 1.00.
-- **Thin Wall**: toggle, off by default; shades back faces sensibly on planes
-  and thin shapes.
-
-Every numeric setting has both a slider and a directly typeable value field.
+:::note[Thin Wall and the Shading sliders are gone]
+The preview-only Specular, Clearcoat, Coat Roughness and Opacity sliders were
+removed in 1.2.2 - those values now come from the PBR Output node, so the
+preview and an export of the same graph cannot disagree. The Thin Wall toggle
+is gone with them; wire a map into the node's Thickness channel (or turn the
+channel on and raise its value) for subsurface scattering instead. See
+[Output nodes](/docs/nodes/outputs/).
+:::
 
 ## Persistence
 
-All 3D preview settings (camera orbit, zoom, pan target, shape, subdivisions,
-displacement, channel and per-map toggles, mapping, lighting, shading,
-environment, exposure, turntable state, and the imported HDRI's path) are
-saved globally, debounced so orbiting does not thrash the disk, and restored
-on the next launch. They are also saved inside each project file, and a
-project's saved camera and render settings are applied when that project is
-opened.
+3D preview settings - camera orbit, zoom, pan target, shape, subdivisions,
+per-map switches, height and projection, lighting, environment, exposure,
+tonemapper, bloom, turntable state, which sections are collapsed, and the
+imported HDRI's path - are saved globally, debounced so orbiting does not
+thrash the disk, and restored on the next launch. They are also saved inside
+each project file, and a project's saved camera and render settings are applied
+when that project is opened.
+
+Two things sit outside that. The imported model itself lives in the project
+archive - the settings only name it - so a model comes back with the project it
+was imported into, not with the app. And the map you are viewing is never saved
+at all, in either place.

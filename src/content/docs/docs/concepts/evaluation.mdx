@@ -4,51 +4,81 @@ description: The evaluation model behind the graph, from dirty tracking and debo
 ---
 
 Most of the application's behavior follows from a handful of rules about when
-and how the graph renders. Understanding them explains why previews sharpen a
-moment after you release a slider, why some nodes need the native render core,
-and why thumbnails at the end of a chain sometimes clear and re-render.
+and how the graph renders. Understanding them explains why some previews sharpen
+a moment after you release a slider while others never soften at all, why a few
+nodes need the native render core, and why a node's full-resolution texture is
+sometimes thrown away and rebuilt on demand.
 
 ## The graph is a directed acyclic graph
 
 The graph flows from left to right using connections. Loops are illegal in the
-system and are rejected at connection time so a graph maintains a well-defined
-evaluation order.
+system and are rejected at connection time, along with a node wired to itself
+and any wire that does not run from an output to an input, so a graph maintains
+a well-defined evaluation order.
 
 ## Evaluation is dirty-driven and debounced
 
 Changing a parameter marks that node and everything downstream of it "dirty".
-After a short pause once you stop editing, the dirty set is evaluated and rebuilt
-down the flow.
+After a short pause once you stop editing, the dirty set is sorted into
+dependency order and rebuilt down the flow. Disconnecting a required input
+marks that node incomplete, and it and everything downstream of it are left out
+of the pass rather than rendered from nothing. Reconnecting it clears the state
+and the branch rejoins the next pass.
 
-While you are actively dragging a slider, the graph evaluates at reduced
-resolution so the whole downstream chain and both previews keep moving live.
-The full-quality pass follows shortly after you stop. This is why previews
-sharpen a moment after you let go, the preview render is replaced by the
-full quality one.
+Dirty does not always mean re-render. Each node is keyed by a content
+signature covering its type, target resolution, parameter values and the
+signatures of everything feeding it. A dirty node whose signature is unchanged
+is served straight from its cached texture, so an edit on an unrelated branch
+costs nothing downstream of the branch it touched.
+
+While you are actively dragging a slider, the expensive nodes drop to a draft
+resolution so the whole downstream chain and both previews keep moving live,
+and the full-quality pass follows shortly after you stop. That is why some
+previews sharpen a moment after you let go. Cheap nodes are exempt: they render
+at full resolution for every frame of the drag, so most of the canvas never
+goes soft at all.
 
 See [Resolution & Bit Depth](/docs/concepts/resolution-and-bit-depth/) for the
-exact debounce timings and the draft resolution cap.
+exact debounce timings, the draft cap, and which nodes count as expensive.
 
 ## Evaluation runs on a native render core
 
-2D and 3D shaders are compiled and written through a Rust/Wgpu engine. Node
-work is expressed as a list of render operations that are read back in a
-deferred state so evaluation never blocks the pipeline.
+2D and 3D shaders are compiled and run through a Rust/wgpu engine. Node work is
+expressed as a list of render operations, and the intermediate results stay
+GPU-resident as float16 handles, so precision survives along a chain of native
+nodes instead of being squeezed through 8 bits at every step. The readback that
+fills a node's cached image lands asynchronously, so the evaluation pass never
+blocks on it.
 
-## Some nodes require GPU compute
+Trim Sheets, subgraphs and the whole Flood Fill family compose on the native
+core too. A subgraph's inner nodes each get their own native handle rather than
+the instance handing its entire subtree back to the slower path.
 
-A handful of nodes need to read their own previous output, such as erosion
-simulation and jump-flooding distance fields, and run as compute passes.
-These cannot fall back to a simple fragment pass and will not render without
-the native core available.
+When the native core is unavailable, or a native render fails, the node falls
+back to the application's own renderer, which produces the same image. Two
+things have no fallback and simply do not render without the native core:
+
+- **Compute nodes**, which need to read their own previous output — Erosion and
+  the jump-flooded Distance Field. A fragment pass cannot express them, so
+  rather than silently drawing something different they draw nothing.
+- **Model UV**, which rasterizes a mesh into UV space.
 
 ## Memory is governed
 
-Memory is maintained in a budget, and when exceeded the application will
-automagically respond by releasing the oldest renders first, followed by
-cached outputs of disconnected nodes downstream. Output feeding another node
-is never released so the evaluation graph always has data available.
+Texture memory is held to a budget. When a pass leaves the graph over it, the
+application first drops stale previous-frame copies, least-recently-rendered
+first, and then, if that was not enough, cached outputs on sink nodes — the ends
+of the graph that nothing downstream reads — oldest first. A cached output that
+feeds another node is never dropped, so the evaluation graph always has the data
+it needs.
 
-Visibly, this can create missing thumbnails in parts of the graphs, concentrated
-at dangling nodes and the earliest sections of the graph and will re-render
-on demand. This is expected behavior and budgets are listed in [Performance & Memory](/docs/help/performance-and-memory/).
+Every node keeps its small thumbnail regardless, so node bodies stay visible on
+the canvas even after their full texture has been evicted. What an eviction
+costs is a re-render the next time something asks for the full-resolution image:
+opening the 2D preview, exporting, or uploading to the 3D view.
+
+A memory guard watches the same numbers and toasts as the budget gets tight, and
+again if quality had to be reduced. See
+[Resolution & Bit Depth](/docs/concepts/resolution-and-bit-depth/) for what it
+says and when; the budgets are listed in
+[Performance & Memory](/docs/help/performance-and-memory/).

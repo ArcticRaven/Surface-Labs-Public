@@ -1,11 +1,12 @@
 ---
 title: Input Nodes
-description: The nodes that bring outside material into a graph, from imported bitmaps to hand-painted strokes and typeset text.
+description: The nodes that bring outside material into a graph, from imported bitmaps and whole materials to hand-painted strokes, typeset text and the preview model's UVs.
 ---
 
 Input nodes bring outside material into the graph: a bitmap file, a
-hand-painted drawing, or typeset text. Everything they need travels inside the
-project file, so a material stays self-contained.
+hand-painted drawing, typeset text, a whole material imported from elsewhere,
+or the 3D preview model's own surface as data. Everything they need travels
+inside the project file, so a material stays self-contained.
 
 ### Image
 
@@ -61,7 +62,9 @@ threshold happened to find.
   carried through into the output. Grayscale and color both connect, so
   "draw on a height map" and "draw on an albedo" need no mode switch. With
   nothing connected, the area beneath the strokes is transparent.
-- Mask (grayscale texture, optional): masks the node's result.
+- Mask (grayscale texture, optional): where dark, the backdrop shows through
+  without the strokes. With nothing on Input those areas fall back to
+  mid-gray, since there is no backdrop to reveal.
 
 **Outputs:**
 
@@ -143,4 +146,82 @@ falls back to the default face rather than rendering a blank tile.
 :::caution[missing screenshot]
 A Text node's output tiling across the canvas, with glyphs wrapping the tile
 edge, and the font picker open in Properties.
+:::
+
+### Model UV
+
+Type id: `model_uv`
+
+Bakes the 3D preview model's own surface into texture data the graph can read.
+The mesh is rasterized with every vertex placed at its UV coordinate, so a
+texel's value comes from the surface point that owns that texel in the layout.
+That makes the model's tangent frame, object position and island coverage
+addressable from the graph, which is what parallax and other UV-space effects
+are built on.
+
+:::note[Requires the native render core]
+This node rasterizes a mesh, which the raster fallback cannot do. Without the
+native render core it produces no output rather than a substitute.
+:::
+
+**Inputs:** None.
+
+**Outputs:**
+
+- Output (color texture): the baked channel. Alpha is island coverage in every
+  channel, so the same output doubles as a layout mask; texels outside the
+  islands are transparent black.
+
+| Parameter | Type | Default | Range / Options | Notes |
+| --- | --- | --- | --- | --- |
+| Channel | Choice | UV | UV, Position, Normal, Tangent, Coverage | **UV** writes the texel's own coordinates, u in red and v in green, blue 0. **Position** writes the object-space position remapped into 0 to 1, the same encoding a baked position map uses. **Normal** and **Tangent** write those directions with the same encoding a normal map uses. **Coverage** writes white, leaving the alpha mask to say what is island and what is background. |
+
+The model belongs to the project, not the node: an imported `.obj` or `.glb`
+if the project has one, otherwise whatever primitive the 3D preview is set to,
+at the tessellation the preview is using. There are no model controls on the
+node, so the bake cannot drift from what is on screen — changing the preview
+model re-bakes every Model UV node in the graph. The node's own **Resolution**
+setting picks the bake size.
+
+:::caution[missing screenshot]
+A Model UV node set to Normal, showing the model's islands baked into the tile
+with the background left transparent.
+:::
+
+### Material
+
+Type id: `material_source`
+
+A whole material from this project, baked in so it can be reused as one unit.
+It is a material source, so it wires anywhere a PBR Output's Material output
+does: into a Trim Sheet slot, or into another PBR Output's Material input.
+
+**Inputs:** None.
+
+**Outputs:**
+
+- Material (material): every channel the import found, carried as one handle.
+  Material ports only connect to other material ports.
+
+This node has no parameters. Properties shows what it was imported from, which
+channels the bake actually found, and an **Import** button per material in the
+project — **Re-import** once something has been imported.
+
+Importing evaluates the source material once and embeds its channel maps in
+the project as ordinary media. Base Color, Normal, Roughness, Metallic, AO,
+Height and Emissive are baked; a channel the source never resolved is left out
+altogether rather than stored as a flat image, and whatever consumes the
+material falls back to that channel's own neutral. That is why the channel list
+in Properties is worth reading: it distinguishes "the source had no AO" from
+"the import found nothing". A material with no PBR Output to read channels from
+imports nothing, and says so.
+
+Nothing stays linked. The project holds the baked maps, so it opens and exports
+without the source, and a re-import is what pulls later changes across. The
+material you are currently editing is offered like any other; the importing node
+is excluded from its own source, so a bake cannot read back through itself.
+
+:::caution[missing screenshot]
+A Material node's Properties showing the source name, the list of baked
+channels, and the Re-import buttons.
 :::

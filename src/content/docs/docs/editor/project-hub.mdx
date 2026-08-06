@@ -84,8 +84,18 @@ opens a context menu:
   shelf, and asks for confirmation.
 - A tag picker for the project's tags.
 
-If a card's file has gone missing, opening it removes it from the list and shows
-*Project not found: it may have been moved or deleted.*
+If the file behind a card is not where the hub last saw it, opening it repairs
+the path first. This is what keeps projects from disappearing on iPad, where the
+system relocates the app's Documents container: the stored pointer goes stale,
+but the file is still there under the new container and the repaired path finds
+it. The same repair runs over the whole list and over every shelf when the hub
+loads.
+
+When repair cannot find it either, the card is flagged as missing but **stays in
+your library** rather than being forgotten, and a toast explains why: *Project
+not found — it may have been moved, deleted, or be on a drive that isn't
+connected. It stays in your library.* A card that can't open today because an
+external drive is unplugged is not a card worth throwing away.
 
 :::caution[missing screenshot]
 A project card with its context menu open, showing the shelf fly-out and tag
@@ -130,12 +140,31 @@ and Collapse actions.
 
 ## The crash-report notice
 
-Separately from the recovery shelf, if the app finds crash artifacts from
-roughly the last day it shows a one-time notice per launch:
+Separately from the recovery shelf, if the app finds crash artifacts it has not
+already told you about, it posts a **toast** rather than a dialog. Coming back
+from a crash is the moment you want your project, not a modal in the way.
 
-> **Surface Labs recovered from a crash.** A recent session ended unexpectedly.
-> You can export a report (logs and diagnostics) as a single zip to send to
-> support so the issue can be fixed.
+The toast says which run crashed:
 
-**Export report…** asks for a destination folder, writes one ZIP, then reveals
-it. **Not now** dismisses the notice.
+> The previous session ended unexpectedly. Export a diagnostics report to help
+> get it fixed?
+
+or, when the artifacts are older than the run you just came from:
+
+> An earlier session ended unexpectedly. Export a diagnostics report to help get
+> it fixed?
+
+**Export…** on the toast asks for a destination folder, writes one ZIP of the
+crash dumps and logs, then reveals it and reports where it landed. With nothing
+to bundle it says *No crash report to export.*
+
+The toast lingers longer than an ordinary one, then slides away on its own.
+Letting it go is the answer: **that crash is never offered again**, on this
+launch or any future one. Crash artifacts more than a week old are never
+surfaced at all, since diagnostics that stale rarely match the build you are
+running.
+
+Settings → General → **Export Diagnostics…** writes a diagnostics zip at any
+time, whether or not a crash was detected. It carries the crash dumps and
+session logs plus any projects that failed to load and the project you have
+open.

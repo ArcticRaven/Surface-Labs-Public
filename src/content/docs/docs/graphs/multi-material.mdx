@@ -4,17 +4,46 @@ description: Holding several materials in one project, switching between them, a
 ---
 
 A material is one node graph within a project, and one `.surfacelabs` project
-can hold several. The **Materials** panel lists them.
+can hold several. The **Material Library** panel lists them.
 
 :::caution[missing screenshot]
-The Materials panel listing several materials, with the active one highlighted and the Add and delete controls visible.
+The Material Library panel listing several materials, with the active one highlighted and the Add Material button and delete control visible.
 :::
 
 - Tap a material to switch to it. The live graph is snapshotted into the
-  material you are leaving, so nothing is lost.
-- **Add** creates an empty material.
+  material you are leaving, so nothing is lost. An in-progress subgraph edit is
+  committed and exited first, so the snapshot is of the material rather than
+  the subgraph you were inside.
+- **Add Material** creates an empty material, named after its position in the
+  list.
 - **✕** deletes a material. The control is disabled for the currently active
   material and when only one material remains.
+
+## Reusing one material inside another
+
+The **Material** node imports another material from the same project as a whole
+map set on one wire. Import evaluates the source once and embeds its channel
+maps as ordinary project media, so the node holds no live link: the project
+stays self-contained and behaves the same in the app, headless and over MCP.
+Re-import pulls changes across; a channel the source did not resolve is left
+absent and falls back to that channel's neutral. Importing the material you are
+currently editing is allowed, and the importing node is excluded from its own
+source so it cannot bake a graph that reads back through itself.
+
+Because it is a material source, it wires wherever a PBR Output's Material port
+does: a Trim Sheet slot, or another PBR Output's Material input.
+
+## Several outputs in one material
+
+A material may hold more than one PBR Output. The 3D preview shows the terminal
+one — whichever feeds nothing — and you can point it at a different one with
+**Visualize** in that node's context menu.
+
+Wiring a material into a PBR Output's **Material** input fills the channels you
+did not wire yourself. An explicitly wired per-channel input is more specific
+and wins, so a trim sheet plus a hand-authored height map behaves the way it
+reads. Preview and export resolve channels in the same order, so the two can
+never disagree.
 
 ## Storage
 

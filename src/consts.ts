@@ -52,8 +52,15 @@ export const DOCS_PATH = '/docs/';
 /** Blog index. */
 export const BLOG_PATH = '/blog';
 
-/** The "What's new in 1.2" launch devlog (first blog post). */
-export const WHATS_NEW_URL = '/blog/whats-new-in-1-2';
+/**
+ * The current release devlog. Repoint this at the newest "What's new" post on
+ * every release — the hero button and the landing page's What's new section
+ * both read it.
+ */
+export const WHATS_NEW_URL = '/blog/whats-new-in-1-2-2';
+
+/** The 1.2 launch devlog, still linked as the background to the 1.2 line. */
+export const WHATS_NEW_1_2_URL = '/blog/whats-new-in-1-2';
 
 /** Default social share image (relative to the site origin). */
 export const OG_IMAGE_PATH = '/images/og.png';

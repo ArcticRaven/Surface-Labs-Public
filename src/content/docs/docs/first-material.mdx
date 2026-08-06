@@ -20,9 +20,16 @@ The Project Hub with the New Project form open and a name typed in.
 
 ## 2. Place a Noise generator
 
-Press the **Add Node** button in the toolbar to open the node picker, and add
-a **Noise** node from the Generators category. It has no inputs and one
+Type `noise` into the toolbar's search field and drag the **Noise** result onto
+the canvas, or tap it to drop it at the center of the viewport. The Node Picker
+panel and a double-click on empty canvas offer the same catalog if you would
+rather browse; Noise is in the Generators category. It has no inputs and one
 output, **Output**, a grayscale field in the 0 to 1 range.
+
+:::caution[missing screenshot]
+The toolbar search drop-down with `noise` typed and a result being dragged onto
+the canvas.
+:::
 
 In the [Properties panel](/docs/editor/properties/), pick a family from
 **Type** (Perlin is the default; fBm is a good start for natural surfaces).
@@ -45,6 +52,9 @@ remaps the black point, white point and gamma onto a new output range:
 - **Gamma** biases the midtones between those two points.
 - **Out Black** and **Out White** set the range the result is written into.
   Swapping them inverts the result.
+- **Channel** picks which channel the five handles act on: Master grades every
+  channel together, and Red, Green or Blue grades one and passes the rest
+  through. Leave it on Master here.
 
 Raise **In Black** slightly and lower **Gamma** until the pattern has clear
 peaks and valleys. This grayscale result will serve as the height map.
@@ -102,9 +112,10 @@ normal map.
 Select the PBR Output node and press **Export Textures…** at the top of the
 Properties panel, or press <kbd>Ctrl</kbd>+<kbd>E</kbd> /
 <kbd>Cmd</kbd>+<kbd>E</kbd>, which picks the first PBR Output in the graph.
-In the dialog, choose an **Engine** preset and a **Format** (PNG, JPEG, TGA,
-BMP, or EXR), and keep **Individual maps** on. The planned-file preview under
-the prefix field lists the exact files the run will write.
+In the dialog, choose an **Engine** preset and a **Format** (PNG, TGA, TIFF,
+BMP, or EXR), and keep **Individual maps (one file per channel)** on. The
+planned-file preview under the prefix field lists the exact files the run will
+write.
 
 Press **Export**, pick a destination folder, and a toast reports the result.
 The app waits for any still-rendering maps and promotes previews to full

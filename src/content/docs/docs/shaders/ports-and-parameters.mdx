@@ -11,6 +11,10 @@ A declaration line starts with the word `in` or `param` followed by a space or
 tab. That whitespace rule is what keeps ordinary code like `int x = 3;` or a
 call to `parameterize()` from being mistaken for a declaration.
 
+A declaration that has not reached its `;` continues onto the lines below it,
+so a long initializer may be wrapped. The header ends at the first line that
+starts neither a declaration nor a continuation of one.
+
 ## Input ports
 
 ```glsl

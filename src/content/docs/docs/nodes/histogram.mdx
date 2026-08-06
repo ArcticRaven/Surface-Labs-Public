@@ -9,7 +9,7 @@ Tonal analysis. Both nodes show a live histogram of their input in the Propertie
 
 Type id: `histogram`
 
-Shows the tonal distribution of its input and lets you remap a slice of it in the same node. Read it to see where your values actually sit; drag its window bars to compress them into a band. Left at defaults it is a pure analyzer and passes the image through unchanged.
+Shows the tonal distribution of its input and lets you remap a slice of it in the same node. Read it to see where your values actually sit; drag its window bars to compress them into a band. Left at defaults the remap is an identity pass, so the node is a pure analyzer.
 
 **Inputs**
 
@@ -27,6 +27,8 @@ Shows the tonal distribution of its input and lets you remap a slice of it in th
 | Mode | Choice | Luminance | Luminance, RGB, Red, Green, Blue | Which distribution the Properties histogram plots. Display only; it does not change the output. |
 | Log Scale | Toggle | Off | On / Off | Plots the histogram on a logarithmic vertical scale, so sparse tones stay visible next to a tall spike. Display only. |
 | Clip Warnings | Toggle | On | On / Off | Highlights values crushed to black or blown to white in the histogram display. Display only. |
+
+The remapped image is dithered by up to one 8-bit step on the way out. Squeezing an input into a narrow band compresses its own dithering below one output step, and without this a smooth ramp would come back as visible banding on export.
 
 No Mask input.
 

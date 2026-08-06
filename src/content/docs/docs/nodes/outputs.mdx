@@ -9,11 +9,11 @@ Output nodes are the endpoints of a graph. They decide which textures leave the 
 
 Type id: `pbr_output`
 
-The material endpoint. Wire base color, roughness, metallic, normal and height here to drive the 3D preview and the exporter. Every channel has an on/off toggle and, in most cases, a constant fallback, so a material looks sensible long before all its maps are wired.
+The material endpoint. Wire base color, roughness, metallic, normal, height and emissive here to drive the 3D preview and the exporter. Every channel has an on/off toggle and, in most cases, a constant fallback, so a material looks sensible long before all its maps are wired.
 
-**Inputs:** Base Color (color map, optional), albedo. Normal (color map, optional), tangent-space normal. Roughness (grayscale map, optional). Metallic (grayscale map, optional). Specular (color map, optional), for the Specular/Glossiness workflow. Glossiness (grayscale map, optional). AO (grayscale map, optional), ambient occlusion. Height (grayscale map, optional). Opacity (grayscale map, optional). Clearcoat (grayscale map, optional). No input is required; a graph renders and exports with any subset connected.
+**Inputs:** Material (material, optional), a whole material from a Trim Sheet, a Material node or another PBR Output; see below. Base Color (color map, optional), albedo. Normal (color map, optional), tangent-space normal. Roughness (grayscale map, optional). Metallic (grayscale map, optional). Specular (color map, optional), for the Specular/Glossiness workflow. Glossiness (grayscale map, optional). AO (grayscale map, optional), ambient occlusion. Height (grayscale map, optional). Opacity (grayscale map, optional). Emissive (color map, optional), light the surface gives off. Clearcoat (grayscale map, optional). Thickness (grayscale map, optional), how far light travels through the surface. No input is required; a graph renders and exports with any subset connected.
 
-**Outputs:** Material (material), the whole map set as a single wire. It carries no texture of its own; whatever consumes it (a Trim Sheet slot) resolves each individual channel back through this node's inputs at render and export time. A material wire only connects to another material-aware socket.
+**Outputs:** Material (material), the whole map set as a single wire. It carries no texture of its own; whatever consumes it — a Trim Sheet slot, or another PBR Output's Material input — resolves each individual channel back through this node's inputs at render and export time. A material wire only connects to another material-aware socket.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -35,11 +35,26 @@ The material endpoint. Wire base color, roughness, metallic, normal and height h
 | Height Value | Slider | 0.5 | 0.0 to 1.0 | Constant fallback for Height. |
 | Use Opacity | Toggle | Off | On / Off | Enables the Opacity channel. |
 | Opacity Value | Slider | 1.0 | 0.0 to 1.0 | Constant fallback for Opacity. |
-| Use Clearcoat | Toggle | Off | On / Off | Enables the Clearcoat channel. |
+| Use Emissive | Toggle | Off | On / Off | Enables the Emissive channel, so parts of the material give off light in the preview and in exports. |
+| Emissive (color) | Color | 0.0, 0.0, 0.0 | each 0.0 to 1.0 | Constant fallback for Emissive. Black, so enabling the channel on its own changes nothing until there is something to emit. Edited as one color swatch. |
+| Emissive Strength | Slider | 1.0 | 0.0 to 8.0 | Multiplies the emission in the 3D preview. Above 1 the tonemapper blooms the glow past its edges instead of clipping it. |
+| Use Clearcoat | Toggle | Off | On / Off | Enables the Clearcoat channel. Metallic / Roughness only on export: the Specular / Glossiness channel set carries no clearcoat maps. |
 | Clearcoat Value | Slider | 0.0 | 0.0 to 1.0 | Constant fallback for Clearcoat. |
-| Clearcoat Roughness Value | Slider | 0.1 | 0.0 to 1.0 | A second clearcoat constant. Nothing reads it today. |
+| Clearcoat Roughness Value | Slider | 0.1 | 0.0 to 1.0 | How rough the clearcoat layer is. There is no Clearcoat Roughness input, so this constant is what the preview shades with and what exports; Use Clearcoat gates both. |
+| Use Thickness | Toggle | Off | On / Off | Enables the Thickness channel, which drives subsurface scattering: light passing through thin material such as wax, leaves or skin. |
+| Thickness Value | Slider | 0.0 | 0.0 to 1.0 | Constant fallback for Thickness. 0 scatters nothing, so a material that never touches this channel renders exactly as it did before the channel existed. |
 
-A channel with a texture wired in always uses that texture. A channel with nothing wired but its toggle on falls back to its constant, and that constant is a real, exportable flat map, not preview-only. A channel with its toggle off falls back to an engine-neutral value (flat normal, white AO, mid gray, black metallic) and is not exported.
+A channel with a texture wired in always uses that texture, whatever its toggle says. A channel with nothing wired but its toggle on falls back to its constant, and that constant is a real, exportable flat map, not preview-only. A channel with its toggle off falls back to an engine-neutral value — flat normal, white AO, white opacity, black metallic, black emissive, black thickness, mid gray for the rest — and is not exported.
+
+**The Material input.** Wiring a whole material into the Material port fills in the channels you did not wire yourself: a per-channel input stays more specific and keeps winning, and only an unwired channel resolves from the upstream material. This is what puts a Trim Sheet in the 3D preview, since the sheet's own Output port carries just the one channel its Preview Channel picks. For a Trim Sheet the exporter resolves the same way, so the written maps match what is on screen.
+
+:::caution[Thin Wall is now the Thickness channel]
+The 3D preview's Thin Wall toggle is gone, so a preview that relied on it shades differently now. Subsurface scattering is a material channel instead: wire a map into Thickness, or turn the channel on and raise Thickness Value. It exports like any other map. The channel changes nothing on its own — it starts off, with a constant of 0, which scatters nothing — so existing materials render as they did until you use it.
+:::
+
+:::note[Picking which output the 3D preview shows]
+A graph can hold several PBR Outputs. By default the preview is about the terminal one, the PBR Output whose Material port feeds nothing, falling back to the first when every candidate feeds something. **Visualize in 3D Preview** in the Properties panel, or **Visualize** in a node's context menu, pins the choice to a specific node instead. The choice is saved with the project rather than as an app preference, so a multi-material file reopens on the output you picked.
+:::
 
 :::caution[missing screenshot]
 A PBR Output node with several maps wired and the Properties panel showing the per-channel toggles and constant fallbacks.
@@ -65,24 +80,22 @@ Type id: `trim_sheet`
 
 Stacks up to four materials into horizontal strips on one sheet, for the trim-sheet workflow where a single texture set covers many meshes through UV placement. Strip heights come from a layout preset or from per-strip fill weights you set yourself.
 
-**Inputs:** Strip 1 (top) (map or material, optional), Strip 2 (map or material, optional), Strip 3 (map or material, optional), Strip 4 (map or material, optional). Each slot accepts either a plain map, used as that strip's Base Color with engine-neutral values in every other channel, or a whole material wired from a PBR Output's Material port, in which case every channel of that strip resolves from that material. Slots also see through Reroute nodes.
+**Inputs:** Strip 1 (top) (map or material, optional), Strip 2 (map or material, optional), Strip 3 (map or material, optional), Strip 4 (map or material, optional). Each slot accepts either a plain map, used as that strip's Base Color with engine-neutral values in every other channel, or a whole material wired from a PBR Output's or a Material node's Material port, in which case every channel of that strip resolves from that material. Slots also see through Reroute nodes.
 
-**Outputs:** Output (color map), the composited sheet for the channel chosen by Preview Channel. Export walks all six channels through the same compositor.
+**Outputs:** Output (color map), the composited sheet for the channel chosen by Preview Channel. Material (material), the whole sheet as one wire: run it into a PBR Output's Material input to see the trim sheet in the 3D preview, since Output alone carries just the one channel. Export walks every channel the sheet composes — Base Color, Normal, Roughness, Metallic, AO, Height and Emissive — through the same compositor.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
 | Layout | Choice | Equal strips | Custom, Equal strips, Feature top (½ then equal), Cascade (½ ¼ ⅛ ⅛) | Equal strips divides the sheet evenly. Feature top gives the first strip half the sheet and splits the rest evenly. Cascade halves successively, with the last two equal. Custom uses the Strip fill sliders below. |
-| Preview Channel | Choice | Base Color | Base Color, Normal, Roughness, Metallic, AO, Height | Which material channel the node's own output shows. It does not affect what gets exported; export writes all of them. |
+| Preview Channel | Choice | Base Color | Base Color, Normal, Roughness, Metallic, AO, Height | Which material channel the node's own output shows. It does not affect what gets exported; export writes all seven, Emissive included, even though Emissive is not offered as a preview choice. |
 | Fit Mode | Choice | Stretch to strip | Stretch to strip, Preserve aspect (tile across) | How each source fills its strip. Preserve aspect tiles the source horizontally instead of squashing it. |
 | Strip fill | Sliders (one per strip) | 1.00 each | 0.02 to 1.00 each | Only shown when Layout is Custom. Weights are relative; each slider's percentage readout is its share of the sheet among the strips currently in use. A Reset button returns all four to equal. |
 
-Only connected slots become strips, and they close up in order: if you connect slots 2, 3 and 4 you get a three-strip sheet, not a blank top strip. A slot whose upstream has not produced anything yet is skipped rather than rendered as a placeholder. Channel neutrals for a strip with no data are a flat normal, white AO, black metallic and mid gray for everything else.
+Only connected slots become strips, and they close up in order: if you connect slots 2, 3 and 4 you get a three-strip sheet, not a blank top strip. A slot whose upstream has not produced anything yet is skipped rather than rendered as a placeholder. Channel neutrals for a strip with no data are a flat normal, white AO, black metallic, black emissive and mid gray for everything else.
 
 Vertical seams between neighboring strips are inherent to trim sheets; each strip is its own material band. Within one strip the content still wraps cleanly against itself, and each strip tiles horizontally wherever its source does.
 
-:::note[Trim Sheet does not render headlessly]
-Trim Sheet compositing needs the application's own rasterizer. In a headless run, whether through the [Command Line](/docs/headless-cli/) exporter or the standalone [MCP Server](/docs/mcp-server/), the node is reported as skipped and any map fed by it is missing from the output. Open the project in Surface Labs to export a trim sheet.
-:::
+Strips compose on the native render core, in the app and in a headless run alike, so the [Command Line](/docs/headless-cli/) exporter and the standalone [MCP Server](/docs/mcp-server/) write the same sheet the app does. Where there is no native core the app falls back to its own compositor and produces the same result.
 
 :::caution[missing screenshot]
 A Trim Sheet with three materials wired, showing the composited strips in the node preview and the Layout controls in the Properties panel.

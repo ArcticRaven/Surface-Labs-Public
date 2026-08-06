@@ -127,6 +127,35 @@ Shows the current file name and a **Browse…** button. Picking a file copies it
 bytes into the project's media store, so the image embeds into the archive when
 you save; the node references the embedded copy, not the original path on disk.
 
+## Per-node resolution and bit depth
+
+Below a node's parameters, most nodes carry their own **Resolution** and **Bit
+Depth** dropdowns. Both name what the node currently resolves to, so the
+selected row reads as a value rather than a mode.
+
+**Resolution**
+
+| Choice | Meaning |
+| --- | --- |
+| Inherit (*n* × *n*) | Use the project resolution, shown in the label |
+| Match input (*w* × *h*) | Take the resolution arriving on the node's inputs, shown in the label |
+| 256 × 256 … 8192 × 8192 | Pin this node to a fixed square |
+
+The fixed ladder is 256, 512, 1024, 2048, 4096 and 8192. On iOS and Android it
+stops at 4096, and a project authored at 8192 on desktop is clamped to 4096 when
+it opens there. A value above the cap that is already on the node stays in the
+list so the field never misreports what the node is set to.
+
+**Bit Depth**
+
+| Choice | Meaning |
+| --- | --- |
+| Absorb inputs (*depth*) | Default. Take the depth arriving on the inputs, so an override travels downstream |
+| Inherit project (*depth*) | Use the project bit depth |
+| 8-bit / 16-bit / 32-bit float | Pin this node to a fixed depth |
+
+Export validates against the depth a node resolves to.
+
 ## Undo behavior
 
 Every parameter edit gesture pushes exactly one undo step. Consecutive edits to
@@ -150,8 +179,9 @@ node has been deleted are pruned automatically. See
 
 The panel shows project-level settings instead:
 
-- **Project Resolution** dropdown
-- **Project Bit Depth** dropdown
+- **Project Resolution** dropdown, drawing on the same ladder and the same
+  4096 cap on iOS and Android
+- **Project Bit Depth** dropdown: 8-bit, 16-bit or 32-bit float
 - The hint *Select a node to edit its parameters*
 
 :::caution[missing screenshot]

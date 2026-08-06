@@ -22,8 +22,8 @@ existing wire and re-anchors the drag to the upstream output.
 
 While dragging, the nearest valid socket within 24 screen points is snapped to;
 illegal targets are skipped, and an exact type match beats a convertible one at
-the same distance. Socket hit targets are 30 points on desktop and 45 points on
-tablet, where they clear the 44-point minimum touch target.
+the same distance. Socket hit targets are 30 points on desktop and Android and
+45 points on iPad, where they clear the 44-point minimum touch target.
 
 :::caution[missing screenshot]
 A wire mid-drag with the nearest valid socket highlighted and snapped to.
@@ -43,10 +43,14 @@ in short:
 - **Value** is a number or a 2-, 3- or 4-component vector. All value types
   interconnect.
 - **Boolean** is an on/off value; it connects only to boolean ports.
-- **Material** is a whole map-set carried on a single wire, used by the PBR
-  Output and Trim Sheet nodes.
-- **Custom** is an unchecked type used by the Reroute node; it connects to
-  anything and bypasses type validation.
+- **Material** is a whole map-set carried on a single wire. PBR Output, Trim
+  Sheet and the Material node all have one; PBR Output and Trim Sheet also take
+  one as an input. A material wire carries no texture of its own — the consumer
+  resolves each channel through the node at the far end when it renders or
+  exports.
+- **Custom** is an unchecked type: it connects to anything and bypasses type
+  validation. The Reroute node uses it, and so do a Trim Sheet's four strip
+  slots, which accept either a plain map or a whole material.
 
 Textures and values are **not** interchangeable with each other. A mismatched
 connection is not blocked: the wire is drawn in red to flag a type mismatch you
@@ -60,15 +64,20 @@ A red wire between a value output and a texture input, next to a normally colore
 
 A Reroute is a wiring-only pin. It bends a wire around the graph without
 changing what flows through it: no shader, no parameters, no processing.
-Downstream consumers, including export and Trim Sheet slot resolution, look
-straight through it to the real source. Its single input accepts any type, so
-it passes textures, materials and anything else unchanged, and its output is
-exactly what came in.
+Downstream consumers, including export, a PBR Output's Material input and Trim
+Sheet slot resolution, follow the chain straight through to the real source.
+Its single input is the unchecked Custom type, so it passes textures, materials
+and anything else unchanged, its output is exactly what came in, and a wire
+through a Reroute is never drawn red.
 
 Insert one by double-tapping a wire, which splits the connection at that point:
 the upstream half becomes the reroute's input and the downstream half becomes
 its output, all as a single undo step. On desktop you can also hover a wire and
 press the <kbd>.</kbd> key. It draws as a small circle rather than a node card.
+
+A Reroute's output is the one place the fan-out rule reads differently: starting
+a drag from it picks up the wire already leaving it rather than adding a second
+one, so you re-aim a reroute instead of branching from it.
 
 :::caution[missing screenshot]
 A wire bent through two Reroute pins around a group of nodes.

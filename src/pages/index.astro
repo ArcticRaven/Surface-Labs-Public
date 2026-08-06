@@ -12,6 +12,7 @@ import {
 	ITCH_EMBED_ID,
 	OG_IMAGE_PATH,
 	WHATS_NEW_URL,
+	WHATS_NEW_1_2_URL,
 } from '../consts';
 
 const homeUrl = new URL('/', Astro.site).href;
@@ -82,14 +83,14 @@ const nativeNodes = [
 	{ name: 'LUT authoring', body: 'Colour LUTs, authored in-graph.', tag: 'In research' },
 ];
 
-// What's new in 1.2 highlights.
+// What's new in 1.2.2 highlights.
 const whatsNew = [
-	'A native Rust rendering engine',
-	'A built-in MCP server and a headless CLI',
-	'GPU-compute erosion and distance fields',
-	'A full GLSL editor for custom nodes',
-	'Authoring up to 8192 × 8192',
-	'A memory guard before you run out',
+	'A rebuilt 3D preview, with a pop-out viewer',
+	'Subsurface scattering, emissive and bloom',
+	'Height self-shadows and a Parallax mode',
+	'Preview and export that finally agree',
+	'A quality pass over two dozen nodes',
+	'A manual that updates itself, offline',
 ];
 
 // How It Compares. `note` renders as small print. Competitor facts verified:
@@ -166,7 +167,7 @@ const compareRows = [
 						engine at its core.
 					</p>
 					<div class="hero__actions">
-						<a class="btn btn--secondary" href={WHATS_NEW_URL}>What's new in 1.2</a>
+						<a class="btn btn--secondary" href={WHATS_NEW_URL}>What's new in 1.2.2</a>
 						<a class="btn btn--discord" href={DISCORD_URL} rel="noopener">
 							<svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 								<path d="M20 4.4A19 19 0 0 0 15.2 3l-.3.5a17 17 0 0 1 4.3 1.4 15.6 15.6 0 0 0-13.8 0A17 17 0 0 1 9.7 3.5L9.4 3A19 19 0 0 0 4.6 4.4C1.6 8.8.8 13.1 1.2 17.4a19 19 0 0 0 5.8 3l.8-1.1a12 12 0 0 1-1.9-.9l.5-.4a13.6 13.6 0 0 0 11.6 0l.5.4c-.6.4-1.2.7-1.9.9l.8 1.1a19 19 0 0 0 5.8-3c.5-5-.8-9.3-3.8-13Zm-11.6 10c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm7.2 0c-.9 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"></path>
@@ -361,7 +362,7 @@ const compareRows = [
 			<div class="container">
 				<div class="section__head">
 					<p class="eyebrow">What's new</p>
-					<h2 id="whatsnew-heading">What's new in 1.2</h2>
+					<h2 id="whatsnew-heading">What's new in 1.2.2</h2>
 				</div>
 
 				<div class="whatsnew">
@@ -369,7 +370,8 @@ const compareRows = [
 						<ul class="whatsnew__list">
 							{whatsNew.map((item) => <li>{item}</li>)}
 						</ul>
-						<a class="whatsnew__link" href={WHATS_NEW_URL}>Read the full 1.2 devlog →</a>
+						<a class="whatsnew__link" href={WHATS_NEW_URL}>Read the full 1.2.2 devlog →</a>
+						<a class="whatsnew__link" href={WHATS_NEW_1_2_URL}>What the 1.2 engine rewrite changed →</a>
 					</div>
 					<div class="whatsnew__next">
 						<h3>Join the Discord</h3>

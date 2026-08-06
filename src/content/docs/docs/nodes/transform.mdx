@@ -1,6 +1,6 @@
 ---
 title: Transform Nodes
-description: The nodes that reproject an image, covering tiling and offset, seamless rotation, and warping by a second image.
+description: The nodes that reproject an image, covering scale, rotation, shear and perspective, seamless tiling, and warping by a second image.
 ---
 
 Transform nodes reproject an image rather than altering its values. All four
@@ -11,8 +11,10 @@ blends back toward its own unmodified input.
 
 Type id: `transform`
 
-Scales, offsets and tiles the input while keeping the result seamless. The
-workhorse for repeating a pattern or nudging it into place.
+The general geometric node: scale, rotation, shear, mirror, tiling, offset and
+a four-corner perspective warp, in one place. It only decides where each pixel
+is read from and never rewrites a value, so the colors out are the colors in.
+**Tiling** decides whether it also has to stay seamless.
 
 **Inputs:**
 
@@ -26,17 +28,51 @@ workhorse for repeating a pattern or nudging it into place.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
-| Tiles X | float | 1.0 | 0.1 to 16.0 | Repeat count on X. Above 1 repeats the image; below 1 enlarges it. |
+| Tiling | enum | Safe (snaps to lattice) | Exact (may seam) · Safe (snaps to lattice) | Safe rounds every part of the transform to the nearest one that still tiles, so whatever you dial in, the output stays seamless. Exact honors every control precisely; under it only whole-number tile counts, whole-number shears and whole-fraction reductions in scale happen to tile. |
+| Edge | enum | Tile | Tile · Clamp · Transparent | What is read where the transform samples off the edge of the source. Tile wraps, Clamp repeats the border pixel, Transparent leaves nothing there. Only Tile can stay seamless, so picking either of the others turns Safe tiling off for the node. |
+| Scale X | float | 1.0 | -16.0 to 16.0 | Content scale. Above 1 enlarges, below 1 shrinks, negative mirrors the axis. Safe can only keep whole-number reductions (1, 1/2, 1/3 and so on); an enlargement cannot tile at any setting and lands back on 1. |
+| Scale Y | float | 1.0 | -16.0 to 16.0 | As Scale X, on the other axis. |
+| Rotation | float | 0.0 | -180.0 to 180.0 degrees | Rotation about the tile center. Under Safe the angle lands on the nearest tiling-safe rotation, roughly every 3 to 10 degrees. |
+| Shear X | float | 0.0 | -4.0 to 4.0 | Parallelogram skew. Whole-number shears tile exactly, so Safe keeps them as typed and rounds anything in between. |
+| Shear Y | float | 0.0 | -4.0 to 4.0 | As Shear X, on the other axis. |
+| Offset X | float | 0.0 | -1.0 to 1.0 | Shift as a fraction of the width; 1.0 wraps once. Any offset tiles, so Safe never touches it. |
+| Offset Y | float | 0.0 | -1.0 to 1.0 | Shift as a fraction of the height. |
+| Tiles X | float | 1.0 | 0.1 to 16.0 | Repeat count on X. Above 1 repeats the image; below 1 enlarges it. Whole numbers of 1 or more tile. |
 | Tiles Y | float | 1.0 | 0.1 to 16.0 | Repeat count on Y. |
-| Offset X | float | 0.0 | 0.0 to 1.0 | Shift as a fraction of the width; 1.0 wraps once. |
-| Offset Y | float | 0.0 | 0.0 to 1.0 | Shift as a fraction of the height. |
+| Corner TLX through Corner BLY | float | 0.0 | -1.0 to 1.0 | Eight params: where each of the four corners lands, as an X and a Y offset from where it started, in output coordinates. Ordered around the ring, top-left, top-right, bottom-right, bottom-left. This is a true perspective map, so opposite edges may converge and the frame becomes a trapezoid rather than a parallelogram. |
+| Edge TX through Edge LY | float | 0.0 | -1.0 to 1.0 | Eight params: where the midpoint of each side lands, ordered top, right, bottom, left. They bow a side in or out, which the corners cannot do on their own, and they leave the corners where the corner handles put them. |
 
-There is no rotation, shear or mirror here; use [Rotate](#rotate) for
-rotation.
+The sixteen shape params are also edited as a pad in Properties, drawn over
+the node's own output: four corner dots, four side dots, and a center dot that
+drives Offset X and Offset Y. Each dot writes one pair of params, so a handle
+can still be typed exactly or exposed as a graph parameter. A reset button
+returns all nine to their resting positions.
+
+Safe tiling is best effort. Moving any handle, choosing Clamp or Transparent,
+or asking for something the tiling lattice cannot express (an enlarging scale,
+a fractional shear or tile count, an off-lattice angle) makes the node render
+the request exactly and say so under the Tiling control, rather than quietly
+substituting a different transform. Much of each slider's travel falls in that
+dead zone under Safe, so a value that moves the number without moving the
+image is expected there.
+
+Heavy tiling and the lattice snap squeeze the source severalfold. Once one
+output pixel covers more than about one and a half source pixels, the node
+averages four sub-pixel taps, which removes most of the moiré and crawling on
+fine detail; an extreme squeeze still shimmers a little.
+
+Transform never rewrites channel values, which makes it the wrong node for
+reorienting a normal or flow map: the directions stored in red and green would
+still point the old way. Use [Rotate](#rotate) in Vector mode for that.
 
 :::caution[missing screenshot]
 A pattern shown at Tiles 1.0 and Tiles 4.0 side by side, with the wrap staying
 seamless.
+:::
+
+:::caution[missing screenshot]
+The Transform handle pad in Properties, with the two top corner dots pulled
+inward so the output reads as a trapezoid.
 :::
 
 ### Rotate
@@ -61,6 +97,11 @@ result must keep tiling.
 | Mode | enum | Image (degrees) | Image (degrees) · Vector (R,G) | Image passes the rotated pixels through unchanged, right for height, masks and color. Vector also rotates the direction encoded in the red and green channels by the same angle, so a rotated normal or flow map still lights correctly; blue and alpha pass through. |
 | Angle | float | 0.0 | -180.0 to 180.0 degrees | |
 | Seamless | enum | Seamless (snaps angle) | Exact angle (seams) · Seamless (snaps angle) | Seamless snaps the angle to the nearest tiling-safe rotation, roughly every 3 to 10 degrees, and the result tiles perfectly at every snap point; the trade is that the content repeats proportionally more often. Exact rotates at the precise angle, but only quarter turns tile. |
+
+Repeating the content more often is the same thing as squeezing it. Once one
+output pixel covers more than about one and a half source pixels, Seamless
+mode averages four sub-pixel taps, which keeps fine detail from breaking up
+into moiré and crawling. Exact mode is a plain rotation and needs none of it.
 
 :::caution[missing screenshot]
 The same input rotated in Seamless mode and in Exact mode, showing the seam
@@ -92,6 +133,10 @@ way to make a regular pattern look natural.
 | --- | --- | --- | --- | --- |
 | Intensity | float | 0.1 | 0.0 to 1.0 | Maximum displacement, as a fraction of the image. |
 
+The displacement field is read through a light filter, so the per-pixel noise
+every generator carries does not become a few pixels of independent movement.
+Hard edges in the input stay clean even at high Intensity.
+
 :::caution[missing screenshot]
 A regular grid pattern before and after being warped by a noise field.
 :::
@@ -121,6 +166,9 @@ image. Good for wind-blown, combed or brushed looks.
 | --- | --- | --- | --- | --- |
 | Angle | float | 0.0 | 0.0 to 360.0 degrees | The single direction everything moves along. |
 | Intensity | float | 0.1 | 0.0 to 1.0 | Maximum displacement, as a fraction of the image. |
+
+The driver is filtered on the way in, the same as on [Warp](#warp), so a noisy
+driver does not chew up hard edges in the input.
 
 :::caution[missing screenshot]
 Vertical stripes combed sideways by a Directional Warp driven by noise.
