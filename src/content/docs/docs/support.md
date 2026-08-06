@@ -33,6 +33,6 @@ use Export Diagnostics… instead. See
 
 ## Community
 
-- [Discord](https://discord.com/invite/MjzQgVK9Jn) — questions, feedback and feature requests
-- [Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs) — the store page
-- [ArcticRaven/Surface-Labs-Public](https://github.com/ArcticRaven/Surface-Labs-Public) — the public repository
+- [Discord](https://discord.com/invite/MjzQgVK9Jn): questions, feedback and feature requests
+- [Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs): the store page
+- [ArcticRaven/Surface-Labs-Public](https://github.com/ArcticRaven/Surface-Labs-Public): the public repository

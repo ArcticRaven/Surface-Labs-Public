@@ -54,7 +54,7 @@ export const BLOG_PATH = '/blog';
 
 /**
  * The current release devlog. Repoint this at the newest "What's new" post on
- * every release — the hero button and the landing page's What's new section
+ * every release. The hero button and the landing page's What's new section
  * both read it.
  */
 export const WHATS_NEW_URL = '/blog/whats-new-in-1-2-2';

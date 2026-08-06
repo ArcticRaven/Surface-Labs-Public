@@ -1,5 +1,5 @@
 /*
- * Surface Labs — marketing homepage styles.
+ * Surface Labs: marketing homepage styles.
  *
  * The palette is derived directly from the Surface Labs application's own Dark
  * and Light theme tokens (warm cream / tan / brown). Colours are expressed with
@@ -443,7 +443,7 @@ a.site-nav__link:hover {
 }
 
 /* Ceiling lowered from 3.9rem so the title never hits its max size inside the
-   narrow two-column column between 900–1120px (the old dead zone). */
+   narrow two-column column between 900 and 1120px (the old dead zone). */
 .hero__title {
 	font-size: clamp(2.4rem, 1.5rem + 3vw, 3.3rem);
 	margin-bottom: 20px;
@@ -1187,7 +1187,7 @@ a.card .card__more {
 }
 
 /* ------------------------------------------------------------------ *
- * Platforms — packaging + backend rows
+ * Platforms: packaging + backend rows
  * ------------------------------------------------------------------ */
 .platform-rows {
 	border: 1px solid var(--border);
@@ -1769,8 +1769,8 @@ kbd {
  * Responsive
  * ------------------------------------------------------------------ */
 /* Stack the hero one breakpoint earlier than the rest of the two-column
-   layouts. Between ~900–1120px the hero copy would otherwise sit in a ~440px
-   column with the title at its largest — the old "dead zone" ragged-wrap. */
+   layouts. Between ~900 and 1120px the hero copy would otherwise sit in a ~440px
+   column with the title at its largest, the old "dead zone" ragged-wrap. */
 @media (max-width: 1000px) {
 	.hero__inner {
 		grid-template-columns: 1fr;
@@ -1888,7 +1888,7 @@ kbd {
 }
 
 /* ------------------------------------------------------------------ *
- * Responsive hardening — no page-level horizontal scroll
+ * Responsive hardening: no page-level horizontal scroll
  * ------------------------------------------------------------------ */
 
 /* Belt and braces: nothing may create sideways page scroll. `clip` (unlike

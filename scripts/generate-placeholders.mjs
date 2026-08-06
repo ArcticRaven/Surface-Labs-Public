@@ -72,7 +72,7 @@ function svgFor({ title, note }) {
 
   <text x="120" y="700" fill="#eae5d3" font-family="Arial, sans-serif" font-size="58" font-weight="700">${esc(title)}</text>
   <text x="120" y="752" fill="#cec8ae" font-family="Arial, sans-serif" font-size="30">${esc(note)}</text>
-  <text x="120" y="828" fill="#8a8272" font-family="Arial, sans-serif" font-size="22" letter-spacing="1">PLACEHOLDER — REPLACE WITH A REAL SCREENSHOT</text>
+  <text x="120" y="828" fill="#8a8272" font-family="Arial, sans-serif" font-size="22" letter-spacing="1">PLACEHOLDER: REPLACE WITH A REAL SCREENSHOT</text>
 </svg>`;
 }
 

@@ -39,7 +39,7 @@ flow, and nothing is written to disk until `project save`.
 Undo reaches an assistant's edits, but not one at a time. The canvas records an
 undo point before each edit *you* make; an assistant's edits add none of their
 own. Undo therefore rewinds to your last canvas action and takes every
-assistant edit since with it — and does nothing at all if you have not touched
+assistant edit since with it, and does nothing at all if you have not touched
 the canvas since the project opened.
 
 :::caution[Taking turns]
@@ -128,7 +128,7 @@ disconnects the rest. They still share the one open project. Sixteen ids are
 remembered; the oldest is dropped past that, which at worst asks a
 long-abandoned client to reinitialize. A request carrying a session id the
 server does not know gets `404`, the streamable-HTTP cue to send a fresh
-`initialize` — which is how a connected client recovers by itself after the app
+`initialize`, which is how a connected client recovers by itself after the app
 restarts underneath it, instead of wedging until you restart the client.
 
 #### Connecting a client
@@ -342,7 +342,7 @@ reads the way one a person laid out does:
 
 | Operation | Fields | What it does |
 | --- | --- | --- |
-| `add_comment` | `text?`, `around?`, `padding?`, `x?`, `y?`, `width?`, `height?`, `color?`, `opacity?`, `with_jump?`, `jump_label?` | A comment box. `text` is Markdown. Pass `around` — a list of node ids, `$N` refs allowed — to size it as a frame hugging those nodes with `padding` (32 by default); otherwise it uses `x`/`y`/`width`/`height`. `color` is `#rrggbb`. A frame also gets a jump marker at its top-left unless `with_jump` is false. Returns `comment_id`, the geometry, `encloses` and `jump_id`. |
+| `add_comment` | `text?`, `around?`, `padding?`, `x?`, `y?`, `width?`, `height?`, `color?`, `opacity?`, `with_jump?`, `jump_label?` | A comment box. `text` is Markdown. Pass `around` (a list of node ids, `$N` refs allowed) to size it as a frame hugging those nodes with `padding` (32 by default); otherwise it uses `x`/`y`/`width`/`height`. `color` is `#rrggbb`. A frame also gets a jump marker at its top-left unless `with_jump` is false. Returns `comment_id`, the geometry, `encloses` and `jump_id`. |
 | `update_comment` | `comment_id`, `text?`, `x?`, `y?`, `width?`, `height?`, `color?`, `opacity?`, `move_enclosed?` | Changes a comment. Moving it carries the nodes it encloses unless `move_enclosed` is false. |
 | `delete_comment` | `comment_id` | Removes a comment. Its nodes stay. |
 | `add_jump` | `label?`, `x?`, `y?` | A named landmark. |
@@ -387,7 +387,7 @@ a client that cannot show the inline PNG can open that path instead.
 the image and returns a ratio per axis. About 1 means the seam is no sharper
 than detail the texture already contains; above 4 is a visible line. A
 hard-edged pattern such as a checker scores about 1, because its wrap edge is
-a legitimate tile boundary — what the check looks for is continuous-tone
+a legitimate tile boundary: what the check looks for is continuous-tone
 content sliced mid-feature, which is what a bad cell count produces. It costs
 a full-resolution pass, roughly half a second at 4K, so it belongs before an
 export rather than inside the tweak-and-look loop.
@@ -530,7 +530,7 @@ the output:
 
 - **Draw** nodes
 - **Text** nodes
-- **Custom Shader** nodes the native path declined — a source that does not
+- **Custom Shader** nodes the native path declined: a source that does not
   compile there, or one the [quarantine](/docs/shaders/editor-and-diagnostics/)
   is holding off the GPU. In the app those fall back to the SL interpreter;
   a headless process has no interpreter to fall back to.
@@ -568,7 +568,7 @@ the transport.
 **Deletions are not undoable through the server** in headless mode. That covers
 `edit_graph delete_nodes` and `materials delete`. In live mode a deleted node
 comes back with the canvas's Undo, along with everything else the assistant did
-since your last canvas action — see Live Mode above.
+since your last canvas action. See Live Mode above.
 
 ## What it can reach
 

@@ -86,7 +86,7 @@ A terrain height map before and after Hydraulic and Thermal erosion, plus the Fl
 | Evaporation | Decimal | 0.3 | 0.0 to 1.0 | *Hydraulic only.* How fast water leaves, which decides how far it carries its load before dropping it. |
 | Capacity | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How much sediment moving water can hold: the balance between cutting deep channels and silting everything up. More capacity cuts deeper. |
 | Deposition | Decimal | 0.5 | 0.0 to 1.0 | *Hydraulic only.* How readily suspended material is dropped. More deposition silts up the low ground. |
-| Output | Choice | Height | Height, Flow, Deposit, Wear | Which map the run returns. Height is the eroded terrain. Flow is how much moved through each pixel — where water ran under Hydraulic, where material slid under Thermal — averaged over the run so raising Iterations does not just brighten it; use it as a wetness or moss mask. Deposit is where material landed: silt and sand masks. Wear is where material was stripped: exposed-rock masks. |
+| Output | Choice | Height | Height, Flow, Deposit, Wear | Which map the run returns. Height is the eroded terrain. Flow is how much moved through each pixel (where water ran under Hydraulic, where material slid under Thermal), averaged over the run so raising Iterations does not just brighten it; use it as a wetness or moss mask. Deposit is where material landed: silt and sand masks. Wear is where material was stripped: exposed-rock masks. |
 
 Talus is hidden while Type is Hydraulic, and Rain, Evaporation, Capacity and
 Deposition are hidden while Type is Thermal.

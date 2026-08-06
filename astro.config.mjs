@@ -52,7 +52,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image:alt',
-						content: 'Surface Labs — node-based procedural texture authoring',
+						content: 'Surface Labs, node-based procedural texture authoring',
 					},
 				},
 				{ tag: 'meta', attrs: { name: 'twitter:image', content: OG_IMAGE } },

@@ -13,7 +13,7 @@ The material endpoint. Wire base color, roughness, metallic, normal, height and 
 
 **Inputs:** Material (material, optional), a whole material from a Trim Sheet, a Material node or another PBR Output; see below. Base Color (color map, optional), albedo. Normal (color map, optional), tangent-space normal. Roughness (grayscale map, optional). Metallic (grayscale map, optional). Specular (color map, optional), for the Specular/Glossiness workflow. Glossiness (grayscale map, optional). AO (grayscale map, optional), ambient occlusion. Height (grayscale map, optional). Opacity (grayscale map, optional). Emissive (color map, optional), light the surface gives off. Clearcoat (grayscale map, optional). Thickness (grayscale map, optional), how far light travels through the surface. No input is required; a graph renders and exports with any subset connected.
 
-**Outputs:** Material (material), the whole map set as a single wire. It carries no texture of its own; whatever consumes it — a Trim Sheet slot, or another PBR Output's Material input — resolves each individual channel back through this node's inputs at render and export time. A material wire only connects to another material-aware socket.
+**Outputs:** Material (material), the whole map set as a single wire. It carries no texture of its own; whatever consumes it (a Trim Sheet slot, or another PBR Output's Material input) resolves each individual channel back through this node's inputs at render and export time. A material wire only connects to another material-aware socket.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |
@@ -44,12 +44,12 @@ The material endpoint. Wire base color, roughness, metallic, normal, height and 
 | Use Thickness | Toggle | Off | On / Off | Enables the Thickness channel, which drives subsurface scattering: light passing through thin material such as wax, leaves or skin. |
 | Thickness Value | Slider | 0.0 | 0.0 to 1.0 | Constant fallback for Thickness. 0 scatters nothing, so a material that never touches this channel renders exactly as it did before the channel existed. |
 
-A channel with a texture wired in always uses that texture, whatever its toggle says. A channel with nothing wired but its toggle on falls back to its constant, and that constant is a real, exportable flat map, not preview-only. A channel with its toggle off falls back to an engine-neutral value — flat normal, white AO, white opacity, black metallic, black emissive, black thickness, mid gray for the rest — and is not exported.
+A channel with a texture wired in always uses that texture, whatever its toggle says. A channel with nothing wired but its toggle on falls back to its constant, and that constant is a real, exportable flat map, not preview-only. A channel with its toggle off falls back to an engine-neutral value (flat normal, white AO, white opacity, black metallic, black emissive, black thickness, mid gray for the rest) and is not exported.
 
 **The Material input.** Wiring a whole material into the Material port fills in the channels you did not wire yourself: a per-channel input stays more specific and keeps winning, and only an unwired channel resolves from the upstream material. This is what puts a Trim Sheet in the 3D preview, since the sheet's own Output port carries just the one channel its Preview Channel picks. For a Trim Sheet the exporter resolves the same way, so the written maps match what is on screen.
 
 :::caution[Thin Wall is now the Thickness channel]
-The 3D preview's Thin Wall toggle is gone, so a preview that relied on it shades differently now. Subsurface scattering is a material channel instead: wire a map into Thickness, or turn the channel on and raise Thickness Value. It exports like any other map. The channel changes nothing on its own — it starts off, with a constant of 0, which scatters nothing — so existing materials render as they did until you use it.
+The 3D preview's Thin Wall toggle is gone, so a preview that relied on it shades differently now. Subsurface scattering is a material channel instead: wire a map into Thickness, or turn the channel on and raise Thickness Value. It exports like any other map. The channel changes nothing on its own (it starts off, with a constant of 0, which scatters nothing), so existing materials render as they did until you use it.
 :::
 
 :::note[Picking which output the 3D preview shows]
@@ -82,7 +82,7 @@ Stacks up to four materials into horizontal strips on one sheet, for the trim-sh
 
 **Inputs:** Strip 1 (top) (map or material, optional), Strip 2 (map or material, optional), Strip 3 (map or material, optional), Strip 4 (map or material, optional). Each slot accepts either a plain map, used as that strip's Base Color with engine-neutral values in every other channel, or a whole material wired from a PBR Output's or a Material node's Material port, in which case every channel of that strip resolves from that material. Slots also see through Reroute nodes.
 
-**Outputs:** Output (color map), the composited sheet for the channel chosen by Preview Channel. Material (material), the whole sheet as one wire: run it into a PBR Output's Material input to see the trim sheet in the 3D preview, since Output alone carries just the one channel. Export walks every channel the sheet composes — Base Color, Normal, Roughness, Metallic, AO, Height and Emissive — through the same compositor.
+**Outputs:** Output (color map), the composited sheet for the channel chosen by Preview Channel. Material (material), the whole sheet as one wire: run it into a PBR Output's Material input to see the trim sheet in the 3D preview, since Output alone carries just the one channel. Export walks every channel the sheet composes (Base Color, Normal, Roughness, Metallic, AO, Height and Emissive) through the same compositor.
 
 | Parameter | Type | Default | Range / Options | Notes |
 | --- | --- | --- | --- | --- |

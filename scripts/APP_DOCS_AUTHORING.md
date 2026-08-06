@@ -20,15 +20,15 @@ a rendering path, and **no app-side change is required.**
 | `:::note[T]` `:::tip[T]` `:::caution[T]` `:::danger[T]` | Starlight aside, optional title `T` | Starlight callout | Blockquote (see below) |
 | `:::caution[missing screenshot]` | Authoring placeholder | Callout (visible to reviewers) | **Stripped entirely** |
 | `:::desktop` / `:::touch` | Platform block: content for that platform only | Blockquote with a bold "On desktop" / "On touch devices" lead-in | **Verbatim**, including the closing `:::` |
-| Any other `:::name` | Reserved | — | **Build error** |
+| Any other `:::name` | Reserved | n/a | **Build error** |
 
-Canonical platform-block names are `:::desktop` and `:::touch` — the names the
+Canonical platform-block names are `:::desktop` and `:::touch`, the names the
 shipped app (branch 1.2.1, `16be90e`) already implements. The prefixed forms
 `:::app-desktop` / `:::app-touch` are reserved aliases: the site treats them
 like platform blocks, but authors must not use them until the app's
 preprocessor recognises them. Nesting: an aside inside a platform block is
 supported; a platform block inside an aside is not (the export does not
-re-quote it correctly) — restructure the prose instead.
+re-quote it correctly), so restructure the prose instead.
 
 ## Aside serialisation
 
@@ -44,7 +44,7 @@ Labels: `note` → **Note**, `tip` → **Tip**, `caution` → **Caution**,
 `danger` → **Warning**; with a title, `Label: Title`. This renders correctly
 in any CommonMark renderer, today, with the shipped app. If the app's reader
 later gains styled callouts, the export can switch back to emitting directive
-syntax by changing one branch in `transformBody()` — the authoring format does
+syntax by changing one branch in `transformBody()`, so the authoring format does
 not change either way.
 
 ## Platform tokens

@@ -68,7 +68,7 @@ it dirty; a pass runs shortly afterwards.
 - **While you are actively dragging a control**, the engine switches into an
   interactive mode: the debounce drops to about **24 ms** and the expensive
   nodes render at a **draft cap of 256 pixels** on their longest axis. Cheap
-  nodes are not drafted at all — they render at full resolution for every
+  nodes are not drafted at all: they render at full resolution for every
   frame of the drag, which is what lets the 2D preview show real pixels while
   you move a slider. Expensive here means the marches and gathers (Detail
   Blur, Slope Blur, Bevel, Curvature / Cavity, Tile Sampler, Surface Detail,

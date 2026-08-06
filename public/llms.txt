@@ -12,7 +12,7 @@ or 32-bit float.
 
 - Category: node-based procedural texture and PBR material authoring tool.
 - Audience: indie game developers and technical artists.
-- Platforms: Windows, macOS, Linux, Android and iPadOS — the same app on all
+- Platforms: Windows, macOS, Linux, Android and iPadOS, the same app on all
   five, on a native Rust engine with Direct3D 12 (Windows), Metal (macOS,
   iPad) and Vulkan (Linux) backends.
 - Packaging: portable Windows ZIP (no installer, nothing in the registry);

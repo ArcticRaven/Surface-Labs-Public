@@ -188,7 +188,7 @@ curves along the terrain the way water would.
 The Slope input is read through a small averaging filter and measured over a
 baseline that scales with the march length, so the march reads the shape of the
 driver rather than the dither the generators lay over it. Where the gradient
-falls to the level of 8-bit rounding — the flat areas of a soft driver — the
+falls to the level of 8-bit rounding (the flat areas of a soft driver), the
 march fades out and the pixel passes through untouched, instead of streaking off
 in a direction that is really just rounding noise.
 
@@ -229,8 +229,8 @@ after a scatter or noise pass has left salt-and-pepper dots.
 
 Each color channel gets its own median, so color input is handled per
 channel rather than by luminance; alpha passes through. 3×3 is the exact
-median of its nine pixels. 5×5 is a separable approximation — the median of
-five row medians — which clears the same speckle for a fraction of the work.
+median of its nine pixels. 5×5 is a separable approximation (the median of
+five row medians) which clears the same speckle for a fraction of the work.
 
 ## Detail and Edges
 
@@ -310,7 +310,7 @@ panel seams, and anything that needs to know where the silhouettes are.
 | --- | --- | --- | --- | --- |
 | Intensity | Decimal | 1.0 | 0.0 to 8.0 | Gain on the edge magnitude. Affects the Magnitude output only. |
 | Smoothing | Decimal | 0.0 | 0.0 to 1.0 | Widens the detection stencil from one pixel to four and pre-averages each tap. Reads one smooth line where a hard stencil turns small features and dithered areas into single-pixel speckle and doubled edges. Affects both outputs. |
-| Width | Decimal | 0.0 | 0.0 to 0.1 | Thickens the detected line into a band, as a fraction of the shorter image edge — the same units as Dilate / Erode's Amount. 0 leaves the line one stencil wide. Affects the Magnitude output only. |
+| Width | Decimal | 0.0 | 0.0 to 0.1 | Thickens the detected line into a band, as a fraction of the shorter image edge, the same units as Dilate / Erode's Amount. 0 leaves the line one stencil wide. Affects the Magnitude output only. |
 | Rounding | Decimal | 0.0 | 0.0 to 0.1 | Fillets the corners of the thickened line instead of leaving sharp miters. Affects the Magnitude output only. |
 
 Width and Rounding are morphology passes run over the Magnitude output: the line
@@ -355,7 +355,7 @@ the workhorse for setting contrast precisely rather than by feel.
 | Channel | Choice | Master | Master, Red, Green, Blue | Which channel the five sliders act on. Master remaps all three; the others remap only their own and pass the rest through untouched. Chain a second Levels to grade a second channel. |
 
 Neither pair is constrained to keep its low end below its high end. Drag In White
-below In Black, or Out White below Out Black, and the ramp inverts — an invert
+below In Black, or Out White below Out Black, and the ramp inverts: an invert
 and a remap in one node instead of two. Dragging the handles across each other
 stays continuous rather than collapsing to a hard threshold.
 
@@ -639,9 +639,9 @@ the graph before blending.
 Maps inside the graph use the DirectX convention.
 
 Normal Adjust is filed under Filters because it edits a map in place rather than
-deriving one. The nodes that *produce* surface data from a height field — Normal
+deriving one. The nodes that *produce* surface data from a height field (Normal
 from Height, Curvature / Cavity, Surface Detail, Directional Occlusion, Flow Map
-and Roughness from Height — are under
+and Roughness from Height) are under
 [Normal & Surface Nodes](/docs/nodes/normal/).
 
 ### Normal to Height

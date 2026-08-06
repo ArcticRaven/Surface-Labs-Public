@@ -58,7 +58,7 @@ When the native core is unavailable, or a native render fails, the node falls
 back to the application's own renderer, which produces the same image. Two
 things have no fallback and simply do not render without the native core:
 
-- **Compute nodes**, which need to read their own previous output — Erosion and
+- **Compute nodes**, which need to read their own previous output: Erosion and
   the jump-flooded Distance Field. A fragment pass cannot express them, so
   rather than silently drawing something different they draw nothing.
 - **Model UV**, which rasterizes a mesh into UV space.
@@ -67,8 +67,8 @@ things have no fallback and simply do not render without the native core:
 
 Texture memory is held to a budget. When a pass leaves the graph over it, the
 application first drops stale previous-frame copies, least-recently-rendered
-first, and then, if that was not enough, cached outputs on sink nodes — the ends
-of the graph that nothing downstream reads — oldest first. A cached output that
+first, and then, if that was not enough, cached outputs on sink nodes (the ends
+of the graph that nothing downstream reads), oldest first. A cached output that
 feeds another node is never dropped, so the evaluation graph always has the data
 it needs.
 

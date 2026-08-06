@@ -73,15 +73,15 @@ videos plus the still captures.
 
 | Node | Resolution | Substance 13.1.2 | Surface Labs 1.2 | Typical |
 |---|---|---|---|---|
-| Noise (Perlin) | 1024² | 1.46 – 2.71 | 0.2 – 0.3 | ~8× faster |
-| Blur | 1024² | 0.33 – 1.87\* | 0.1 | ~11× faster |
-| Slope Blur | 1024² | 1.04 – 1.49 | 0.3 – 0.4 | ~3× faster |
-| Noise (Perlin) | 2048² | 3.70 – 4.42 | 0.2 | ~20× faster |
-| Blur | 2048² | 1.01 – 2.71 | 0.1 | ~20× faster |
-| Slope Blur | 2048² | 2.07 – 3.95 | 0.2 – 0.3 | ~10× faster |
-| Noise (Perlin) | 4096² | 12.97 – 25.96 | 0.3 – 0.7 | ~40× faster |
-| Blur | 4096² | 4.89 – 11.67 | 0.2 – 0.3 | ~22× faster |
-| Slope Blur | 4096² | 21.58 – 31.16 | 34.0 | **Substance wins by ~10–35%** |
+| Noise (Perlin) | 1024² | 1.46 to 2.71 | 0.2 to 0.3 | ~8× faster |
+| Blur | 1024² | 0.33 to 1.87\* | 0.1 | ~11× faster |
+| Slope Blur | 1024² | 1.04 to 1.49 | 0.3 to 0.4 | ~3× faster |
+| Noise (Perlin) | 2048² | 3.70 to 4.42 | 0.2 | ~20× faster |
+| Blur | 2048² | 1.01 to 2.71 | 0.1 | ~20× faster |
+| Slope Blur | 2048² | 2.07 to 3.95 | 0.2 to 0.3 | ~10× faster |
+| Noise (Perlin) | 4096² | 12.97 to 25.96 | 0.3 to 0.7 | ~40× faster |
+| Blur | 4096² | 4.89 to 11.67 | 0.2 to 0.3 | ~22× faster |
+| Slope Blur | 4096² | 21.58 to 31.16 | 34.0 | **Substance wins by ~10 to 35%** |
 
 :::note
 \* One 9.50 ms sample of Designer's 1024² Blur was excluded as a first-run
@@ -131,11 +131,11 @@ the material output. Everything at 2048², 16-bit, on both sides.
 |---|---|---|---|
 | Shape (square) | 0.64 | 0.6 | ~1× (tie) |
 | Polygon (pentagon) | 5.75 | 0.3 | ~19× faster |
-| Polygon (triangle) | 2.46 – 6.88 | 0.5 | ~9–14× faster |
-| Shape (circle) | 0.49 – 3.34 | 0.2 – 0.8 | ~2–4× faster |
-| **Tile Sampler (16×16)** | **65.87 – 95.13** | **1.0** | **~66–95× faster** |
-| Normal | 0.18 – 1.2 | 0.1 – 0.5 | ~2× faster |
-| Output node | 20.74 – 27.94 | 29 | Substance slightly faster |
+| Polygon (triangle) | 2.46 to 6.88 | 0.5 | ~9 to 14× faster |
+| Shape (circle) | 0.49 to 3.34 | 0.2 to 0.8 | ~2 to 4× faster |
+| **Tile Sampler (16×16)** | **65.87 to 95.13** | **1.0** | **~66 to 95× faster** |
+| Normal | 0.18 to 1.2 | 0.1 to 0.5 | ~2× faster |
+| Output node | 20.74 to 27.94 | 29 | Substance slightly faster |
 
 <small> † The output nodes are different nodes doing different work, Designer's Base
 Material vs Surface Labs' PBR Output, included for completeness rather than

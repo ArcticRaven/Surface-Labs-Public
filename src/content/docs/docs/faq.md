@@ -14,7 +14,7 @@ parameters. See the [Overview](/docs/) for more.
 
 ## Where can I get it?
 
-Every build except the iPad one comes from the store page on itch.io:
+Every build except for iPad comes from the store page on itch.io:
 
 - [Surface Labs on itch.io](https://arcticraven.itch.io/surface-labs)
 
@@ -44,9 +44,7 @@ opened on one of them is reduced to fit. See
 
 ## How much does it cost?
 
-<!-- TODO: Do not state pricing here. Pricing is set on the store page. -->
-
-Pricing is shown on the [itch.io page](https://arcticraven.itch.io/surface-labs).
+The [itch.io page](https://arcticraven.itch.io/surface-labs) showed the current pricing.
 
 ## How do I report a bug or request a feature?
 
@@ -54,6 +52,6 @@ See the [Support](/docs/support/) page.
 
 ## Where is the source or issue tracker?
 
-The public repository is on GitHub:
-
+Surface Labs is a closed source application, however issues and feature requests can be made on the
+public website GitHub repo, or in our discord. 
 - [ArcticRaven/Surface-Labs-Public](https://github.com/ArcticRaven/Surface-Labs-Public)

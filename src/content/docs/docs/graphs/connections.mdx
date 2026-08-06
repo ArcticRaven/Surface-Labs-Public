@@ -45,7 +45,7 @@ in short:
 - **Boolean** is an on/off value; it connects only to boolean ports.
 - **Material** is a whole map-set carried on a single wire. PBR Output, Trim
   Sheet and the Material node all have one; PBR Output and Trim Sheet also take
-  one as an input. A material wire carries no texture of its own — the consumer
+  one as an input. A material wire carries no texture of its own: the consumer
   resolves each channel through the node at the far end when it renders or
   exports.
 - **Custom** is an unchecked type: it connects to anything and bypasses type

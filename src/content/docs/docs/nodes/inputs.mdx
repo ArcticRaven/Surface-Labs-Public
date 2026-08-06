@@ -179,7 +179,7 @@ native render core it produces no output rather than a substitute.
 The model belongs to the project, not the node: an imported `.obj` or `.glb`
 if the project has one, otherwise whatever primitive the 3D preview is set to,
 at the tessellation the preview is using. There are no model controls on the
-node, so the bake cannot drift from what is on screen — changing the preview
+node, so the bake cannot drift from what is on screen: changing the preview
 model re-bakes every Model UV node in the graph. The node's own **Resolution**
 setting picks the bake size.
 
@@ -205,7 +205,7 @@ does: into a Trim Sheet slot, or into another PBR Output's Material input.
 
 This node has no parameters. Properties shows what it was imported from, which
 channels the bake actually found, and an **Import** button per material in the
-project — **Re-import** once something has been imported.
+project, labelled **Re-import** once something has been imported.
 
 Importing evaluates the source material once and embeds its channel maps in
 the project as ordinary media. Base Color, Normal, Roughness, Metallic, AO,
