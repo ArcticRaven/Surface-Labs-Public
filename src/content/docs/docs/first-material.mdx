@@ -14,9 +14,7 @@ inline form replaces the shelves. Type a project name and press **Create**.
 The project file is written under `Documents/Surface Labs/` and the editor
 opens.
 
-:::caution[missing screenshot]
-The Project Hub with the New Project form open and a name typed in.
-:::
+![The Project Hub with the New Project form open on the right, a name typed into the Project name field, and the Create and Cancel buttons below it.](../../../assets/docs/first-material-new-project.webp)
 
 ## 2. Place a Noise generator
 
@@ -26,10 +24,7 @@ panel and a double-click on empty canvas offer the same catalog if you would
 rather browse; Noise is in the Generators category. It has no inputs and one
 output, **Output**, a grayscale field in the 0 to 1 range.
 
-:::caution[missing screenshot]
-The toolbar search drop-down with `noise` typed and a result being dragged onto
-the canvas.
-:::
+![A Noise node freshly placed on the canvas, its thumbnail showing the default Perlin pattern, with the Preview 2D panel on the left rendering the same field at 512 by 512.](../../../assets/docs/first-material-noise-placed.webp)
 
 In the [Properties panel](/docs/editor/properties/), pick a family from
 **Type** (Perlin is the default; fBm is a good start for natural surfaces).
@@ -37,9 +32,7 @@ In the [Properties panel](/docs/editor/properties/), pick a family from
 **Seed** reshuffles the pattern without changing anything else. Only the
 controls the chosen family uses stay visible.
 
-:::caution[missing screenshot]
-A Noise node on the canvas with its Properties visible, Type set to fBm.
-:::
+![The Properties panel for a Noise node with Type set to fBm, showing the Scale, Seed, Octaves, Lacunarity and Gain controls, and the node's thumbnail updated to the fBm pattern.](../../../assets/docs/first-material-noise-properties.webp)
 
 ## 3. Shape it with Levels
 
@@ -59,10 +52,7 @@ remaps the black point, white point and gamma onto a new output range:
 Raise **In Black** slightly and lower **Gamma** until the pattern has clear
 peaks and valleys. This grayscale result will serve as the height map.
 
-:::caution[missing screenshot]
-The Noise to Levels chain with the Levels parameters adjusted, before and
-after thumbnails visible.
-:::
+![The Noise node wired into a Levels node on the canvas, with the Levels Properties open on the left showing the histogram and its black point, gamma and white point handles.](../../../assets/docs/first-material-levels.webp)
 
 ## 4. Convert height to a normal map
 
@@ -72,9 +62,7 @@ into a tangent-space normal map on its **Output** port. Its single parameter,
 **Strength** (0 to 32, default 4), multiplies the slopes: 0 is dead flat,
 higher values exaggerate relief.
 
-:::caution[missing screenshot]
-The Normal from Height node showing a purple-toned normal map thumbnail.
-:::
+![The Normal from Height node wired off the Levels output, its thumbnail and the Preview 2D panel both showing the purple and blue toned tangent-space normal map.](../../../assets/docs/first-material-normal.webp)
 
 ## 5. Wire the PBR Output
 
@@ -90,10 +78,7 @@ fallback, so the material looks sensible with any subset connected. Wire:
 Channels you leave unwired fall back to their constants, such as
 **Roughness Value** and **Metallic Value**, which export as real flat maps.
 
-:::caution[missing screenshot]
-The finished graph: Noise, Levels, Normal from Height and PBR Output wired
-together.
-:::
+![The finished graph on a clear canvas: Noise feeding Levels, Levels feeding both Normal from Height and the PBR Output's Base Color, Roughness and Height inputs, and Normal from Height feeding the Normal input.](../../../assets/docs/first-material-graph.webp)
 
 ## 6. Preview in 3D
 
@@ -102,10 +87,7 @@ button; see [Interface Tour](/docs/interface-tour/)). It shows the material on
 a mesh in a real-time PBR-lit viewport, reading its channels from the PBR
 Output node. See [Preview 3D](/docs/export/preview-3d/).
 
-:::caution[missing screenshot]
-The 3D preview showing the material on a sphere with visible relief from the
-normal map.
-:::
+![The Preview 3D panel showing the finished material on a sphere, its surface carrying visible relief from the normal map, with the finished graph on the canvas beside it.](../../../assets/docs/first-material-3d-preview.webp)
 
 ## 7. Export
 

@@ -25,9 +25,7 @@ illegal targets are skipped, and an exact type match beats a convertible one at
 the same distance. Socket hit targets are 30 points on desktop and Android and
 45 points on iPad, where they clear the 44-point minimum touch target.
 
-:::caution[missing screenshot]
-A wire mid-drag with the nearest valid socket highlighted and snapped to.
-:::
+![A wire being dragged from a Height Blend node, with every port labelled by name and data type and the socket under the cursor called out as Output, Grayscale.](../../../../assets/docs/connection-port-labels.webp)
 
 ## Type rules
 
@@ -56,9 +54,7 @@ Textures and values are **not** interchangeable with each other. A mismatched
 connection is not blocked: the wire is drawn in red to flag a type mismatch you
 should review.
 
-:::caution[missing screenshot]
-A red wire between a value output and a texture input, next to a normally colored wire.
-:::
+![A red wire running from a Material node's output into a Flow Map node's input, flagging the type mismatch while leaving the connection in place.](../../../../assets/docs/connection-rejected.webp)
 
 ## Reroutes
 
