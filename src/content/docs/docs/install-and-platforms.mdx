@@ -184,9 +184,9 @@ export preset, and `--material` defaults to the active material. Exit codes are
 `0` for at least one file written, `1` for a usage or project error, `2` for no
 render core, and `3` for nothing to export.
 
-`--format` takes the same set the Export dialog offers. JPEG was dropped in
-1.2.1 because lossy compression damages texture maps, and TIFF took its place;
-`--format jpg` is rejected. `tif` is accepted as a spelling of `tiff`.
+`--format` takes the same set the Export dialog offers. There is no JPEG, because
+lossy compression damages texture maps, so `--format jpg` is rejected. `tif` is
+accepted as a spelling of `tiff`.
 
 `surface_lab_mcp` is the standalone MCP server, for driving a project from a
 script or an AI assistant without the application running. See Automation for

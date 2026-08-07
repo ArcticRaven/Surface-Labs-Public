@@ -48,8 +48,8 @@ A channel with a texture wired in always uses that texture, whatever its toggle 
 
 **The Material input.** Wiring a whole material into the Material port fills in the channels you did not wire yourself: a per-channel input stays more specific and keeps winning, and only an unwired channel resolves from the upstream material. This is what puts a Trim Sheet in the 3D preview, since the sheet's own Output port carries just the one channel its Preview Channel picks. For a Trim Sheet the exporter resolves the same way, so the written maps match what is on screen.
 
-:::caution[Thin Wall is now the Thickness channel]
-The 3D preview's Thin Wall toggle is gone, so a preview that relied on it shades differently now. Subsurface scattering is a material channel instead: wire a map into Thickness, or turn the channel on and raise Thickness Value. It exports like any other map. The channel changes nothing on its own (it starts off, with a constant of 0, which scatters nothing), so existing materials render as they did until you use it.
+:::note[Thickness drives subsurface scattering]
+Subsurface scattering is a material channel: wire a map into Thickness, or turn the channel on and raise Thickness Value. It exports like any other map. The channel starts off, with a constant of 0, which scatters nothing, so it changes nothing until you use it.
 :::
 
 :::note[Picking which output the 3D preview shows]

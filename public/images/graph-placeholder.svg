@@ -1,10 +1,10 @@
 <!--
   TODO: Replace with an actual screenshot of the Surface Labs node editor once
-  a real capture is available. This is a stylised placeholder illustration only
+  a real capture is available. This is a stylized placeholder illustration only
   and does not depict the shipping application.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img"
-     aria-label="Stylised illustration of a node-based texture graph with connected nodes and a texture preview.">
+     aria-label="Stylized illustration of a node-based texture graph with connected nodes and a texture preview.">
   <defs>
     <linearGradient id="preview" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#1f6f62"/>

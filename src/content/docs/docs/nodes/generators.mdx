@@ -55,9 +55,9 @@ Perlin and fBm are normalized to the full black-to-white range instead of
 hovering in the middle grays, so neither needs a Levels node just to reach the
 ends; one still narrows the range back if you want a flatter result. Averaging
 octaves does pull fBm's values toward the middle, which is fBm's nature rather
-than a range problem. Billow no longer clips into flat white cores at low
-octave counts, and Gabor stays inside the range at every Sharpness instead of
-running together into solid blobs.
+than a range problem. Billow holds its range at low octave counts, and Gabor
+stays inside the range at every Sharpness rather than running together into
+solid blobs.
 
 :::caution[missing screenshot]
 A grid of the eleven noise families rendered by one Noise node, labeled by

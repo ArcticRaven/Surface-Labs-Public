@@ -2,7 +2,7 @@
 // ({{mod}} -> Ctrl or Cmd, {{rightclick}} -> right-click or long-press) and
 // platform blocks (:::desktop / :::touch) at render time. The website cannot
 // know the reader's platform, so this plugin renders each token as neutral
-// wording and each platform block as a labelled paragraph. The in-app export
+// wording and each platform block as a labeled paragraph. The in-app export
 // (scripts/build-app-docs.mjs) passes both through verbatim instead.
 //
 // Tokens are only replaced in plain text nodes: inline code and code fences

@@ -3,12 +3,12 @@
 Status: decided and implemented on the site side (`scripts/build-app-docs.mjs`).
 Resolves the open decision in the app repo's `lib/features/help/BUNDLE_CONTRACT.md`
 ("`:::` is a shared namespace"). Companion to that contract; this file owns the
-authoring rules and the exact serialisation.
+authoring rules and the exact serialization.
 
 ## Decision
 
 There is no shared namespace at runtime. Starlight asides never reach the app
-as directives: the export serialises them to plain CommonMark. The only `:::`
+as directives: the export serializes them to plain CommonMark. The only `:::`
 markers that cross the wire are the app's platform blocks, passed through
 byte-for-byte. The app's fail-open preprocessor is therefore a safety net, not
 a rendering path, and **no app-side change is required.**
@@ -26,11 +26,11 @@ Canonical platform-block names are `:::desktop` and `:::touch`, the names the
 shipped app (branch 1.2.1, `16be90e`) already implements. The prefixed forms
 `:::app-desktop` / `:::app-touch` are reserved aliases: the site treats them
 like platform blocks, but authors must not use them until the app's
-preprocessor recognises them. Nesting: an aside inside a platform block is
+preprocessor recognizes them. Nesting: an aside inside a platform block is
 supported; a platform block inside an aside is not (the export does not
 re-quote it correctly), so restructure the prose instead.
 
-## Aside serialisation
+## Aside serialization
 
 An aside in an exported article becomes a CommonMark blockquote:
 
@@ -59,6 +59,6 @@ can document the tokens themselves.
 ## Components
 
 The only JSX allowed in docs pages is `<Tabs>`/`<TabItem label="…">`, which
-the export serialises to `### <label>` sections. Any other component fails the
+the export serializes to `### <label>` sections. Any other component fails the
 export build. This is the resolution of the contract's second open decision
 (Starlight components): the allowed set is enforced, not advisory.

@@ -78,8 +78,8 @@ nothing in flight, the render loop blocks and the GPU goes fully idle, which is
 what keeps a parked preview off the battery and the fans quiet. While a
 viewport is dirty it redraws on a roughly 30 fps budget.
 
-Texture exports encode on a worker thread, so a 4K or 8K export no longer
-freezes the live preview while it writes.
+Texture exports encode on a worker thread, so a 4K or 8K export does not freeze
+the live preview while it writes.
 
 On weak graphics hardware the core asks for extra headroom above the
 guaranteed-safe limits but never for more than the adapter reports, so a

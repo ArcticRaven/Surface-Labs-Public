@@ -25,7 +25,7 @@ const H = 1000;
 // Only the shots we don't yet have real captures for.
 const shots = [
 	{ file: '01-graph-editor.png', title: 'Graph editor', note: 'Compose shader nodes on an infinite canvas' },
-	{ file: '02-hub-library.png', title: 'Project hub & library', note: 'Organise projects and materials on custom shelves' },
+	{ file: '02-hub-library.png', title: 'Project hub & library', note: 'Organize projects and materials on custom shelves' },
 	{ file: '04-custom-shader.png', title: 'Custom shader nodes', note: 'Write node logic in the built-in shading language' },
 ];
 

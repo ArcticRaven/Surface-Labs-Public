@@ -126,8 +126,7 @@ surface.
 
 The tap count follows the streak length so the taps stay about a pixel apart
 rather than spreading into a ladder of ghosted copies. The count runs to 128 per
-side, up from 48, so that tight spacing holds nearly three times further than it
-did in 1.2.0; past that the spacing widens again.
+side, and past that the spacing widens again.
 
 ### Non-Uniform Blur
 
@@ -192,14 +191,10 @@ falls to the level of 8-bit rounding (the flat areas of a soft driver), the
 march fades out and the pixel passes through untouched, instead of streaking off
 in a direction that is really just rounding noise.
 
-:::note[Intensity reads differently than it did in 1.2.0]
-Intensity's response is now gradual, so the low end of the slider makes genuinely
-subtle changes instead of reaching across whole features immediately. The top of
-the range is unchanged, but every value below it marches shorter than it used to,
-so mid-range settings in existing projects read softer. To get an old look back,
-raise Intensity to the square root of half the old value: 0.1 becomes about 0.22,
-0.25 about 0.35, and 0.5 stays 0.5. Short marches are also cheaper, so subtle
-settings render faster.
+:::note[Intensity is not linear]
+Intensity's response is gradual, so the low end of the slider makes genuinely
+subtle changes rather than reaching across whole features immediately. Short
+marches are also cheaper, so subtle settings render faster.
 :::
 
 Slope Blur is *not* Erosion: it smears pixels along a gradient, which reads as
@@ -498,16 +493,14 @@ color is reduced to luminance before the ramp is applied.
 | *(gradient bar)* | Color-stop list | A four-stop rust ramp: near-black `#0D0A08` at 0.0, dark brown `#592E1A` at 0.35, orange `#CC7326` at 0.70, cream `#FFF2D9` at 1.0 | Unlimited stops, each with a color and a position 0.0 to 1.0 | Edited on the gradient bar in the Properties Panel; stops can be added, removed and moved. A malformed or missing ramp falls back to the default four stops. |
 | Mid | Decimal | 0.5 | 0.01 to 0.99 | A gamma-style bias on the lookup: the input value set here is what lands in the middle of the ramp. 0.5 is linear; lower values push more of the image toward the ramp's bright end, higher values toward its dark end. |
 
-:::note[Mid moves the other way than it did in 1.2.0]
-Mid used to bias the lookup in the opposite direction from the identically named
-Midpoint on [Histogram](/docs/nodes/histogram/). The two now agree. A Gradient
-Map saved with Mid away from 0.5 therefore reads inverted against what it did
-before; moving Mid to the other side of 0.5 gets close to the old result.
+:::note[Mid agrees with Histogram's Midpoint]
+Mid biases the lookup in the same direction as the identically named Midpoint on
+[Histogram](/docs/nodes/histogram/), so the two read the same way.
 :::
 
 Levels, Curves, Gradient Map and Brightness/Contrast all add a ±1 step dither
 before writing their 8-bit result. Compressing a range squeezes the input's own
-dither below one output step, which is what used to make smooth ramps re-band on
+dither below one output step, which would otherwise make smooth ramps re-band on
 export. The dither is seamless, so tiling is unaffected.
 
 ## Shape and Surface
@@ -668,9 +661,9 @@ material.
 | Intensity | Decimal | 1.0 | 0.0 to 8.0 | Output contrast around mid-gray. |
 
 The recovery averages many bounded integrations fanned out from each pixel, and
-the step count along each of them follows Radius: a wide Radius no longer strides
-past everything finer than its own stride, so the integration reaches its whole
-radius at full detail. Below one pixel of Radius the node outputs flat mid-gray.
+the step count along each of them follows Radius, so the integration never
+strides past forms finer than its own step and reaches its whole radius at full
+detail. Below one pixel of Radius the node outputs flat mid-gray.
 
 This is an approximation by construction. Two consequences are worth knowing:
 absolute height is meaningless, only relative shape survives, and forms

@@ -88,10 +88,3 @@ Type id: `height_blend`. See [Blend](/docs/nodes/blend/).
 | --- | --- |
 | Height | The two inputs merged by height so the taller surface wins; the default output. |
 | Blend Mask | B's share of the blend, which is the height-sorted boundary itself. Feed it to ordinary Blend nodes so the matching base color, roughness and normal layers composite along the same interlocking seam. Re-deriving that boundary with a Threshold would not line up. |
-
-:::caution[Rewire needed from 1.2.1 and earlier]
-Height Blend used to carry an Output parameter that switched the single port
-between Height and Mask. The parameter is gone. A project that had it set to
-Mask now gets the height on its existing wire, so move that consumer to the
-Blend Mask port.
-:::

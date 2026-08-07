@@ -2,7 +2,7 @@
  * Surface Labs: marketing homepage styles.
  *
  * The palette is derived directly from the Surface Labs application's own Dark
- * and Light theme tokens (warm cream / tan / brown). Colours are expressed with
+ * and Light theme tokens (warm cream / tan / brown). Colors are expressed with
  * the CSS light-dark() function so a single token set serves both themes; the
  * active theme is chosen by `color-scheme`, which follows the system by default
  * and is overridden by a `data-theme` attribute set from the theme toggle.
@@ -36,7 +36,7 @@
 	--link: light-dark(#684720, #d4b585);
 	--accent-glow: light-dark(rgba(104, 71, 32, 0.14), rgba(192, 157, 106, 0.16));
 
-	/* Status colours split per theme so the light values clear AA against --bg.
+	/* Status colors split per theme so the light values clear AA against --bg.
 	   Success: #357048 (4.67) vs #4f9d69. Warning: #7d5f0c (4.74) vs #c9a227. */
 	--status-success: light-dark(#357048, #4f9d69);
 	--status-warning: light-dark(#7d5f0c, #c9a227);
@@ -886,8 +886,8 @@ a.card .card__more {
 	z-index: 1;
 }
 
-/* A leading glyph so Yes / No / partial reads without relying on colour alone
-   (colour-blindness, greyscale printing). Paired with the coloured text. */
+/* A leading glyph so Yes / No / partial reads without relying on color alone
+   (color blindness, grayscale printing). Paired with the colored text. */
 .compare .yes::before,
 .compare .no::before,
 .compare .warn::before {

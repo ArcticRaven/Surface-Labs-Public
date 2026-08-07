@@ -121,7 +121,7 @@ core down and rebuilds it from scratch. A failed start is retried
 automatically a few times first, because it is usually a create racing a
 teardown; the button is for a core that is genuinely wedged.
 
-The preview no longer dies when a discrete GPU drops out of the adapter list -
+The preview survives a discrete GPU dropping out of the adapter list -
 Remote Desktop, or a driver reset mid-session. The presentation bridge is
 matched to the same adapter the renderer picked, so it falls back to the
 integrated GPU and keeps working instead of failing with an interop error.

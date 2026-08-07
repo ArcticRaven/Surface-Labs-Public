@@ -282,7 +282,7 @@ from it.
   not modes: every control below stays live afterwards.
 - **Light direction pad**: drag to set the key light's rotation and elevation
   together.
-- **White / Warm / Cool** chips, plus a **Key Light Colour** picker
+- **White / Warm / Cool** chips, plus a **Key Light Color** picker
   (saturation/value square, hue bar, hex field). The default key color is a
   slightly warm white.
 - **Key Strength**: 0.00 to 10.00, default 2.50.
@@ -330,12 +330,11 @@ whole rig off and leaves Environment Light as the only source.
   clear to feed the bloom. Pixels are scaled by how far they clear it, so the
   glow keeps their hue.
 
-:::note[Thin Wall and the Shading sliders are gone]
-The preview-only Specular, Clearcoat, Coat Roughness and Opacity sliders were
-removed in 1.2.2 - those values now come from the PBR Output node, so the
-preview and an export of the same graph cannot disagree. The Thin Wall toggle
-is gone with them; wire a map into the node's Thickness channel (or turn the
-channel on and raise its value) for subsurface scattering instead. See
+:::note[Shading values come from the PBR Output node]
+Specular, Clearcoat, Coat Roughness and Opacity are read from the PBR Output
+node rather than set on the preview, so the preview and an export of the same
+graph cannot disagree. Subsurface scattering works the same way: wire a map into
+the node's Thickness channel, or turn the channel on and raise its value. See
 [Output nodes](/docs/nodes/outputs/).
 :::
 

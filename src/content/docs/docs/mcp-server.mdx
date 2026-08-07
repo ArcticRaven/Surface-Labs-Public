@@ -123,8 +123,8 @@ log file, so it holds the last thirty and resets when the server restarts.
   that can only send a flat header map may use `X-Mcp-Token: <token>` instead.
 
 **Each client gets its own session.** One id is minted per `initialize`, so
-several clients can be connected at once and one shutting down no longer
-disconnects the rest. They still share the one open project. Sixteen ids are
+several clients can be connected at once and one shutting down does not
+disconnect the rest. They still share the one open project. Sixteen ids are
 remembered; the oldest is dropped past that, which at worst asks a
 long-abandoned client to reinitialize. A request carrying a session id the
 server does not know gets `404`, the streamable-HTTP cue to send a fresh
@@ -413,10 +413,8 @@ Value sets:
 - `disabled_channels`: channel ids such as `baseColor`, `roughness`, `metallic`,
   `normal`, `height`, `ao`, `opacity`
 
-JPEG is gone: lossy compression damages texture maps, so it was dropped rather
-than kept as a trap. A project saved when JPEG was still a format resolves to
-PNG when it next opens. `presets` reports each format's extension and the
-deepest bit depth its container carries.
+There is no JPEG: lossy compression damages texture maps. `presets` reports each
+format's extension and the deepest bit depth its container carries.
 
 `node_id` for `plan` and `run` must be an output node (PBR Output, Custom Output
 or Trim Sheet). `run` defaults to every output node; `plan` defaults to the first.
@@ -540,9 +538,9 @@ needs the app, so open the project in Surface Labs to export those. A Custom
 Shader that compiles for the native core renders headlessly like any other
 node, whichever entry point it uses.
 
-**Trim Sheets are no longer on this list.** They compose through an ordinary
-fragment shader now, so a sheet evaluates and exports headlessly and from the
-command line like anything else.
+**Trim Sheets are not on this list.** They compose through an ordinary fragment
+shader, so a sheet evaluates and exports headlessly and from the command line
+like anything else.
 
 ### Other limits
 

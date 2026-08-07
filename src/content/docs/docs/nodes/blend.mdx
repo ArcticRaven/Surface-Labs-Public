@@ -55,10 +55,6 @@ Merges two height maps by their heights instead of by opacity, so the taller sur
 
 Both inputs are read as brightness.
 
-:::caution[The mask moved to its own output port in 1.2.2]
-It used to be an either/or **Output** parameter: a node was set to Height *or* to Mask, never both. The parameter is gone and the mask is a second port, so you get both at once. A node saved with Output set to Mask now sends the *height* down its existing wire; move that connection to the Blend Mask port to get the mask back.
-:::
-
 ### Normal Blend
 
 Type id: `normal_blend`
