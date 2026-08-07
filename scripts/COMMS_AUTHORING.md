@@ -51,7 +51,6 @@ opens the card.
 | `summary` | no | One sentence under the title. |
 | `inline` | no | Short markdown rendered *in* the card. Use a YAML block scalar. |
 | `actions` | no | Up to 3 buttons, each `label` + absolute `url` + `style`. |
-| `requiresVersion` | no | Quoted `"1.2.6"`. Renders a muted tag. **Never hides the post.** |
 | `platforms` | no | Any of `windows macos linux ios android`. Omit for all. This **does** hide the post. |
 | `expires` | no | Quoted Eastern timestamp. Must be after `date`. |
 | `draft` | no | `true` keeps it out of the feed entirely. |
@@ -132,15 +131,29 @@ ship in one publish and the app reveals each one as its instant passes, with no
 refetch. A future-dated item does not render, does not count as unread, does
 not badge and does not toast.
 
-## Version is deliberately not a filter
+## Version does not appear at all
 
-There is no minimum-version gate and adding one would be a regression. Someone
-on an old build **should** see what they are missing; that is the reason to
-update. `requiresVersion` renders a muted tag and nothing more.
+**Every item in the feed goes to every version of the app.** There is no
+minimum-version gate, no maximum, and no version label on a card either. The
+app's contract defines an optional `requiresVersion` tag; this site never emits
+it, and setting it in frontmatter is a build error rather than an option.
 
-`platforms` **is** a real filter, and the difference is the point: a Windows
-user cannot act on a macOS-only notice, but they can act on a "this needs 1.2.6"
-one by updating.
+Two reasons. Hiding a post from someone on an old build protects nobody and
+sells nothing: they are exactly the person who should see what they are
+missing. And a "Requires 1.2.6" tag on a card that renders perfectly well
+reads, to the person looking at it, like a gate, whether or not the code
+treats it as one.
+
+If a post is about something a newer build has, say so in the body and give it
+an action pointing at the store. Let the reader decide.
+
+`platforms` is the one real filter, and the difference is the point: a Windows
+user cannot act on a macOS-only notice at all, so it is noise rather than
+useful envy.
+
+The one place a version comparison still happens is the update pill, driven by
+`LATEST` in `src/comms-config.mjs`. That is about the store, not about comms:
+it says "1.2.4 is out" and hides nothing.
 
 ## Rules the build enforces
 

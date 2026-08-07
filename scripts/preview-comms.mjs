@@ -82,7 +82,6 @@ for (const [label, group] of groups) {
 	for (const i of group) {
 		const tags = [
 			i.kind,
-			i.requiresVersion ? `requires ${i.requiresVersion}` : null,
 			i.body ? 'inline body' : null,
 			i.path ? 'fetched body' : null,
 			i.actions?.length ? `${i.actions.length} action(s)` : null,

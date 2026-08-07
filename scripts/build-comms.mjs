@@ -375,15 +375,20 @@ for (const file of listFiles(ANNOUNCE_DIR)) {
 
 	item.actions = normalizeActions(data.actions, where);
 
-	if (data.requiresVersion !== undefined && data.requiresVersion !== null) {
-		const rv = String(data.requiresVersion);
-		if (!/^\d+\.\d+\.\d+$/.test(rv)) {
-			fail(`${where}: requiresVersion "${rv}" must be a quoted three-part version.`);
-		}
-		item.requiresVersion = rv;
-	} else {
-		item.requiresVersion = null;
+	// The feed is for every version of the app. Nothing here is gated on, or
+	// tagged with, the build the reader is running: someone on an old release
+	// gets the same comms as someone on the newest one. The contract's
+	// `requiresVersion` tag is left permanently null rather than being an
+	// authoring option, so a "Requires 1.2.6" label cannot creep back in and
+	// read as a gate to people it was never gating.
+	if (data.requiresVersion !== undefined) {
+		fail(
+			`${where}: requiresVersion is not supported. The feed goes to every version of the ` +
+				`app, with no version tags. If the post is about something a newer build has, ` +
+				`say so in the body and let the reader decide.`,
+		);
 	}
+	item.requiresVersion = null;
 
 	if (data.platforms !== undefined && data.platforms !== null) {
 		if (!Array.isArray(data.platforms) || data.platforms.length === 0) {

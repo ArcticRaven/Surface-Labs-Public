@@ -5,7 +5,6 @@ date: "2026-08-06 10:00"
 kind: notice
 priority: pinned
 summary: "One card exercising every field the feed contract defines."
-requiresVersion: "1.2.2"
 inline: |
   This paragraph is the **inline** body. It arrives with the feed itself and
   renders directly in the card, without a second request.
@@ -30,8 +29,8 @@ one are different things.
 - The card renders with a **pinned** badge, above everything in its own group.
 - The date header reads "August 6, 2026" no matter what timezone the device is
   in, because the string comes from the server.
-- The muted "Requires 1.2.2" tag renders, and the card is still fully readable
-  regardless of which version is running. Version is never a filter.
+- No version appears on the card anywhere. Every item in this feed reaches
+  every version of the app, whichever build you are running.
 - All three actions render, in order, with the first one styled as primary.
 - This body was fetched on open rather than shipped with the feed.
 

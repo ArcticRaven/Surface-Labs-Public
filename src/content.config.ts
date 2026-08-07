@@ -93,11 +93,11 @@ export const collections = {
 			/** Short markdown rendered directly in the card, above the read action. */
 			inline: z.string().optional(),
 			actions: z.array(commsAction).default([]),
-			/** Muted "Requires x.y.z" tag. Display only, never a filter. */
-			requiresVersion: z
-				.string()
-				.regex(/^\d+\.\d+\.\d+$/, 'Expected a quoted three-part version, e.g. "1.2.6".')
-				.optional(),
+			/**
+			 * There is deliberately no version field. The feed reaches every
+			 * version of the app, and nothing in it is gated on or labelled with
+			 * the build the reader is running.
+			 */
 			/** Restrict to these platforms. Absent means all. This *is* a filter. */
 			platforms: z.array(z.enum(['windows', 'macos', 'linux', 'ios', 'android'])).optional(),
 			/** Stop showing it after this Eastern timestamp. */
