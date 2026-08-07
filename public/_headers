@@ -11,3 +11,16 @@
 
 /docs/app/img/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Cache rules for the in-app comms feed (see scripts/build-comms.mjs and
+# scripts/COMMS_AUTHORING.md). Same shape as the docs bundle, and deliberately
+# a separate tree: the two have opposite change rates, and a typo fix in an
+# announcement must not bust the docs manifest ETag and make every client
+# re-check 55 articles. Bodies and images are hash-named, so /app/comms/*
+# covers both them and img/ underneath it.
+
+/app/comms.json
+  Cache-Control: public, max-age=300, must-revalidate
+
+/app/comms/*
+  Cache-Control: public, max-age=31536000, immutable

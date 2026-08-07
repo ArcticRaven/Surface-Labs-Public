@@ -5,6 +5,9 @@ date: 2026-08-03
 author: ArcticDev
 tags: [devlog, performance]
 draft: false
+announce: true
+announceKind: blog
+announceTime: "12:00"
 ---
 
 Surface Labs, as of ver 1.2.0, ships with a Rust Engine to compute and render all 

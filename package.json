@@ -7,8 +7,10 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && node scripts/build-app-docs.mjs",
+    "build": "astro build && node scripts/build-app-docs.mjs && node scripts/build-comms.mjs",
     "build:app-docs": "node scripts/build-app-docs.mjs",
+    "build:comms": "node scripts/build-comms.mjs",
+    "preview:comms": "node scripts/preview-comms.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "deploy": "wrangler deploy"
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.3",
+    "js-yaml": "^4.3.1",
     "wrangler": "^4.114.0"
   }
 }

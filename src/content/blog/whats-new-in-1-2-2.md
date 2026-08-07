@@ -4,6 +4,10 @@ description: "A rebuilt 3D preview, subsurface scattering and bloom, a manual th
 date: 2026-08-06
 author: ArcticDev
 tags: [release, devlog]
+announce: true
+announceKind: release
+announcePriority: pinned
+announceTime: "10:00"
 ---
 
 1.2 was about the engine. 1.2.1 and 1.2.2 are about what you actually look at

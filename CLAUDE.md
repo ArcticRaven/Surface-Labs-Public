@@ -21,3 +21,9 @@ Marketing site + Starlight docs for Surface Labs (Astro 7, Cloudflare).
 - `src/docs-sidebar.mjs`: single source of truth for docs navigation, the
   app manifest's categories, and article ids (ids are permanent; the build
   fails if a published id disappears, see `app-docs-ids.json`).
+- `src/content/announcements/` + `src/content/changelog/` + blog posts with
+  `announce: true`: the in-app News feed. `npm run build` emits it to
+  `dist/app/` via `scripts/build-comms.mjs`, deliberately beside the docs
+  bundle rather than inside it so the two cannot invalidate each other.
+  Authoring rules in `scripts/COMMS_AUTHORING.md`; `npm run preview:comms`
+  shows what the app would actually render from the built feed.
