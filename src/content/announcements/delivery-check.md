@@ -1,7 +1,7 @@
 ---
 id: delivery-check
 title: "Checking announcement delivery"
-date: "2026-08-07 22:25"
+date: "2026-08-07 21:56"
 expires: "2026-08-11 22:00"
 kind: notice
 summary: "A short check that announcements are arriving as intended. It removes itself in a few days."
