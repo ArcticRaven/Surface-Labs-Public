@@ -4,6 +4,7 @@
 	"private": true,
 	"description": "Cron Worker announcing newly-live /app/comms.json entries to Discord.",
 	"scripts": {
+		"preview": "node preview.mjs",
 		"dev": "wrangler dev --test-scheduled",
 		"deploy": "wrangler deploy",
 		"tail": "wrangler tail"

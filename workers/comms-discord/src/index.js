@@ -86,20 +86,35 @@ export default {
 
 export async function run(env) {
 	const webhook = env.DISCORD_WEBHOOK_URL;
-	if (!webhook) {
-		// Not configured yet. Returning quietly beats throwing on every tick and
-		// filling the log with an error nobody is going to act on until they set
-		// the secret.
-		console.log('comms-discord: DISCORD_WEBHOOK_URL is not set; nothing to do.');
-		return;
-	}
+	const dryRun = env.DRY_RUN === 'true';
+
 	if (!env.COMMS_STATE) {
 		console.error('comms-discord: no COMMS_STATE KV binding; refusing to run without a ledger.');
 		return;
 	}
+	// Muted runs go ahead without the secret so the whole path can be exercised
+	// locally, where secrets are not present. An armed run without it cannot do
+	// anything, and says so once rather than throwing on every tick.
+	if (!webhook && !dryRun) {
+		console.log('comms-discord: DISCORD_WEBHOOK_URL is not set; nothing to do.');
+		return;
+	}
 
-	const feed = await fetchFeed(env.FEED_URL ?? DEFAULT_FEED_URL);
+	const feedUrl = env.FEED_URL ?? DEFAULT_FEED_URL;
+	const feed = await fetchFeed(feedUrl);
 	if (!feed) return;
+
+	// One line stating the whole configuration, every tick.
+	//
+	// A muted run writes nothing at all — no Discord message and no ledger
+	// entry — so "working correctly but muted" and "never ran" leave identical
+	// traces everywhere else. This line is the difference between the two, and
+	// it is the only way to confirm the thing is alive before arming it.
+	console.log(
+		`comms-discord: mode=${dryRun ? 'MUTED (dry run)' : 'LIVE'} ` +
+			`webhook=${webhook ? 'configured' : 'MISSING'} ` +
+			`feed=${feedUrl} version=${feed.version}`,
+	);
 
 	const now = Date.now();
 	// Oldest first, so a backlog reads chronologically in the channel rather
@@ -108,8 +123,6 @@ export async function run(env) {
 	const live = feed.items
 		.filter((item) => isLive(item, now))
 		.sort((a, b) => Date.parse(a.publishedAt) - Date.parse(b.publishedAt));
-
-	const dryRun = env.DRY_RUN === 'true';
 
 	const seeded = await env.COMMS_STATE.get(SEEDED_KEY);
 	if (!seeded) {
