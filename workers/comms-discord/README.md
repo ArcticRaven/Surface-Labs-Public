@@ -28,6 +28,15 @@ timer asks the same question the app asks, so Discord and the app stay in step.
 
 ## Setup, once
 
+**The easy way:** double-click `setup-discord-worker.bat` in the repo root. It
+runs all four steps below in order, explains each one as it goes, and pastes the
+storage id into the config for you. Everything after this section is the same
+thing done by hand.
+
+To change a setting later (arming it, mostly), edit `wrangler.jsonc` and run
+`redeploy-discord-worker.bat` — it tells you whether it is muted or live before
+it uploads.
+
 You will run four commands. Each is explained below. Run them from **inside this
 folder** (`workers/comms-discord`).
 
