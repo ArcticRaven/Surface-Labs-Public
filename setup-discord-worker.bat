@@ -101,13 +101,30 @@ echo   Treat this URL like a password: anyone who has it can post to
 echo   your channel. That is why it is stored encrypted in your
 echo   Cloudflare account instead of in a file in the project.
 echo.
-echo   Paste it when prompted. Nothing will appear as you paste - that
-echo   is normal for a secret. Press Enter afterwards.
+echo   Paste with right-click, or Ctrl+V. It IS shown on screen, so it
+echo   can be checked before it is stored - close this window when you
+echo   are finished and it is gone.
 echo.
-pause
-echo.
-call npx wrangler secret put DISCORD_WEBHOOK_URL
+
+:askhook
+set "HOOKURL="
+set /p HOOKURL=" Paste the webhook URL: "
+echo !HOOKURL! | findstr /r /c:"^https://discord.com/api/webhooks/.*/.*" >nul
+if errorlevel 1 (
+    echo.
+    echo  [X] That does not look like a Discord webhook URL. It should start
+    echo      with  https://discord.com/api/webhooks/  and have two more parts
+    echo      after that.
+    echo.
+    echo      If nothing appeared when you pasted, the paste did not register -
+    echo      try right-clicking instead.
+    echo.
+    goto :askhook
+)
+
+echo !HOOKURL!| call npx wrangler secret put DISCORD_WEBHOOK_URL
 if errorlevel 1 goto :fail
+echo  [ok] Stored.
 
 REM --- 4. Deploy ---------------------------------------------------------------
 echo.

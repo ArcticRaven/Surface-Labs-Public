@@ -84,8 +84,31 @@ export default {
 	// path locally, and DRY_RUN shows what a real tick would send.
 };
 
+/**
+ * Whether [value] is actually usable as a webhook.
+ *
+ * A secret can be *set* and still be useless — a mis-registered paste at
+ * `wrangler secret put`'s hidden prompt stores an empty line, which is truthy
+ * enough to look configured and fails at the only moment it matters: the first
+ * real post, possibly weeks after setup. Checking the shape up front turns that
+ * into one obvious log line instead of a silent retry loop.
+ */
+function isUsableWebhook(value) {
+	if (typeof value !== 'string' || value.trim() === '') return false;
+	let url;
+	try {
+		url = new URL(value.trim());
+	} catch {
+		return false;
+	}
+	return url.protocol === 'https:' && url.pathname.includes('/api/webhooks/');
+}
+
 export async function run(env) {
-	const webhook = env.DISCORD_WEBHOOK_URL;
+	// Trimmed, because a trailing newline survives a paste and `fetch` rejects
+	// the result outright.
+	const webhook = (env.DISCORD_WEBHOOK_URL ?? '').trim();
+	const webhookOk = isUsableWebhook(webhook);
 	const dryRun = env.DRY_RUN === 'true';
 
 	if (!env.COMMS_STATE) {
@@ -93,10 +116,17 @@ export async function run(env) {
 		return;
 	}
 	// Muted runs go ahead without the secret so the whole path can be exercised
-	// locally, where secrets are not present. An armed run without it cannot do
-	// anything, and says so once rather than throwing on every tick.
-	if (!webhook && !dryRun) {
-		console.log('comms-discord: DISCORD_WEBHOOK_URL is not set; nothing to do.');
+	// locally, where secrets are not present. An armed run without a usable one
+	// cannot do anything, and says exactly which of the two problems it has
+	// rather than failing later at the POST.
+	if (!webhookOk && !dryRun) {
+		console.error(
+			webhook === ''
+				? 'comms-discord: DISCORD_WEBHOOK_URL is not set. Run: wrangler secret put DISCORD_WEBHOOK_URL'
+				: 'comms-discord: DISCORD_WEBHOOK_URL is set but is not a Discord webhook URL ' +
+						`(${webhook.length} characters). It should look like ` +
+						'https://discord.com/api/webhooks/<id>/<token>. Re-run: wrangler secret put DISCORD_WEBHOOK_URL',
+		);
 		return;
 	}
 
@@ -112,7 +142,7 @@ export async function run(env) {
 	// it is the only way to confirm the thing is alive before arming it.
 	console.log(
 		`comms-discord: mode=${dryRun ? 'MUTED (dry run)' : 'LIVE'} ` +
-			`webhook=${webhook ? 'configured' : 'MISSING'} ` +
+			`webhook=${webhookOk ? 'ok' : webhook === '' ? 'MISSING' : 'INVALID'} ` +
 			`feed=${feedUrl} version=${feed.version}`,
 	);
 
