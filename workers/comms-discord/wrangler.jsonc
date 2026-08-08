@@ -34,7 +34,7 @@
 		// "true" logs what would be posted and writes nothing — neither the
 		// Discord message nor the ledger entry. Safe to leave on for a few ticks
 		// after first deploy to confirm it sees what you expect.
-		"DRY_RUN": "true"
+		"DRY_RUN": "false"
 	},
 	"observability": {
 		"enabled": true
