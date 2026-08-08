@@ -1,8 +1,8 @@
 [
-	"smoke-test-all-features",
-	"smoke-test-desktop-only",
-	"smoke-test-expired",
-	"smoke-test-scheduled",
+	"announcements-in-the-hub",
+	"choosing-a-preview-gpu",
+	"scheduled-announcements",
 	"surface-labs-speed-test",
+	"time-limited-notices",
 	"whats-new-in-1-2-2"
 ]
