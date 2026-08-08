@@ -1,0 +1,11 @@
+{
+	"name": "surface-labs-comms-discord",
+	"type": "module",
+	"private": true,
+	"description": "Cron Worker announcing newly-live /app/comms.json entries to Discord.",
+	"scripts": {
+		"dev": "wrangler dev --test-scheduled",
+		"deploy": "wrangler deploy",
+		"tail": "wrangler tail"
+	}
+}

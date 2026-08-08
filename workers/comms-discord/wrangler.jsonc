@@ -1,0 +1,50 @@
+{
+	"$schema": "../../node_modules/wrangler/config-schema.json",
+
+	// Deliberately its own Worker rather than a trigger bolted onto the site's
+	// wrangler.jsonc. The site deploys ./dist as static assets and nothing else;
+	// folding a cron in there would mean every routine site deploy also
+	// redeployed this, so turning announcements on would stop being a deliberate
+	// act. Deploy from inside this directory.
+	"name": "surface-labs-comms-discord",
+	"main": "src/index.js",
+	"compatibility_date": "2026-07-24",
+
+	// Every 10 minutes. The feed is served max-age=300, and the app checks on
+	// launch, so this is roughly "within one app-launch window of the card
+	// appearing" without paying for a tick a minute to watch a file that changes
+	// twice a month.
+	"triggers": {
+		"crons": ["*/10 * * * *"]
+	},
+
+	// Dedupe ledger, keyed by item id. Create it once with:
+	//   npx wrangler kv namespace create COMMS_STATE
+	// and paste the printed id below. Until then `wrangler deploy` will fail
+	// here rather than deploying a Worker that would re-announce every tick.
+	"kv_namespaces": [
+		{
+			"binding": "COMMS_STATE",
+			"id": "REPLACE_WITH_KV_NAMESPACE_ID"
+		}
+	],
+
+	"vars": {
+		// Overrides the compiled-in default. Only worth setting to point a test
+		// deploy at a staging feed.
+		"FEED_URL": "https://surfacelabs.app/app/comms.json",
+
+		// "true" logs what would be posted and writes nothing — neither the
+		// Discord message nor the ledger entry. Safe to leave on for a few ticks
+		// after first deploy to confirm it sees what you expect.
+		"DRY_RUN": "true"
+	},
+
+	"observability": {
+		"enabled": true
+	}
+
+	// DISCORD_WEBHOOK_URL is a secret, not a var — anyone holding it can post to
+	// the channel as that webhook. Set it with:
+	//   npx wrangler secret put DISCORD_WEBHOOK_URL
+}
