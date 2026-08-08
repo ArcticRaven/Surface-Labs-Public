@@ -27,9 +27,27 @@ export const FEED_URL = `${SITE}/app/comms.json`;
  * once per version ever. Use it for releases worth interrupting someone over;
  * `'normal'` for the rest.
  */
+// RELEASE DAY, 1.2.3: flip this to the 1.2.3 block below once the build is
+// actually downloadable from the store page, and drop `draft: true` from
+// src/content/changelog/1.2.3.md. Until then this branch announces 1.2.2, the
+// same as main — a version published here before it is downloadable sends
+// people to a store page that cannot give it to them.
 export const LATEST = {
 	version: '1.2.2',
 	headline: 'A rebuilt 3D preview, subsurface scattering and bloom, and a manual that updates itself.',
+	url: 'https://arcticraven.itch.io/surface-labs',
+	priority: 'normal',
+};
+
+// Staged for release day. Not exported, so nothing reads it yet.
+//
+// `priority: 'pinned'` would add a one-time toast on top of the pill. Left
+// 'normal' as a starting point: 1.2.3 is worth a card, and whether it is worth
+// interrupting someone over is a judgement to make on the day, not two weeks
+// out. The toast fires at most once per version ever either way.
+const LATEST_1_2_3 = {
+	version: '1.2.3',
+	headline: 'Announcements in the hub, published from the website without an app update.',
 	url: 'https://arcticraven.itch.io/surface-labs',
 	priority: 'normal',
 };
